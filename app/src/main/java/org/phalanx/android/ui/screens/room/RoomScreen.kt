@@ -91,7 +91,9 @@ fun RoomScreen(
     Scaffold(
         topBar = { RoomTopBar(header, ready?.title, onBack, onOpenDetails = { onOpenDetails(viewModel.roomId) }) },
         bottomBar = {
-            if (ready != null) Composer(composerState, composerActions, enterToSend = settings?.enterToSend == true, scheduled)
+            if (ready != null) {
+                Composer(composerState, composerActions, enterToSend = settings?.enterToSend == true, scheduled)
+            }
         },
         snackbarHost = { SnackbarHost(snackbar) }
     ) { padding ->

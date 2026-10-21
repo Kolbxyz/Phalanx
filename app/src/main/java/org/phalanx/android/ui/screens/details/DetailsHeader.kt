@@ -60,7 +60,8 @@ internal fun DetailsHeader(room: RoomSummary, onFavourite: (Boolean) -> Unit, on
             Text(
                 text = buildString {
                     if (!room.isDirect) {
-                        append(pluralStringResource(R.plurals.details_members, room.memberCount.toInt(), room.memberCount))
+                        val count = room.memberCount
+                        append(pluralStringResource(R.plurals.details_members, count.toInt(), count))
                     }
                     if (room.isEncrypted) {
                         if (isNotEmpty()) append(" · ")

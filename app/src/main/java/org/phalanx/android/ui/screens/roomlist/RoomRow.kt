@@ -67,7 +67,10 @@ internal fun RoomRow(
         ) {
             RoomAvatar(room)
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
                         text = room.name,
                         style = MaterialTheme.typography.titleMedium,
@@ -137,8 +140,9 @@ private fun UnreadDot() {
 @Composable
 private fun RoomAvatar(room: RoomSummary) {
     val shape = if (room.isDirect) MaterialShapes.Cookie9Sided.toShape() else MaterialShapes.Cookie4Sided.toShape()
-    val container = if (room.isDirect) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.primaryContainer
-    val content = if (room.isDirect) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onPrimaryContainer
+    val colors = MaterialTheme.colorScheme
+    val container = if (room.isDirect) colors.tertiaryContainer else colors.primaryContainer
+    val content = if (room.isDirect) colors.onTertiaryContainer else colors.onPrimaryContainer
     MatrixAvatar(
         name = room.name,
         media = room.avatar,
@@ -152,7 +156,8 @@ private fun RoomAvatar(room: RoomSummary) {
 
 @Composable
 private fun UnreadBadge(count: Long, mention: Boolean) {
-    val description = pluralStringResource(R.plurals.roomlist_unread, count.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(), count)
+    val quantity = count.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+    val description = pluralStringResource(R.plurals.roomlist_unread, quantity, count)
     Surface(
         shape = CircleShape,
         color = if (mention) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
@@ -162,7 +167,10 @@ private fun UnreadBadge(count: Long, mention: Boolean) {
             .semantics { contentDescription = description }
     ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 7.dp)) {
-            Text(text = if (count > MAX_BADGE) "$MAX_BADGE+" else count.toString(), style = MaterialTheme.typography.labelSmall)
+            Text(
+                text = if (count > MAX_BADGE) "$MAX_BADGE+" else count.toString(),
+                style = MaterialTheme.typography.labelSmall
+            )
         }
     }
 }

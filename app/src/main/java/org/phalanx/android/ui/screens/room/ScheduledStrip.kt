@@ -29,7 +29,11 @@ import org.phalanx.android.data.model.ScheduledMessage
 
 /** This room's messages waiting to be sent, above the composer, each with "send now" and cancel. */
 @Composable
-internal fun ScheduledStrip(messages: List<ScheduledMessage>, onSendNow: (String) -> Unit, onCancel: (String) -> Unit) {
+internal fun ScheduledStrip(
+    messages: List<ScheduledMessage>,
+    onSendNow: (String) -> Unit,
+    onCancel: (String) -> Unit
+) {
     Column(
         modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -62,10 +66,19 @@ private fun ScheduledRow(message: ScheduledMessage, onSendNow: (String) -> Unit,
                     DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_ABBREV_ALL
                 )
                 Text(
-                    text = if (failed) stringResource(R.string.schedule_failed) else stringResource(R.string.schedule_at, time),
+                    text = if (failed) {
+                        stringResource(R.string.schedule_failed)
+                    } else {
+                        stringResource(R.string.schedule_at, time)
+                    },
                     style = MaterialTheme.typography.labelLarge
                 )
-                Text(message.text, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    text = message.text,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
             IconButton(onClick = { onSendNow(message.id) }) {
                 Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = stringResource(R.string.schedule_send_now))

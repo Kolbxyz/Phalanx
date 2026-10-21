@@ -114,7 +114,9 @@ internal fun VideoPlayer(uri: Uri, modifier: Modifier = Modifier) {
                 ) {
                     Icon(
                         if (playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                        contentDescription = stringResource(if (playing) R.string.timeline_pause else R.string.timeline_play),
+                        contentDescription = stringResource(
+                            if (playing) R.string.timeline_pause else R.string.timeline_play
+                        ),
                         modifier = Modifier.size(36.dp)
                     )
                 }

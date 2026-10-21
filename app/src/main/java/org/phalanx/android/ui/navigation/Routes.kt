@@ -26,3 +26,7 @@ data object SettingsRoute
 
 @Serializable
 data object DevicesRoute
+
+/** One page of settings; [category] is a [org.phalanx.android.ui.screens.settings.SettingsCategory] name. */
+@Serializable
+data class SettingsCategoryRoute(val category: String)

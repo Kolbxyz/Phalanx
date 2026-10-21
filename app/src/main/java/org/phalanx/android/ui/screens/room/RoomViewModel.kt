@@ -8,12 +8,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -25,11 +25,11 @@ import org.phalanx.android.data.model.AppSettings
 import org.phalanx.android.data.model.MediaRef
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.model.ScheduledMessage
+import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.BlockedUsersRepository
+import org.phalanx.android.data.repository.MediaRepository
 import org.phalanx.android.data.repository.RoomListRepository
 import org.phalanx.android.data.repository.ScheduleRepository
-import org.phalanx.android.data.model.TimelineEntry
-import org.phalanx.android.data.repository.MediaRepository
 import org.phalanx.android.data.repository.TimelineRepository
 import org.phalanx.android.data.repository.TimelineSession
 import org.phalanx.android.ui.components.OpenRequest

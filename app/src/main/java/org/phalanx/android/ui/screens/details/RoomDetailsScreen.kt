@@ -150,7 +150,7 @@ private fun LazyListScope.pinnedSection(pinned: List<TimelineEntry.Message>?, on
         item { EmptyNote(stringResource(if (pinned == null) R.string.loading else R.string.details_pinned_none)) }
         return
     }
-    itemsIndexed(pinned, key = { _, it -> "pin-${it.id}" }) { index, message ->
+    itemsIndexed(pinned, key = { _, message -> "pin-${message.id}" }) { index, message ->
         PinnedRow(message, segmentedShape(index, pinned.size), onClick = onOpen)
         Spacer(Modifier.height(2.dp))
     }
@@ -174,7 +174,7 @@ private fun LazyListScope.mediaSections(
     if (files.isEmpty()) {
         item { EmptyNote(stringResource(if (media == null) R.string.loading else R.string.details_files_none)) }
     }
-    itemsIndexed(files, key = { _, it -> "file-${it.id}" }) { index, message ->
+    itemsIndexed(files, key = { _, message -> "file-${message.id}" }) { index, message ->
         FileRow(message, segmentedShape(index, files.size)) { onOpen(message) }
         Spacer(Modifier.height(2.dp))
     }

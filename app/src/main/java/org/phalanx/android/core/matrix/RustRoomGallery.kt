@@ -95,9 +95,15 @@ internal class RustRoomGallery private constructor(
 
         /** Takes ownership of [room] and releases it in [close]. */
         suspend fun open(room: Room): RustRoomGallery {
-            val pinned = room.timelineWithConfiguration(configuration(TimelineFocus.PinnedEvents, TimelineFilter.All, "pinned"))
+            val pinned = room.timelineWithConfiguration(
+                configuration(TimelineFocus.PinnedEvents, TimelineFilter.All, prefix = "pinned")
+            )
             val media = room.timelineWithConfiguration(
-                configuration(TimelineFocus.Live(hideThreadedEvents = false), TimelineFilter.OnlyMessage(MEDIA_TYPES), "media")
+                configuration(
+                    TimelineFocus.Live(hideThreadedEvents = false),
+                    TimelineFilter.OnlyMessage(MEDIA_TYPES),
+                    prefix = "media"
+                )
             )
             return RustRoomGallery(room, pinned, media).apply {
                 start()

@@ -13,12 +13,15 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import org.phalanx.android.ui.screens.account.AccountScreen
 import org.phalanx.android.ui.screens.details.RoomDetailsScreen
 import org.phalanx.android.ui.screens.devices.DevicesScreen
 import org.phalanx.android.ui.screens.media.MediaViewerScreen
 import org.phalanx.android.ui.screens.room.RoomScreen
 import org.phalanx.android.ui.screens.roomlist.RoomListScreen
+import org.phalanx.android.ui.screens.settings.SettingsCategory
+import org.phalanx.android.ui.screens.settings.SettingsCategoryScreen
 import org.phalanx.android.ui.screens.settings.SettingsScreen
 
 /** Shared-axis transitions on the theme's motion scheme, so reduced motion shortens them too. */
@@ -41,7 +44,7 @@ fun PhalanxNavHost() {
                     RoomListScreen(
                         onOpenRoom = { navController.navigate(RoomRoute(it)) },
                         onOpenDetails = { navController.navigate(RoomDetailsRoute(it)) },
-                        onOpenAccount = { navController.navigate(AccountRoute) }
+                        onOpenAccount = { navController.navigate(SettingsRoute) }
                     )
                 }
                 composable<RoomRoute> {
@@ -80,7 +83,6 @@ fun PhalanxNavHost() {
                 composable<AccountRoute> {
                     AccountScreen(
                         onBack = { navController.popBackStack() },
-                        onOpenSettings = { navController.navigate(SettingsRoute) },
                         onOpenDevices = { navController.navigate(DevicesRoute) }
                     )
                 }
@@ -88,7 +90,21 @@ fun PhalanxNavHost() {
                     DevicesScreen(onBack = { navController.popBackStack() })
                 }
                 composable<SettingsRoute> {
-                    SettingsScreen(onBack = { navController.popBackStack() })
+                    SettingsScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenAccount = { navController.navigate(AccountRoute) },
+                        onOpenCategory = { navController.navigate(SettingsCategoryRoute(it.name)) }
+                    )
+                }
+                composable<SettingsCategoryRoute> { entry ->
+                    val name = entry.toRoute<SettingsCategoryRoute>().category
+                    val category = SettingsCategory.entries.firstOrNull { it.name == name }
+                        ?: SettingsCategory.Appearance
+                    SettingsCategoryScreen(
+                        category = category,
+                        onBack = { navController.popBackStack() },
+                        onOpenDevices = { navController.navigate(DevicesRoute) }
+                    )
                 }
             }
         }

@@ -88,7 +88,9 @@ internal class MessageScheduler @Inject constructor(
     /** Hands [id] to WorkManager to send as soon as there is a network. */
     fun retrySoon(id: String) = enqueue(id, delayMillis = 0)
 
-    suspend fun markFailed(id: String) = store.update { all -> all.map { if (it.id == id) it.copy(failed = true) else it } }
+    suspend fun markFailed(id: String) = store.update { all ->
+        all.map { if (it.id == id) it.copy(failed = true) else it }
+    }
 
     private fun setAlarm(message: ScheduledMessage) {
         val intent = alarmIntent(message.id)

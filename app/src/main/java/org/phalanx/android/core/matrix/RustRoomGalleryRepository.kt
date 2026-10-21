@@ -7,10 +7,10 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.matrix.rustcomponents.sdk.ClientException
-import org.phalanx.android.di.ApplicationScope
 import org.phalanx.android.data.repository.RoomGallery
 import org.phalanx.android.data.repository.RoomGalleryRepository
 import org.phalanx.android.data.repository.TimelineUnavailableException
+import org.phalanx.android.di.ApplicationScope
 import javax.inject.Inject
 import javax.inject.Singleton
 
