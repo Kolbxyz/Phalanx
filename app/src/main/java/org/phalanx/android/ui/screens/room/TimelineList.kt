@@ -55,6 +55,7 @@ import java.time.LocalDate
 
 private const val LOAD_AHEAD = 5
 private const val OLDER_KEY = "older"
+private const val TYPING_KEY = "typing"
 private const val JUMP_AFTER_ITEMS = 4
 
 // Messages further apart than this start a new run even from the same sender.
@@ -117,6 +118,20 @@ internal fun TimelineList(
                 ),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
+                // First in a reversed list, so it sits under the newest message.
+                if (state.typing.isNotEmpty()) {
+                    item(key = TYPING_KEY, contentType = TYPING_KEY) {
+                        TypingIndicator(
+                            names = state.typing,
+                            isGroupChat = !state.isDirect,
+                            modifier = Modifier.animateItem(
+                                fadeInSpec = motion.defaultEffectsSpec(),
+                                placementSpec = motion.defaultSpatialSpec(),
+                                fadeOutSpec = motion.defaultEffectsSpec()
+                            )
+                        )
+                    }
+                }
                 itemsIndexed(
                     items = state.entries,
                     key = { _, entry -> entry.id },

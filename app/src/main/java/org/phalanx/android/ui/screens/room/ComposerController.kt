@@ -28,7 +28,9 @@ internal class ComposerController(
     private val scope: CoroutineScope,
     private val preparer: AttachmentPreparer,
     private val recorder: VoiceRecorder,
-    private val notify: (Int) -> Unit
+    private val notify: (Int) -> Unit,
+    /** Whether the user allows sending typing notices, read at each keystroke. */
+    private val shareTyping: () -> Boolean
 ) {
     private val mutableState = MutableStateFlow(ComposerState())
     val state: StateFlow<ComposerState> = mutableState.asStateFlow()
@@ -61,7 +63,10 @@ internal class ComposerController(
         }
     }
 
-    fun onDraftChange(value: String) = update { it.copy(draft = value) }
+    fun onDraftChange(value: String) {
+        update { it.copy(draft = value) }
+        session?.setTyping(shareTyping() && value.isNotBlank())
+    }
 
     fun reply(message: TimelineEntry.Message) = update { it.copy(mode = ComposerMode.Reply(message)) }
 
@@ -106,6 +111,7 @@ internal class ComposerController(
 
     fun send() {
         val current = session ?: return
+        current.setTyping(false)
         val snapshot = mutableState.value
         if (!snapshot.canSend) return
         val text = snapshot.draft.trim()
@@ -183,6 +189,7 @@ internal class ComposerController(
 
     /** Keeps the draft and drops everything that was only in memory. */
     fun release() {
+        session?.setTyping(false)
         recorder.cancel()
         mutableState.value.attachments.mapNotNull { it.media }.forEach(preparer::discard)
         val snapshot = mutableState.value

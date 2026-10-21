@@ -24,6 +24,8 @@ data class AppSettings(
     val fullQualityImages: Boolean = false,
     /** Off: photos and video previews in conversations wait for a tap before downloading. */
     val autoLoadMedia: Boolean = true,
+    /** Off: others never see the typing dots for this account. Their own still show here. */
+    val sendTypingNotices: Boolean = false,
     /** Off: read receipts stay private, so others never see when this account read their messages. */
     val publicReadReceipts: Boolean = false
 )

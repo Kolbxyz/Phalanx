@@ -16,6 +16,7 @@ import androidx.compose.material.icons.rounded.FormatBold
 import androidx.compose.material.icons.rounded.HighQuality
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
@@ -109,7 +110,10 @@ private fun PrivacySection(current: AppSettings, viewModel: SettingsViewModel) {
             listOf(
                 SwitchSetting(Icons.Rounded.DoneAll, R.string.settings_read_receipts,
                     R.string.settings_read_receipts_summary, current.publicReadReceipts,
-                    viewModel::setPublicReadReceipts)
+                    viewModel::setPublicReadReceipts),
+                SwitchSetting(Icons.Rounded.Keyboard, R.string.settings_send_typing,
+                    R.string.settings_send_typing_summary, current.sendTypingNotices,
+                    viewModel::setSendTypingNotices)
             )
         )
     }

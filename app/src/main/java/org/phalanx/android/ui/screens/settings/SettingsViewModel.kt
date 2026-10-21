@@ -51,6 +51,8 @@ class SettingsViewModel @Inject constructor(
 
     fun setAutoLoadMedia(enabled: Boolean) = edit { store.setAutoLoadMedia(enabled) }
 
+    fun setSendTypingNotices(enabled: Boolean) = edit { store.setSendTypingNotices(enabled) }
+
     fun setPublicReadReceipts(enabled: Boolean) = edit { store.setPublicReadReceipts(enabled) }
 
     fun unblock(userId: String) = edit {

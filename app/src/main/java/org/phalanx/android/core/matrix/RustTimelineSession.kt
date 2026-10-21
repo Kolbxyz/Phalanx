@@ -57,6 +57,9 @@ internal class RustTimelineSession private constructor(
     private val mutableEntries = MutableStateFlow<List<TimelineEntry>>(emptyList())
     override val entries: StateFlow<List<TimelineEntry>> = mutableEntries
 
+    private val typingState = RoomTyping(room, room.ownUserId(), scope)
+    override val typing: StateFlow<List<String>> = typingState.names
+
     private val mutableHasMore = MutableStateFlow(true)
     override val hasMoreHistory: StateFlow<Boolean> = mutableHasMore
 
@@ -183,7 +186,10 @@ internal class RustTimelineSession private constructor(
     }
 
     /** Called by the repository only, when the room leaves its cache. */
+    override fun setTyping(typing: Boolean) = typingState.notice(typing)
+
     fun close() {
+        typingState.close()
         scope.cancel()
         listenerHandle?.let {
             it.cancel()

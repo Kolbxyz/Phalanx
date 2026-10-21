@@ -176,4 +176,13 @@
     <string name="timeline_jump_latest">Jump to latest message</string>
     <string name="timeline_load_media">Load %1$s</string>
     <string name="timeline_reply_unavailable">Original message unavailable</string>
+    <string name="typing_dm">Typing…</string>
+    <string name="typing_one">%1$s is typing…</string>
+    <string name="typing_two">%1$s and %2$s are typing…</string>
+    <string name="settings_send_typing">Share typing</string>
+    <string name="settings_send_typing_summary">Let others see when you’re typing a message</string>
+    <plurals name="typing_many">
+        <item quantity="one">%1$s and %2$d other are typing…</item>
+        <item quantity="other">%1$s and %2$d others are typing…</item>
+    </plurals>
 </resources>

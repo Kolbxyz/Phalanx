@@ -176,4 +176,14 @@
     <string name="timeline_jump_latest">Aller au dernier message</string>
     <string name="timeline_load_media">Charger : %1$s</string>
     <string name="timeline_reply_unavailable">Message d’origine indisponible</string>
+    <string name="typing_dm">En train d’écrire…</string>
+    <string name="typing_one">%1$s écrit…</string>
+    <string name="typing_two">%1$s et %2$s écrivent…</string>
+    <string name="settings_send_typing">Partager la saisie</string>
+    <string name="settings_send_typing_summary">Montrer aux autres quand vous écrivez un message</string>
+    <plurals name="typing_many">
+        <item quantity="one">%1$s et %2$d autre personne écrivent…</item>
+        <item quantity="many">%1$s et %2$d autres personnes écrivent…</item>
+        <item quantity="other">%1$s et %2$d autres personnes écrivent…</item>
+    </plurals>
 </resources>

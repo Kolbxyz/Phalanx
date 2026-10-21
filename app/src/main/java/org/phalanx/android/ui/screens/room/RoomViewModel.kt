@@ -69,7 +69,9 @@ class RoomViewModel @Inject constructor(
 
     private var session: TimelineSession? = null
 
-    internal val composer = ComposerController(viewModelScope, preparer, recorder, ::notify)
+    internal val composer = ComposerController(viewModelScope, preparer, recorder, ::notify) {
+        settings.value?.sendTypingNotices == true
+    }
 
     init {
         viewModelScope.launch {
@@ -136,8 +138,8 @@ class RoomViewModel @Inject constructor(
 
     private fun observe(opened: TimelineSession) {
         viewModelScope.launch {
-            combine(opened.entries, opened.hasMoreHistory) { entries, more ->
-                RoomUiState.Ready(opened.title, opened.isDirect, entries.asReversed(), more)
+            combine(opened.entries, opened.hasMoreHistory, opened.typing) { entries, more, typing ->
+                RoomUiState.Ready(opened.title, opened.isDirect, entries.asReversed(), more, typing)
             }.collect { mutableState.value = it }
         }
         viewModelScope.launch {

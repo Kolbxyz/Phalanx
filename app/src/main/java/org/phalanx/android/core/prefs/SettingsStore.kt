@@ -50,6 +50,8 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
 
     suspend fun setAutoLoadMedia(enabled: Boolean) = store.edit { it[AUTO_LOAD_MEDIA] = enabled }
 
+    suspend fun setSendTypingNotices(enabled: Boolean) = store.edit { it[SEND_TYPING] = enabled }
+
     suspend fun setPublicReadReceipts(enabled: Boolean) = store.edit { it[PUBLIC_READ_RECEIPTS] = enabled }
 
     private fun Preferences.toSettings(): AppSettings {
@@ -65,6 +67,7 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
             markdown = this[MARKDOWN] ?: defaults.markdown,
             fullQualityImages = this[FULL_QUALITY_IMAGES] ?: defaults.fullQualityImages,
             autoLoadMedia = this[AUTO_LOAD_MEDIA] ?: defaults.autoLoadMedia,
+            sendTypingNotices = this[SEND_TYPING] ?: defaults.sendTypingNotices,
             publicReadReceipts = this[PUBLIC_READ_RECEIPTS] ?: defaults.publicReadReceipts
         )
     }
@@ -81,5 +84,6 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
         val MARKDOWN = booleanPreferencesKey("markdown")
         val FULL_QUALITY_IMAGES = booleanPreferencesKey("full_quality_images")
         val AUTO_LOAD_MEDIA = booleanPreferencesKey("auto_load_media")
+        val SEND_TYPING = booleanPreferencesKey("send_typing_notices")
     }
 }
