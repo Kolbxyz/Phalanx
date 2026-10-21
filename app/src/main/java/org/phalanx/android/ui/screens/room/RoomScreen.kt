@@ -1,24 +1,20 @@
 package org.phalanx.android.ui.screens.room
 
+import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.Intent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -28,37 +24,71 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import org.phalanx.android.R
+import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.components.TimelinePlaceholder
-import org.phalanx.android.ui.theme.LocalReducedMotion
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 @Composable
-fun RoomScreen(onBack: () -> Unit, viewModel: RoomViewModel = hiltViewModel()) {
+fun RoomScreen(
+    onBack: () -> Unit,
+    onOpenMedia: (roomId: String, entryId: String) -> Unit,
+    viewModel: RoomViewModel = hiltViewModel()
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val draft by viewModel.draft.collectAsStateWithLifecycle()
-    val sendFailed by viewModel.sendFailed.collectAsStateWithLifecycle()
+    val replyingTo by viewModel.replyingTo.collectAsStateWithLifecycle()
+    val notice by viewModel.notice.collectAsStateWithLifecycle()
+    val openRequest by viewModel.openRequest.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
-    val failedMessage = stringResource(R.string.composer_send_failed)
+    val context = LocalContext.current
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
+    var selected by remember { mutableStateOf<TimelineEntry.Message?>(null) }
+    var deleting by remember { mutableStateOf<TimelineEntry.Message?>(null) }
 
-    LaunchedEffect(sendFailed) {
-        if (sendFailed) {
-            snackbar.showSnackbar(failedMessage)
-            viewModel.dismissSendFailed()
+    val noticeText = notice?.let { stringResource(it) }
+    LaunchedEffect(noticeText) {
+        if (noticeText != null) {
+            snackbar.showSnackbar(noticeText)
+            viewModel.dismissNotice()
         }
+    }
+    LaunchedEffect(openRequest) {
+        val request = openRequest ?: return@LaunchedEffect
+        val intent = Intent(Intent.ACTION_VIEW)
+            .setDataAndType(request.uri, request.mimeType ?: "*/*")
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        try {
+            context.startActivity(intent)
+        } catch (_: ActivityNotFoundException) {
+            viewModel.notify(R.string.timeline_open_failed)
+        }
+        viewModel.onOpened()
+    }
+
+    val actions = remember(viewModel) {
+        MessageActions(
+            onOpenImage = { onOpenMedia(viewModel.roomId, it.id) },
+            onOpenFile = viewModel::openFile,
+            resolveAudio = viewModel::audioUri,
+            onToggleReaction = viewModel::toggleReaction,
+            onReply = viewModel::startReply,
+            onLongPress = { selected = it }
+        )
     }
 
     val ready = state as? RoomUiState.Ready
@@ -74,7 +104,9 @@ fun RoomScreen(onBack: () -> Unit, viewModel: RoomViewModel = hiltViewModel()) {
             )
         },
         bottomBar = {
-            if (ready != null) Composer(draft, viewModel::onDraftChange, viewModel::send)
+            if (ready != null) {
+                Composer(draft, replyingTo, viewModel::onDraftChange, viewModel::send, viewModel::cancelReply)
+            }
         },
         snackbarHost = { SnackbarHost(snackbar) }
     ) { padding ->
@@ -93,9 +125,43 @@ fun RoomScreen(onBack: () -> Unit, viewModel: RoomViewModel = hiltViewModel()) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                is RoomUiState.Ready -> Timeline(current, padding, viewModel::loadOlder)
+                is RoomUiState.Ready -> TimelineList(current, padding, actions, viewModel::loadOlder)
             }
         }
+    }
+
+    selected?.let { message ->
+        MessageActionsSheet(
+            message = message,
+            onDismiss = { selected = null },
+            onReact = { key ->
+                viewModel.toggleReaction(message, key)
+                selected = null
+            },
+            onReply = {
+                viewModel.startReply(message)
+                selected = null
+            },
+            onCopy = {
+                (message.body as? MessageBody.Text)?.let { body ->
+                    scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, body.text))) }
+                }
+                selected = null
+            },
+            onDelete = {
+                deleting = message
+                selected = null
+            }
+        )
+    }
+    deleting?.let { message ->
+        DeleteMessageDialog(
+            onConfirm = {
+                viewModel.redact(message)
+                deleting = null
+            },
+            onDismiss = { deleting = null }
+        )
     }
 }
 
@@ -103,79 +169,3 @@ fun RoomScreen(onBack: () -> Unit, viewModel: RoomViewModel = hiltViewModel()) {
 private fun Centered(padding: PaddingValues, content: @Composable () -> Unit) {
     Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) { content() }
 }
-
-@Composable
-private fun Timeline(state: RoomUiState.Ready, padding: PaddingValues, onLoadOlder: () -> Unit) {
-    val listState = rememberLazyListState()
-    val motion = MaterialTheme.motionScheme
-
-    // The list is reversed, so the oldest message is the last item; ask for more history when it
-    // gets close, and again each time the list grows and it is still close.
-    LaunchedEffect(listState, state.canLoadOlder) {
-        if (!state.canLoadOlder) return@LaunchedEffect
-        snapshotFlow {
-            val info = listState.layoutInfo
-            (info.visibleItemsInfo.lastOrNull()?.index ?: 0) >= info.totalItemsCount - LOAD_AHEAD
-        }.collect { nearTop -> if (nearTop) onLoadOlder() }
-    }
-
-    // A message arriving while the user reads the newest ones should come into view, not land
-    // below the fold because the list kept its anchor on the previous item.
-    val reducedMotion = LocalReducedMotion.current
-    val newestId = state.entries.firstOrNull()?.id
-    LaunchedEffect(newestId) {
-        if (listState.firstVisibleItemIndex <= 1) {
-            if (reducedMotion) listState.scrollToItem(0) else listState.animateScrollToItem(0)
-        }
-    }
-
-    LazyColumn(
-        state = listState,
-        modifier = Modifier.fillMaxSize(),
-        reverseLayout = true,
-        contentPadding = PaddingValues(
-            start = 12.dp,
-            end = 12.dp,
-            top = padding.calculateTopPadding() + 8.dp,
-            bottom = padding.calculateBottomPadding() + 8.dp
-        ),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        items(state.entries, key = { it.id }, contentType = { it::class }) { entry ->
-            val animated = Modifier.animateItem(
-                fadeInSpec = motion.defaultEffectsSpec(),
-                placementSpec = motion.defaultSpatialSpec(),
-                fadeOutSpec = motion.defaultEffectsSpec()
-            )
-            when (entry) {
-                is TimelineEntry.Message -> MessageBubble(entry, showSender = !state.isDirect, modifier = animated)
-                is TimelineEntry.DayDivider -> DayDivider(entry.millis, animated)
-            }
-        }
-        // Last in a reversed list, so it sits above the oldest message while history loads.
-        if (state.canLoadOlder) {
-            item(key = OLDER_KEY, contentType = OLDER_KEY) {
-                Box(Modifier.fillMaxWidth().padding(vertical = 8.dp), Alignment.Center) {
-                    LoadingIndicator(Modifier.size(32.dp))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DayDivider(millis: Long, modifier: Modifier = Modifier) {
-    val label = remember(millis) {
-        DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).format(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()))
-    }
-    Text(
-        text = label,
-        modifier = modifier.fillMaxWidth().padding(vertical = 12.dp),
-        textAlign = TextAlign.Center,
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-}
-
-private const val LOAD_AHEAD = 5
-private const val OLDER_KEY = "older"

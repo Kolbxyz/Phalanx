@@ -1,0 +1,62 @@
+package org.phalanx.android.ui.screens.room
+
+import android.util.Patterns
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.fromHtml
+import androidx.compose.ui.text.style.TextDecoration
+import org.phalanx.android.data.model.MessageBody
+
+/** Rich text when the sender sent HTML (most clients and bridges do), linkified plain text otherwise. */
+@Composable
+internal fun MessageText(body: MessageBody.Text, senderName: String, modifier: Modifier = Modifier) {
+    val links = TextLinkStyles(SpanStyle(textDecoration = TextDecoration.Underline))
+    val text = remember(body, senderName) {
+        val content = body.html?.let { AnnotatedString.fromHtml(it, links).trimEnd() } ?: linkify(body.text, links)
+        if (body.style == MessageBody.TextStyle.Emote) {
+            buildAnnotatedString {
+                append("* $senderName ")
+                append(content)
+            }
+        } else {
+            content
+        }
+    }
+    val notice = body.style == MessageBody.TextStyle.Notice
+    Text(
+        text = text,
+        modifier = modifier,
+        style = MaterialTheme.typography.bodyLarge,
+        // Notices are what bots and bridges send about themselves; quieter than people's messages.
+        color = if (notice) MaterialTheme.colorScheme.onSurfaceVariant else LocalContentColor.current,
+        fontStyle = if (body.style == MessageBody.TextStyle.Emote) FontStyle.Italic else null
+    )
+}
+
+private fun linkify(text: String, styles: TextLinkStyles): AnnotatedString = buildAnnotatedString {
+    append(text)
+    Patterns.WEB_URL.toRegex().findAll(text).forEach { match ->
+        val url = match.value
+        // Bare domains ("example.org") are matched too; they still need a scheme to open.
+        val target = if (url.contains("://")) url else "https://$url"
+        if (target.startsWith("https://") || target.startsWith("http://")) {
+            addLink(LinkAnnotation.Url(target, styles), match.range.first, match.range.last + 1)
+        }
+    }
+}
+
+/** HTML paragraphs end in line breaks that would leave a blank line at the bottom of a bubble. */
+private fun AnnotatedString.trimEnd(): AnnotatedString {
+    val end = text.indexOfLast { !it.isWhitespace() } + 1
+    return if (end == text.length) this else subSequence(0, end)
+}

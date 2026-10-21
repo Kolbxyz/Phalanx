@@ -1,5 +1,7 @@
 package org.phalanx.android.ui.screens.room
 
+import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,30 +16,45 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.phalanx.android.R
+import org.phalanx.android.data.model.MediaRef
 import org.phalanx.android.data.model.TimelineEntry
+import org.phalanx.android.data.repository.MediaRepository
 import org.phalanx.android.data.repository.TimelineRepository
 import org.phalanx.android.data.repository.TimelineSession
 import org.phalanx.android.ui.navigation.RoomRoute
 import javax.inject.Inject
 
+/** A file ready to hand to another app. */
+data class OpenRequest(val uri: Uri, val mimeType: String?)
+
 @HiltViewModel
 class RoomViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    timelines: TimelineRepository
+    timelines: TimelineRepository,
+    private val media: MediaRepository
 ) : ViewModel() {
+    val roomId: String = savedStateHandle.toRoute<RoomRoute>().roomId
+
     private val mutableState = MutableStateFlow<RoomUiState>(RoomUiState.Loading)
     val state: StateFlow<RoomUiState> = mutableState.asStateFlow()
 
     private val mutableDraft = MutableStateFlow("")
     val draft: StateFlow<String> = mutableDraft.asStateFlow()
 
-    private val mutableSendFailed = MutableStateFlow(false)
-    val sendFailed: StateFlow<Boolean> = mutableSendFailed.asStateFlow()
+    private val mutableReplyingTo = MutableStateFlow<TimelineEntry.Message?>(null)
+    val replyingTo: StateFlow<TimelineEntry.Message?> = mutableReplyingTo.asStateFlow()
+
+    /** A one-off message for the snackbar; cleared by [dismissNotice]. */
+    private val mutableNotice = MutableStateFlow<Int?>(null)
+    val notice: StateFlow<Int?> = mutableNotice.asStateFlow()
+
+    private val mutableOpen = MutableStateFlow<OpenRequest?>(null)
+    val openRequest: StateFlow<OpenRequest?> = mutableOpen.asStateFlow()
 
     private var session: TimelineSession? = null
 
     init {
-        val roomId = savedStateHandle.toRoute<RoomRoute>().roomId
         viewModelScope.launch {
             timelines.open(roomId).fold(
                 onSuccess = { opened ->
@@ -57,24 +74,65 @@ class RoomViewModel @Inject constructor(
         val text = mutableDraft.value.trim()
         val current = session
         if (text.isEmpty() || current == null) return
+        val replyTo = mutableReplyingTo.value
         viewModelScope.launch {
             // The draft is only cleared once the SDK has accepted the message, so a failure
             // never costs the user what they typed.
-            current.send(text).fold(
-                onSuccess = { mutableDraft.update { if (it.trim() == text) "" else it } },
-                onFailure = { mutableSendFailed.value = true }
+            current.send(text, replyTo).fold(
+                onSuccess = {
+                    mutableDraft.update { if (it.trim() == text) "" else it }
+                    mutableReplyingTo.update { if (it == replyTo) null else it }
+                },
+                onFailure = { notify(R.string.composer_send_failed) }
             )
         }
     }
 
-    fun dismissSendFailed() {
-        mutableSendFailed.value = false
+    fun startReply(message: TimelineEntry.Message) {
+        mutableReplyingTo.value = message
+    }
+
+    fun cancelReply() {
+        mutableReplyingTo.value = null
+    }
+
+    fun toggleReaction(message: TimelineEntry.Message, key: String) = act { it.toggleReaction(message, key) }
+
+    fun redact(message: TimelineEntry.Message) = act { it.redact(message) }
+
+    fun openFile(ref: MediaRef, filename: String, mimeType: String?) {
+        viewModelScope.launch {
+            media.openable(ref, filename, mimeType).fold(
+                onSuccess = { mutableOpen.value = OpenRequest(it, mimeType) },
+                onFailure = { notify(R.string.timeline_open_failed) }
+            )
+        }
+    }
+
+    fun onOpened() {
+        mutableOpen.value = null
+    }
+
+    suspend fun audioUri(ref: MediaRef, filename: String, mimeType: String?): Uri? =
+        media.openable(ref, filename, mimeType).onFailure { notify(R.string.timeline_open_failed) }.getOrNull()
+
+    fun notify(@StringRes message: Int) {
+        mutableNotice.value = message
+    }
+
+    fun dismissNotice() {
+        mutableNotice.value = null
     }
 
     fun loadOlder() {
         val current = session ?: return
         // A failed page is transient; the list asks again the next time the user scrolls to the top.
         viewModelScope.launch { current.loadOlder() }
+    }
+
+    private fun act(block: suspend (TimelineSession) -> Result<Unit>) {
+        val current = session ?: return
+        viewModelScope.launch { block(current).onFailure { notify(R.string.timeline_action_failed) } }
     }
 
     private fun observe(opened: TimelineSession) {

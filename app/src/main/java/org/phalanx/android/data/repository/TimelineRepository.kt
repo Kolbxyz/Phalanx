@@ -21,7 +21,13 @@ interface TimelineSession {
     /** False once the start of the room has been reached. */
     val hasMoreHistory: StateFlow<Boolean>
 
-    suspend fun send(text: String): Result<Unit>
+    /** Sends [text] as markdown, as a reply to [replyTo] when given. */
+    suspend fun send(text: String, replyTo: TimelineEntry.Message? = null): Result<Unit>
+
+    /** Adds the reaction [key], or removes it when this account already reacted with it. */
+    suspend fun toggleReaction(message: TimelineEntry.Message, key: String): Result<Unit>
+
+    suspend fun redact(message: TimelineEntry.Message): Result<Unit>
 
     /** Loads one more page of history. A failure is transient; scrolling again retries. */
     suspend fun loadOlder(): Result<Unit>

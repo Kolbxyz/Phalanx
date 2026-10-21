@@ -26,7 +26,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
 import org.phalanx.android.data.model.RoomSummary
-import org.phalanx.android.ui.components.InitialAvatar
+import org.phalanx.android.ui.components.MatrixAvatar
+import org.phalanx.android.ui.screens.room.summaryOf
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -50,9 +51,16 @@ internal fun RoomRow(room: RoomSummary, shape: Shape, onClick: () -> Unit, modif
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                room.preview?.let { preview ->
+                room.preview?.let { body ->
+                    val preview = summaryOf(body)
+                    val sender = room.previewSender
                     Text(
-                        text = if (room.previewIsOwn) stringResource(R.string.roomlist_you_prefix, preview) else preview,
+                        text = when {
+                            room.previewIsOwn -> stringResource(R.string.roomlist_you_prefix, preview)
+                            !room.isDirect && sender != null ->
+                                stringResource(R.string.roomlist_sender_prefix, sender, preview)
+                            else -> preview
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 2,
@@ -80,7 +88,15 @@ private fun RoomAvatar(room: RoomSummary) {
     val shape = if (room.isDirect) MaterialShapes.Cookie9Sided.toShape() else MaterialShapes.Cookie4Sided.toShape()
     val container = if (room.isDirect) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.primaryContainer
     val content = if (room.isDirect) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onPrimaryContainer
-    InitialAvatar(name = room.name, shape = shape, size = 48.dp, container = container, content = content)
+    MatrixAvatar(
+        name = room.name,
+        media = room.avatar,
+        size = 48.dp,
+        shape = shape,
+        container = container,
+        content = content,
+        textStyle = MaterialTheme.typography.titleLarge
+    )
 }
 
 @Composable

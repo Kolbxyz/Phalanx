@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Only these cache folders are ever shared, and only through one-off read grants. -->
+<paths>
+    <!-- Decrypted media handed to a viewer or player app; wiped on every launch. -->
+    <cache-path name="open" path="open/" />
+</paths>

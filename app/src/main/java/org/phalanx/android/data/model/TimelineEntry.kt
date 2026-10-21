@@ -11,28 +11,30 @@ sealed interface TimelineEntry {
 
     data class Message(
         override val id: String,
+        /** Null while a message of this device's is still being sent, which then has [transactionId]. */
+        val eventId: String?,
+        val transactionId: String?,
+        val senderId: String,
+        /** Disambiguated with the Matrix ID when another member uses the same name. */
         val senderName: String,
+        val senderAvatar: MediaRef?,
         val isOwn: Boolean,
         val body: MessageBody,
+        val replyTo: ReplyPreview?,
+        val reactions: List<ReactionSummary>,
         val timestampMillis: Long,
         val isEdited: Boolean,
-        val sendState: SendState
+        val sendState: SendState,
+        val canReply: Boolean,
+        val canEdit: Boolean
     ) : TimelineEntry
 }
 
+/** The message being answered. [senderName] and [body] are null until the SDK has fetched it. */
 @Immutable
-sealed interface MessageBody {
-    data class Text(val text: String) : MessageBody
+data class ReplyPreview(val senderName: String?, val body: MessageBody?)
 
-    /** A message of a kind this build cannot show yet. */
-    data class Unsupported(val kind: UnsupportedKind) : MessageBody
-
-    data object Redacted : MessageBody
-
-    /** Encrypted for keys this device does not have (yet). */
-    data object Undecryptable : MessageBody
-}
-
-enum class UnsupportedKind { Image, Video, Audio, File, Location, Sticker, Poll, Gallery, Other }
+@Immutable
+data class ReactionSummary(val key: String, val count: Int, val byMe: Boolean)
 
 enum class SendState { Sent, Sending, Failed }

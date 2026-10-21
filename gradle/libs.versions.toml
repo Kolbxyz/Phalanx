@@ -20,6 +20,7 @@ browser = "1.10.0"
 datastore = "1.2.1"
 coroutines = "1.11.0"
 serialization = "1.11.0"
+coil = "3.5.0"
 
 junit = "4.13.2"
 
@@ -38,8 +39,8 @@ androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling
 androidx-compose-animation = { module = "androidx.compose.animation:animation" }
 androidx-compose-foundation = { module = "androidx.compose.foundation:foundation" }
 androidx-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
-# Only the core icon set (back, send, settings, ...); the extended set is several MB of dex.
-androidx-compose-material-icons-core = { module = "androidx.compose.material:material-icons-core" }
+# The extended set (attach, mic, reply, emoji, ...). Large in debug, but R8 strips every unused icon in release.
+androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 androidx-compose-material3-adaptive = { module = "androidx.compose.material3.adaptive:adaptive", version.ref = "material3Adaptive" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 # Custom Tabs for OAuth sign-in: the server's page opens in the user's browser, not a WebView.
@@ -59,6 +60,10 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 matrix-rust-sdk = { module = "org.matrix.rustcomponents:sdk-android", version = { strictly = "26.10.20" } }
 # The Java half of the SDK's TLS verifier; its version follows what Element X ships with the SDK above.
 rustls-platform-verifier = { module = "org.rustls:rustls-platform-verifier", version = "0.2.0" }
+
+# Apache-2.0 image loader with memory and disk caches, the one Element X uses. Fed through an SDK fetcher
+# (core/media), so encrypted media is decrypted by the SDK and no network stack is added.
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 
 junit = { module = "junit:junit", version.ref = "junit" }
 

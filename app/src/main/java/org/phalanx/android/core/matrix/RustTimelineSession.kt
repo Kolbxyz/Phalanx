@@ -1,11 +1,16 @@
 package org.phalanx.android.core.matrix
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import org.matrix.rustcomponents.sdk.ClientException
+import org.matrix.rustcomponents.sdk.EventOrTransactionId
 import org.matrix.rustcomponents.sdk.ReceiptType
 import org.matrix.rustcomponents.sdk.Room
 import org.matrix.rustcomponents.sdk.TaskHandle
@@ -25,6 +30,7 @@ internal class RustTimelineSession private constructor(
     override val isDirect: Boolean
 ) : TimelineSession {
     private val lock = Any()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     // Mirrors the SDK list index for index, including the items that are not shown (null), because
     // diffs address positions in the SDK's list.
@@ -38,13 +44,40 @@ internal class RustTimelineSession private constructor(
     private val mutableHasMore = MutableStateFlow(true)
     override val hasMoreHistory: StateFlow<Boolean> = mutableHasMore
 
-    override suspend fun send(text: String): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            timeline.send(messageEventContentFromMarkdown(text)).close()
-            Result.success(Unit)
-        } catch (e: ClientException) {
-            Result.failure(e)
-        }
+    // Replies whose original the SDK had not loaded; asked for once each, the item updates itself.
+    private val requestedReplies = HashSet<String>()
+    private val context = MappingContext(room.ownUserId()) { eventId ->
+        if (requestedReplies.add(eventId)) scope.launch { runCatchingSdk { timeline.fetchDetailsForEvent(eventId) } }
+    }
+
+    override suspend fun send(text: String, replyTo: TimelineEntry.Message?): Result<Unit> = io {
+        val content = messageEventContentFromMarkdown(text)
+        val eventId = replyTo?.eventId
+        if (eventId != null) timeline.sendReply(content, eventId).close() else timeline.send(content).close()
+    }
+
+    override suspend fun toggleReaction(message: TimelineEntry.Message, key: String): Result<Unit> = io {
+        val target = message.target() ?: return@io
+        timeline.toggleReaction(target, key)
+    }
+
+    override suspend fun redact(message: TimelineEntry.Message): Result<Unit> = io {
+        val target = message.target() ?: return@io
+        timeline.redactEvent(target, reason = null)
+    }
+
+    private fun TimelineEntry.Message.target(): EventOrTransactionId? =
+        eventId?.let { EventOrTransactionId.EventId(it) }
+            ?: transactionId?.let { EventOrTransactionId.TransactionId(it) }
+
+    private suspend fun io(block: suspend () -> Unit): Result<Unit> =
+        withContext(Dispatchers.IO) { runCatchingSdk(block) }
+
+    private suspend fun runCatchingSdk(block: suspend () -> Unit): Result<Unit> = try {
+        block()
+        Result.success(Unit)
+    } catch (e: ClientException) {
+        Result.failure(e)
     }
 
     override suspend fun loadOlder(): Result<Unit> {
@@ -75,6 +108,7 @@ internal class RustTimelineSession private constructor(
 
     /** Called by the repository only, when the room leaves its cache. */
     fun close() {
+        scope.cancel()
         listenerHandle?.let {
             it.cancel()
             it.destroy()
@@ -95,15 +129,15 @@ internal class RustTimelineSession private constructor(
         synchronized(lock) {
             for (diff in diffs) {
                 when (diff) {
-                    is TimelineDiff.Append -> diff.values.forEach { items.add(it.toEntry()) }
-                    is TimelineDiff.PushBack -> items.add(diff.value.toEntry())
-                    is TimelineDiff.PushFront -> items.add(0, diff.value.toEntry())
-                    is TimelineDiff.Insert -> items.add(diff.index.toInt(), diff.value.toEntry())
-                    is TimelineDiff.Set -> items[diff.index.toInt()] = diff.value.toEntry()
+                    is TimelineDiff.Append -> diff.values.forEach { items.add(it.toEntry(context)) }
+                    is TimelineDiff.PushBack -> items.add(diff.value.toEntry(context))
+                    is TimelineDiff.PushFront -> items.add(0, diff.value.toEntry(context))
+                    is TimelineDiff.Insert -> items.add(diff.index.toInt(), diff.value.toEntry(context))
+                    is TimelineDiff.Set -> items[diff.index.toInt()] = diff.value.toEntry(context)
                     is TimelineDiff.Remove -> items.removeAt(diff.index.toInt())
                     is TimelineDiff.Reset -> {
                         items.clear()
-                        diff.values.forEach { items.add(it.toEntry()) }
+                        diff.values.forEach { items.add(it.toEntry(context)) }
                     }
                     is TimelineDiff.Truncate -> items.subList(diff.length.toInt(), items.size).clear()
                     TimelineDiff.PopBack -> items.removeLastOrNull()
