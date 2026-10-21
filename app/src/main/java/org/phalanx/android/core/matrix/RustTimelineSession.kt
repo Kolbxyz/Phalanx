@@ -45,17 +45,9 @@ internal class RustTimelineSession private constructor(
     override val title: String,
     override val isDirect: Boolean
 ) : TimelineSession {
-    private val lock = Any()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
-    // Mirrors the SDK list index for index, including the items that are not shown (null), because
-    // diffs address positions in the SDK's list.
-    private val items = ArrayList<TimelineEntry?>()
     private var listenerHandle: TaskHandle? = null
     private val paginating = Mutex()
-
-    private val mutableEntries = MutableStateFlow<List<TimelineEntry>>(emptyList())
-    override val entries: StateFlow<List<TimelineEntry>> = mutableEntries
 
     private val typingState = RoomTyping(room, room.ownUserId(), scope)
     override val typing: StateFlow<List<String>> = typingState.names
@@ -69,10 +61,14 @@ internal class RustTimelineSession private constructor(
         if (requestedReplies.add(eventId)) {
             scope.launch {
                 // Forgotten on failure (offline, say), so the next update of the reply asks again.
-                runCatchingSdk { timeline.fetchDetailsForEvent(eventId) }.onFailure { requestedReplies.remove(eventId) }
+                runCatchingSdk { timeline.fetchDetailsForEvent(eventId) }
+                    .onFailure { requestedReplies.remove(eventId) }
             }
         }
     }
+
+    private val items = TimelineItems(context)
+    override val entries: StateFlow<List<TimelineEntry>> = items.entries
 
     override suspend fun send(text: String, replyTo: TimelineEntry.Message?): Result<Unit> = io {
         val content = contentOf(text)
@@ -185,9 +181,9 @@ internal class RustTimelineSession private constructor(
         }
     }
 
-    /** Called by the repository only, when the room leaves its cache. */
     override fun setTyping(typing: Boolean) = typingState.notice(typing)
 
+    /** Called by the repository only, when the room leaves its cache. */
     fun close() {
         typingState.close()
         scope.cancel()
@@ -202,33 +198,9 @@ internal class RustTimelineSession private constructor(
     private suspend fun start() {
         listenerHandle = timeline.addListener(
             object : TimelineListener {
-                override fun onUpdate(diff: List<TimelineDiff>) = apply(diff)
+                override fun onUpdate(diff: List<TimelineDiff>) = items.apply(diff)
             }
         )
-    }
-
-    private fun apply(diffs: List<TimelineDiff>) {
-        synchronized(lock) {
-            for (diff in diffs) {
-                when (diff) {
-                    is TimelineDiff.Append -> diff.values.forEach { items.add(it.toEntry(context)) }
-                    is TimelineDiff.PushBack -> items.add(diff.value.toEntry(context))
-                    is TimelineDiff.PushFront -> items.add(0, diff.value.toEntry(context))
-                    is TimelineDiff.Insert -> items.add(diff.index.toInt(), diff.value.toEntry(context))
-                    is TimelineDiff.Set -> items[diff.index.toInt()] = diff.value.toEntry(context)
-                    is TimelineDiff.Remove -> items.removeAt(diff.index.toInt())
-                    is TimelineDiff.Reset -> {
-                        items.clear()
-                        diff.values.forEach { items.add(it.toEntry(context)) }
-                    }
-                    is TimelineDiff.Truncate -> items.subList(diff.length.toInt(), items.size).clear()
-                    TimelineDiff.PopBack -> items.removeLastOrNull()
-                    TimelineDiff.PopFront -> items.removeFirstOrNull()
-                    TimelineDiff.Clear -> items.clear()
-                }
-            }
-            mutableEntries.value = items.filterNotNull()
-        }
     }
 
     companion object {

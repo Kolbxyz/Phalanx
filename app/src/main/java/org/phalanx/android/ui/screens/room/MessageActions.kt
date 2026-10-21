@@ -8,7 +8,7 @@ import org.phalanx.android.data.model.TimelineEntry
 /** Everything a message row can ask of its screen, passed down as one object. */
 @Stable
 internal class MessageActions(
-    val onOpenImage: (TimelineEntry.Message) -> Unit,
+    val onOpenMedia: (TimelineEntry.Message) -> Unit,
     val onOpenFile: (media: MediaRef, filename: String, mimeType: String?) -> Unit,
     /** A local URI the player can read, or null when the download failed. */
     val resolveAudio: suspend (media: MediaRef, filename: String, mimeType: String?) -> Uri?,

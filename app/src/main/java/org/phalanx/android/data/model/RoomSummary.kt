@@ -18,5 +18,15 @@ data class RoomSummary(
     val lastActivityMillis: Long?,
     val unreadCount: Long,
     val highlightCount: Long,
-    val isFavourite: Boolean
-)
+    val isFavourite: Boolean,
+    /** Marked unread by hand, here or on another device; shown like a room with new messages. */
+    val isMarkedUnread: Boolean = false,
+    /** The other person's Matrix ID in a one-to-one chat, so they can be blocked from it. */
+    val dmUserId: String? = null,
+    val topic: String? = null,
+    val memberCount: Long = 0,
+    val isEncrypted: Boolean = false
+) {
+    val hasUnread: Boolean
+        get() = unreadCount > 0 || isMarkedUnread
+}

@@ -1,7 +1,5 @@
 package org.phalanx.android.ui.screens.room
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -24,17 +22,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.phalanx.android.R
 import org.phalanx.android.data.model.TimelineEntry
+import org.phalanx.android.ui.components.OpenFileEffect
 import org.phalanx.android.ui.components.TimelinePlaceholder
 
 @Composable
 fun RoomScreen(
     onBack: () -> Unit,
+    onOpenDetails: (roomId: String) -> Unit,
     onOpenMedia: (roomId: String, entryId: String) -> Unit,
     viewModel: RoomViewModel = hiltViewModel()
 ) {
@@ -45,7 +44,6 @@ fun RoomScreen(
     val header by viewModel.header.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
-    val context = LocalContext.current
     var selected by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     var attaching by remember { mutableStateOf(false) }
     val launchers = rememberAttachLaunchers(viewModel)
@@ -57,22 +55,11 @@ fun RoomScreen(
             viewModel.dismissNotice()
         }
     }
-    LaunchedEffect(openRequest) {
-        val request = openRequest ?: return@LaunchedEffect
-        val intent = Intent(Intent.ACTION_VIEW)
-            .setDataAndType(request.uri, request.mimeType ?: "*/*")
-            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        try {
-            context.startActivity(intent)
-        } catch (_: ActivityNotFoundException) {
-            viewModel.notify(R.string.timeline_open_failed)
-        }
-        viewModel.onOpened()
-    }
+    OpenFileEffect(openRequest, viewModel::onOpened) { viewModel.notify(R.string.timeline_open_failed) }
 
     val actions = remember(viewModel) {
         MessageActions(
-            onOpenImage = { onOpenMedia(viewModel.roomId, it.id) },
+            onOpenMedia = { onOpenMedia(viewModel.roomId, it.id) },
             onOpenFile = viewModel::openFile,
             resolveAudio = viewModel::audioUri,
             onToggleReaction = viewModel::toggleReaction,
@@ -97,7 +84,7 @@ fun RoomScreen(
     val ready = state as? RoomUiState.Ready
     val prefs = settings?.timelinePrefs() ?: TimelinePrefs()
     Scaffold(
-        topBar = { RoomTopBar(header, ready?.title, onBack) },
+        topBar = { RoomTopBar(header, ready?.title, onBack, onOpenDetails = { onOpenDetails(viewModel.roomId) }) },
         bottomBar = {
             if (ready != null) Composer(composerState, composerActions, enterToSend = settings?.enterToSend == true)
         },

@@ -14,6 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import org.phalanx.android.ui.screens.account.AccountScreen
+import org.phalanx.android.ui.screens.details.RoomDetailsScreen
 import org.phalanx.android.ui.screens.devices.DevicesScreen
 import org.phalanx.android.ui.screens.media.MediaViewerScreen
 import org.phalanx.android.ui.screens.room.RoomScreen
@@ -39,6 +40,7 @@ fun PhalanxNavHost() {
                 composable<RoomListRoute> {
                     RoomListScreen(
                         onOpenRoom = { navController.navigate(RoomRoute(it)) },
+                        onOpenDetails = { navController.navigate(RoomDetailsRoute(it)) },
                         onOpenAccount = { navController.navigate(AccountRoute) }
                     )
                 }
@@ -46,6 +48,7 @@ fun PhalanxNavHost() {
                     CompositionLocalProvider(LocalNavAnimatedScope provides this) {
                         RoomScreen(
                             onBack = { navController.popBackStack() },
+                            onOpenDetails = { navController.navigate(RoomDetailsRoute(it)) },
                             onOpenMedia = { roomId, entryId ->
                                 navController.navigate(MediaViewerRoute(roomId, entryId))
                             }
@@ -61,6 +64,17 @@ fun PhalanxNavHost() {
                 ) {
                     CompositionLocalProvider(LocalNavAnimatedScope provides this) {
                         MediaViewerScreen(onClose = { navController.popBackStack() })
+                    }
+                }
+                composable<RoomDetailsRoute> {
+                    CompositionLocalProvider(LocalNavAnimatedScope provides this) {
+                        RoomDetailsScreen(
+                            onBack = { navController.popBackStack() },
+                            onLeft = { navController.popBackStack(RoomListRoute, inclusive = false) },
+                            onOpenMedia = { roomId, entryId ->
+                                navController.navigate(MediaViewerRoute(roomId, entryId, fromGallery = true))
+                            }
+                        )
                     }
                 }
                 composable<AccountRoute> {

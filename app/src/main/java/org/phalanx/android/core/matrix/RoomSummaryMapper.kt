@@ -6,6 +6,7 @@ import org.matrix.rustcomponents.sdk.TimelineItemContent
 import org.matrix.rustcomponents.sdk.use
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.RoomSummary
+import uniffi.matrix_sdk_base.EncryptionState
 
 /** Reads a room's current info and latest event, then releases the native [Room] handle. */
 internal suspend fun Room.toSummary(): RoomSummary = use { room ->
@@ -25,7 +26,8 @@ internal suspend fun Room.toSummary(): RoomSummary = use { room ->
         }
     }
     // A DM usually has no avatar of its own; the other person's stands in, as in other clients.
-    val avatarUrl = info.avatarUrl ?: info.heroes.singleOrNull()?.takeIf { info.isDirect }?.avatarUrl
+    val dmHero = info.heroes.singleOrNull()?.takeIf { info.isDirect }
+    val avatarUrl = info.avatarUrl ?: dmHero?.avatarUrl
     RoomSummary(
         id = info.id,
         name = info.displayName ?: info.rawName ?: info.id,
@@ -37,7 +39,12 @@ internal suspend fun Room.toSummary(): RoomSummary = use { room ->
         lastActivityMillis = latest.timestampMillis,
         unreadCount = info.notificationCount.toLong(),
         highlightCount = info.highlightCount.toLong(),
-        isFavourite = info.isFavourite
+        isFavourite = info.isFavourite,
+        isMarkedUnread = info.isMarkedUnread,
+        dmUserId = dmHero?.userId,
+        topic = info.topic?.takeIf { it.isNotBlank() },
+        memberCount = info.joinedMembersCount.toLong(),
+        isEncrypted = info.encryptionState == EncryptionState.ENCRYPTED
     )
 }
 

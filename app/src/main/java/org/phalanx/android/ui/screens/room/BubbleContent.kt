@@ -70,13 +70,17 @@ private fun Content(message: TimelineEntry.Message, actions: MessageActions) {
         is MessageBody.Image -> {
             ImageContent(
                 body = body,
-                onOpen = { actions.onOpenImage(message) },
+                onOpen = { actions.onOpenMedia(message) },
                 modifier = Modifier.sharedMedia("media-${message.id}")
             )
             body.caption?.let { Caption(it, message.isEdited, textPadding) }
         }
         is MessageBody.Video -> {
-            VideoContent(body, onOpen = { actions.onOpenFile(body.media, body.filename, body.mimeType) })
+            VideoContent(
+                body = body,
+                onOpen = { actions.onOpenMedia(message) },
+                modifier = Modifier.sharedMedia("media-${message.id}")
+            )
             body.caption?.let { Caption(it, message.isEdited, textPadding) }
         }
         is MessageBody.Audio -> AudioContent(body, actions.resolveAudio)

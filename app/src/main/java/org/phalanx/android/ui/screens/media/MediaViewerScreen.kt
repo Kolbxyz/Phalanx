@@ -8,12 +8,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +37,7 @@ import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.data.model.MediaRequest
+import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.ui.navigation.sharedMedia
 
 private const val MAX_ZOOM = 5f
@@ -44,7 +48,10 @@ private const val BUBBLE_THUMBNAIL_PX = 800
 
 @Composable
 fun MediaViewerScreen(onClose: () -> Unit, viewModel: MediaViewerViewModel = hiltViewModel()) {
-    val image by viewModel.image.collectAsStateWithLifecycle()
+    val media by viewModel.media.collectAsStateWithLifecycle()
+    val videoUri by viewModel.videoUri.collectAsStateWithLifecycle()
+    val videoFailed by viewModel.videoFailed.collectAsStateWithLifecycle()
+    val image = media as? MessageBody.Image
     val scope = rememberCoroutineScope()
     val motion = MaterialTheme.motionScheme
     val zoom = remember { Animatable(1f) }
@@ -92,6 +99,30 @@ fun MediaViewerScreen(onClose: () -> Unit, viewModel: MediaViewerViewModel = hil
                         contentScale = ContentScale.Fit,
                         modifier = Modifier.fillMaxSize()
                     )
+                }
+            }
+            (media as? MessageBody.Video)?.let { video ->
+                Box(Modifier.fillMaxSize().sharedMedia("media-${viewModel.entryId}"), Alignment.Center) {
+                    val uri = videoUri
+                    when {
+                        uri != null -> VideoPlayer(uri)
+                        videoFailed -> Text(
+                            stringResource(R.string.timeline_open_failed),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        else -> {
+                            // The bubble's thumbnail while the video downloads and decrypts.
+                            video.thumbnail?.let {
+                                AsyncImage(
+                                    model = MediaRequest(it, BUBBLE_THUMBNAIL_PX),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                            LoadingIndicator(Modifier.size(64.dp))
+                        }
+                    }
                 }
             }
             FilledTonalIconButton(

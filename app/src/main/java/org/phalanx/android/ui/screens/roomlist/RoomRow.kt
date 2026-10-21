@@ -1,5 +1,8 @@
 package org.phalanx.android.ui.screens.roomlist
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,6 +11,9 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -22,6 +28,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
@@ -34,23 +41,51 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
+/** One chat. Unread ones stand out in weight and colour; a long press opens its menu. */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun RoomRow(room: RoomSummary, shape: Shape, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Surface(onClick = onClick, modifier = modifier, shape = shape, color = MaterialTheme.colorScheme.surfaceContainer) {
+internal fun RoomRow(
+    room: RoomSummary,
+    shape: Shape,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val colors = MaterialTheme.colorScheme
+    val unread = room.hasUnread
+    Surface(
+        modifier = modifier,
+        shape = shape,
+        color = if (unread) colors.surfaceContainerHighest else colors.surfaceContainer
+    ) {
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier
+                .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             RoomAvatar(room)
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    text = room.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = room.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = if (unread) FontWeight.ExtraBold else FontWeight.SemiBold,
+                        color = colors.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    if (room.isFavourite) {
+                        Icon(
+                            Icons.Rounded.Star,
+                            contentDescription = stringResource(R.string.roomlist_favourite),
+                            tint = colors.tertiary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
                 room.preview?.let { body ->
                     val preview = summaryOf(body)
                     val sender = room.previewSender
@@ -62,7 +97,8 @@ internal fun RoomRow(room: RoomSummary, shape: Shape, onClick: () -> Unit, modif
                             else -> preview
                         },
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = if (unread) FontWeight.Medium else null,
+                        color = if (unread) colors.onSurface else colors.onSurfaceVariant,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -73,13 +109,28 @@ internal fun RoomRow(room: RoomSummary, shape: Shape, onClick: () -> Unit, modif
                     Text(
                         text = remember(millis) { formatActivity(millis) },
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        fontWeight = if (unread) FontWeight.Bold else null,
+                        color = if (unread) colors.primary else colors.onSurfaceVariant
                     )
                 }
-                if (room.unreadCount > 0) UnreadBadge(room.unreadCount, mention = room.highlightCount > 0)
+                when {
+                    room.unreadCount > 0 -> UnreadBadge(room.unreadCount, mention = room.highlightCount > 0)
+                    room.isMarkedUnread -> UnreadDot()
+                }
             }
         }
     }
+}
+
+@Composable
+private fun UnreadDot() {
+    val description = stringResource(R.string.roomlist_marked_unread)
+    Box(
+        Modifier
+            .size(12.dp)
+            .background(MaterialTheme.colorScheme.primary, CircleShape)
+            .semantics { contentDescription = description }
+    )
 }
 
 /** A cookie for a person, a flower for a group: the shape alone says which kind of chat this is. */
@@ -91,7 +142,7 @@ private fun RoomAvatar(room: RoomSummary) {
     MatrixAvatar(
         name = room.name,
         media = room.avatar,
-        size = 48.dp,
+        size = 56.dp,
         shape = shape,
         container = container,
         content = content,

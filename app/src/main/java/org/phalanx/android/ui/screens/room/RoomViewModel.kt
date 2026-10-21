@@ -30,11 +30,9 @@ import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.MediaRepository
 import org.phalanx.android.data.repository.TimelineRepository
 import org.phalanx.android.data.repository.TimelineSession
+import org.phalanx.android.ui.components.OpenRequest
 import org.phalanx.android.ui.navigation.RoomRoute
 import javax.inject.Inject
-
-/** A file ready to hand to another app. */
-data class OpenRequest(val uri: Uri, val mimeType: String?)
 
 @HiltViewModel
 class RoomViewModel @Inject constructor(

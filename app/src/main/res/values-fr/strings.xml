@@ -186,4 +186,29 @@
         <item quantity="many">%1$s et %2$d autres personnes écrivent…</item>
         <item quantity="other">%1$s et %2$d autres personnes écrivent…</item>
     </plurals>
+    <string name="room_action_mark_read">Marquer comme lu</string>
+    <string name="room_action_mark_unread">Marquer comme non lu</string>
+    <string name="room_action_favourite">Ajouter aux favoris</string>
+    <string name="room_action_unfavourite">Retirer des favoris</string>
+    <string name="room_action_details">Détails de la conversation</string>
+    <string name="room_action_leave">Quitter</string>
+    <string name="leave_title">Quitter %1$s ?</string>
+    <string name="leave_body">Vous ne recevrez plus ses messages. Si la conversation est sur invitation, il vous faudra une nouvelle invitation pour revenir.</string>
+    <string name="roomlist_favourite">Favori</string>
+    <string name="roomlist_marked_unread">Marqué comme non lu</string>
+    <string name="details_encrypted">Chiffré de bout en bout</string>
+    <string name="details_favourite">Favori</string>
+    <string name="details_unread">Non lu</string>
+    <string name="details_pinned">Messages épinglés</string>
+    <string name="details_pinned_none">Aucun message épinglé</string>
+    <string name="details_media">Photos et vidéos</string>
+    <string name="details_media_none">Aucune photo ni vidéo pour l’instant</string>
+    <string name="details_files">Fichiers</string>
+    <string name="details_files_none">Aucun fichier pour l’instant</string>
+    <string name="details_manage">Gérer</string>
+    <plurals name="details_members">
+        <item quantity="one">%d membre</item>
+        <item quantity="many">%d membres</item>
+        <item quantity="other">%d membres</item>
+    </plurals>
 </resources>

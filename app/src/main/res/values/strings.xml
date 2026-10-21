@@ -185,4 +185,28 @@
         <item quantity="one">%1$s and %2$d other are typing…</item>
         <item quantity="other">%1$s and %2$d others are typing…</item>
     </plurals>
+    <string name="room_action_mark_read">Mark as read</string>
+    <string name="room_action_mark_unread">Mark as unread</string>
+    <string name="room_action_favourite">Add to favourites</string>
+    <string name="room_action_unfavourite">Remove from favourites</string>
+    <string name="room_action_details">Conversation details</string>
+    <string name="room_action_leave">Leave</string>
+    <string name="leave_title">Leave %1$s?</string>
+    <string name="leave_body">You’ll stop receiving its messages. If the conversation is invite-only, you’ll need a new invite to come back.</string>
+    <string name="roomlist_favourite">Favourite</string>
+    <string name="roomlist_marked_unread">Marked as unread</string>
+    <string name="details_encrypted">End-to-end encrypted</string>
+    <string name="details_favourite">Favourite</string>
+    <string name="details_unread">Unread</string>
+    <string name="details_pinned">Pinned messages</string>
+    <string name="details_pinned_none">No pinned messages</string>
+    <string name="details_media">Photos and videos</string>
+    <string name="details_media_none">No photos or videos yet</string>
+    <string name="details_files">Files</string>
+    <string name="details_files_none">No files yet</string>
+    <string name="details_manage">Manage</string>
+    <plurals name="details_members">
+        <item quantity="one">%d member</item>
+        <item quantity="other">%d members</item>
+    </plurals>
 </resources>
