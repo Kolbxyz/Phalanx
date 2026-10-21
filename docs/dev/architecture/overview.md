@@ -20,7 +20,11 @@ ui/         theme · navigation · components · screens/<screen> (XScreen, XVie
 
 ## 3. Push (no FCM)
 
-UnifiedPush receiver → expedited WorkManager worker → `NotificationClient.getNotifications` (short sync, local decrypt) → notification. The push gateway sees only `(eventId, roomId)`. The gateway URL is configurable.
+UnifiedPush `PushService` → expedited WorkManager worker → `NotificationClient.getNotification` (short sync, local decrypt) → notification. The pusher is `event_id_only`, so the gateway and distributor see only `(eventId, roomId)`.
+
+- `core/push/PushRegistrar` registers on every session open and turns each new endpoint into the homeserver pusher; sign-out unregisters locally (the homeserver drops pushers with the token).
+- Gateway: the distributor server's own `/_matrix/push/v1/notify` when it answers `{"unifiedpush":{"gateway":"matrix"}}`, else `matrix.gateway.unifiedpush.org`. Settings → Notifications can override it.
+- The endpoint is a capability URL, so the last registration is sealed by `SecretBox` (`push.bin`).
 
 ## 4. Battery
 

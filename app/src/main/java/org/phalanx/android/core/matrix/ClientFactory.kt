@@ -38,6 +38,9 @@ internal class ClientFactory @Inject constructor(
         .sqliteStore(
             SqliteStoreBuilder(paths.data.absolutePath, paths.cache.absolutePath).key(storeKey)
         )
+        // Messages are indexed on the device as they arrive, so encrypted rooms can be searched
+        // without sending the query anywhere. The index is encrypted with the store's key.
+        .withSearchIndexStore(File(paths.data, SEARCH_INDEX).absolutePath, Base64.getEncoder().encodeToString(storeKey))
         .setSessionDelegate(sessionDelegate)
         .userAgent(USER_AGENT)
         .autoEnableBackups(true)
@@ -68,6 +71,7 @@ internal class ClientFactory @Inject constructor(
         const val USER_AGENT = "Phalanx/0.1 (Android)"
         const val REQUEST_TIMEOUT_MILLIS = 30_000uL
         const val RETRY_LIMIT = 3uL
+        const val SEARCH_INDEX = "search"
     }
 }
 

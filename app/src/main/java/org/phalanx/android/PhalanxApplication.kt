@@ -1,13 +1,27 @@
 package org.phalanx.android
 
 import android.app.Application
+import coil3.ImageLoader
+import coil3.PlatformContext
+import coil3.SingletonImageLoader
+import dagger.Lazy
 import dagger.hilt.android.HiltAndroidApp
 import org.matrix.rustcomponents.sdk.LogLevel
 import org.matrix.rustcomponents.sdk.TracingConfiguration
 import org.matrix.rustcomponents.sdk.initPlatform
+import org.phalanx.android.core.push.PushRegistrar
+import javax.inject.Inject
 
 @HiltAndroidApp
-class PhalanxApplication : Application() {
+class PhalanxApplication : Application(), SingletonImageLoader.Factory {
+    @Inject
+    lateinit var imageLoader: Lazy<ImageLoader>
+
+    @Inject
+    internal lateinit var pushRegistrar: PushRegistrar
+
+    override fun newImageLoader(context: PlatformContext): ImageLoader = imageLoader.get()
+
     override fun onCreate() {
         super.onCreate()
         // Must run before any SDK call: without it every HTTPS request fails with "Expect
@@ -25,5 +39,6 @@ class PhalanxApplication : Application() {
             ),
             useLightweightTokioRuntime = false
         )
+        pushRegistrar.start()
     }
 }

@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -41,6 +39,7 @@ import org.phalanx.android.ui.components.BackButton
 import org.phalanx.android.ui.components.SegmentGap
 import org.phalanx.android.ui.components.SegmentedRow
 import org.phalanx.android.ui.components.segmentedShape
+import org.phalanx.android.ui.theme.Symbols
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -102,7 +101,7 @@ private fun DeviceList(devices: List<Device>, padding: PaddingValues, onRemove: 
                 } else {
                     {
                         IconButton(onClick = { onRemove(device) }) {
-                            Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.devices_remove))
+                            Icon(Symbols.Delete, contentDescription = stringResource(R.string.devices_remove))
                         }
                     }
                 }

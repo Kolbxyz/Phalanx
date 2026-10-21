@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -23,6 +21,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
+import org.phalanx.android.ui.theme.Symbols
 
 /**
  * One strip of a segmented list (see [segmentedShape]). [interaction] is applied inside the clip,
@@ -73,6 +72,6 @@ internal fun SegmentedSection(title: String, content: @Composable ColumnScope.()
 @Composable
 internal fun BackButton(onBack: () -> Unit) {
     IconButton(onClick = onBack) {
-        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+        Icon(Symbols.ArrowBack, contentDescription = stringResource(R.string.back))
     }
 }

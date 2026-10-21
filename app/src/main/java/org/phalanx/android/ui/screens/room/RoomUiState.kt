@@ -15,6 +15,8 @@ sealed interface RoomUiState {
         val isDirect: Boolean,
         /** Newest first, which is the order a reversed list lays them out in. */
         val entries: List<TimelineEntry>,
-        val canLoadOlder: Boolean
+        val canLoadOlder: Boolean,
+        /** Display names of the other members typing right now. */
+        val typing: List<String> = emptyList()
     ) : RoomUiState
 }

@@ -155,7 +155,9 @@ dependencies {
     implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.adaptive)
-    implementation(libs.androidx.compose.material.icons.core)
+    implementation(libs.coil.compose)
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.unifiedpush.connector)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     implementation(libs.hilt.android)

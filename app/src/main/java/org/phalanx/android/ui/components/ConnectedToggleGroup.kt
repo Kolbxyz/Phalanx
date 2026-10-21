@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +20,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.phalanx.android.ui.theme.Symbols
 
 /**
  * A single choice drawn as M3 Expressive connected toggle buttons: tight inner corners while
@@ -62,7 +61,7 @@ internal fun <T> ConnectedToggleGroup(
             ) {
                 AnimatedVisibility(visible = checked) {
                     Icon(
-                        imageVector = Icons.Rounded.Check,
+                        imageVector = Symbols.Check,
                         contentDescription = null,
                         modifier = Modifier.padding(end = 6.dp).size(18.dp)
                     )

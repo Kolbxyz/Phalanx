@@ -1,126 +1,229 @@
 package org.phalanx.android.ui.screens.room
 
-import androidx.annotation.StringRes
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
-import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.SendState
 import org.phalanx.android.data.model.TimelineEntry
-import org.phalanx.android.data.model.UnsupportedKind
+import org.phalanx.android.ui.components.MatrixAvatar
+import org.phalanx.android.ui.theme.LocalReducedMotion
+import org.phalanx.android.ui.theme.Symbols
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-private val BubbleRadius = 20.dp
-private val TailRadius = 6.dp
+private val LargeRadius = 24.dp
+private val SeamRadius = 6.dp
+private val MediaRadius = 14.dp
+private val AvatarSize = 32.dp
+private val MaxBubbleWidth = 320.dp
+private val ReactionOverlap = 6.dp
+private const val PRESSED_SCALE = 0.96f
+private const val APPEAR_SCALE = 0.7f
 
+/**
+ * One message. Consecutive messages from one sender form a run, shaped like a segmented list: the
+ * run's outer corners are round and the seams on the sender's side tight. Only the first message
+ * of a run shows the sender's name, and only the last the avatar.
+ */
 @Composable
-internal fun MessageBubble(message: TimelineEntry.Message, showSender: Boolean, modifier: Modifier = Modifier) {
+internal fun MessageBubble(
+    message: TimelineEntry.Message,
+    isGroupChat: Boolean,
+    startsRun: Boolean,
+    endsRun: Boolean,
+    isNew: Boolean,
+    actions: MessageActions,
+    modifier: Modifier = Modifier
+) {
     val own = message.isOwn
-    // The corner that points at the sender is the tight one.
-    val shape = RoundedCornerShape(
-        topStart = BubbleRadius,
-        topEnd = BubbleRadius,
-        bottomStart = if (own) BubbleRadius else TailRadius,
-        bottomEnd = if (own) TailRadius else BubbleRadius
-    )
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = if (own) Arrangement.End else Arrangement.Start
+    val showAvatar = isGroupChat && !own
+    val time = remember(message.timestampMillis) { formatTime(message.timestampMillis) }
+    MessageSwipe(
+        time = time,
+        isOwn = own,
+        canReply = message.canReply,
+        onReply = { actions.onReply(message) },
+        modifier = modifier.padding(top = if (startsRun) 10.dp else 0.dp)
     ) {
-        Surface(
-            shape = shape,
-            color = if (own) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
-            contentColor = if (own) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.widthIn(max = 320.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth().appear(isNew, own),
+            horizontalArrangement = if (own) Arrangement.End else Arrangement.Start,
+            verticalAlignment = Alignment.Bottom
         ) {
-            Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
-                if (showSender && !own) {
+            if (showAvatar) {
+                if (endsRun) {
+                    MatrixAvatar(message.senderName, message.senderAvatar, AvatarSize)
+                } else {
+                    Spacer(Modifier.width(AvatarSize))
+                }
+                Spacer(Modifier.width(8.dp))
+            }
+            if (own) SendStatus(message.sendState, Modifier.padding(end = 6.dp, bottom = 6.dp))
+            Column(horizontalAlignment = if (own) Alignment.End else Alignment.Start) {
+                if (showAvatar && startsRun) {
                     Text(
                         text = message.senderName,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        style = MaterialTheme.typography.labelLarge,
+                        color = senderColor(message.senderId),
+                        maxLines = 1,
+                        modifier = Modifier.padding(start = 14.dp, bottom = 4.dp)
                     )
                 }
-                BodyText(message.body)
-                Footer(message, modifier = Modifier.align(Alignment.End))
+                Bubble(message, startsRun, endsRun, actions)
+                if (message.reactions.isNotEmpty()) {
+                    ReactionRow(
+                        reactions = message.reactions,
+                        onToggle = { actions.onToggleReaction(message, it) },
+                        onShowReactors = { actions.onShowReactors(message, it) },
+                        // Tucked under the bubble's edge, so they read as part of it, not a row below.
+                        modifier = Modifier
+                            .overlapAbove(ReactionOverlap)
+                            .padding(horizontal = 8.dp)
+                            .padding(bottom = 2.dp)
+                    )
+                }
             }
         }
     }
 }
 
+/**
+ * A message that arrives while the conversation is open grows out of its sender's side, the way a
+ * bubble would; messages already there when it opened, and older pages, just appear.
+ */
 @Composable
-private fun BodyText(body: MessageBody) {
-    when (body) {
-        is MessageBody.Text -> Text(text = body.text, style = MaterialTheme.typography.bodyLarge)
-        is MessageBody.Unsupported -> Placeholder(body.kind.labelRes())
-        MessageBody.Redacted -> Placeholder(R.string.timeline_redacted)
-        MessageBody.Undecryptable -> Placeholder(R.string.timeline_undecryptable)
+private fun Modifier.appear(isNew: Boolean, own: Boolean): Modifier {
+    val reducedMotion = LocalReducedMotion.current
+    val progress = remember { Animatable(if (isNew && !reducedMotion) 0f else 1f) }
+    val spring = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
+    LaunchedEffect(Unit) { if (progress.value < 1f) progress.animateTo(1f, spring) }
+    return graphicsLayer {
+        val value = progress.value
+        transformOrigin = TransformOrigin(if (own) 1f else 0f, 1f)
+        scaleX = APPEAR_SCALE + (1f - APPEAR_SCALE) * value
+        scaleY = APPEAR_SCALE + (1f - APPEAR_SCALE) * value
+        alpha = value.coerceIn(0f, 1f)
     }
 }
 
+/** Only shown while something is pending or wrong; a sent message needs no badge. */
 @Composable
-private fun Placeholder(@StringRes label: Int) {
-    Text(
-        text = stringResource(label),
-        style = MaterialTheme.typography.bodyMedium,
-        fontStyle = FontStyle.Italic,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-}
-
-@Composable
-private fun Footer(message: TimelineEntry.Message, modifier: Modifier = Modifier) {
-    val time = remember(message.timestampMillis) { formatTime(message.timestampMillis) }
-    val status = when (message.sendState) {
-        SendState.Sent -> null
-        SendState.Sending -> R.string.timeline_sending
-        SendState.Failed -> R.string.timeline_failed
+private fun SendStatus(state: SendState, modifier: Modifier = Modifier) {
+    when (state) {
+        SendState.Sent -> Unit
+        SendState.Sending -> Icon(
+            Symbols.Schedule,
+            contentDescription = stringResource(R.string.timeline_sending),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = modifier.size(14.dp)
+        )
+        SendState.Failed -> Icon(
+            Symbols.ErrorOutline,
+            contentDescription = stringResource(R.string.timeline_failed),
+            tint = MaterialTheme.colorScheme.error,
+            modifier = modifier.size(16.dp)
+        )
     }
-    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        if (message.isEdited) {
-            Text(stringResource(R.string.timeline_edited), style = MaterialTheme.typography.labelSmall)
-        }
-        status?.let {
-            Text(
-                text = stringResource(it),
-                style = MaterialTheme.typography.labelSmall,
-                color = if (message.sendState == SendState.Failed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Text(text = time, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
-@StringRes
-private fun UnsupportedKind.labelRes(): Int = when (this) {
-    UnsupportedKind.Image -> R.string.timeline_unsupported_image
-    UnsupportedKind.Video -> R.string.timeline_unsupported_video
-    UnsupportedKind.Audio -> R.string.timeline_unsupported_audio
-    UnsupportedKind.File -> R.string.timeline_unsupported_file
-    UnsupportedKind.Location -> R.string.timeline_unsupported_location
-    UnsupportedKind.Sticker -> R.string.timeline_unsupported_sticker
-    UnsupportedKind.Poll -> R.string.timeline_unsupported_poll
-    UnsupportedKind.Gallery -> R.string.timeline_unsupported_gallery
-    UnsupportedKind.Other -> R.string.timeline_unsupported_other
 }
 
 private fun formatTime(millis: Long): String =
-    DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).format(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()))
+    DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
+        .format(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()))
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun Bubble(message: TimelineEntry.Message, startsRun: Boolean, endsRun: Boolean, actions: MessageActions) {
+    val own = message.isOwn
+    val layout = bubbleLayout(message)
+    // Pictures keep a gentler curve than text, so their corners aren't cut away.
+    val outer = if (layout == BubbleLayout.Media) MediaRadius else LargeRadius
+    val top = if (startsRun) outer else SeamRadius
+    val bottom = if (endsRun) outer else SeamRadius
+    val shape = RoundedCornerShape(
+        topStart = if (own) outer else top,
+        topEnd = if (own) top else outer,
+        bottomEnd = if (own) bottom else outer,
+        bottomStart = if (own) outer else bottom
+    )
+    val colors = MaterialTheme.colorScheme
+
+    // Pressing sinks the bubble a little, the Expressive cue that a long press will act on it.
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (pressed) PRESSED_SCALE else 1f, MaterialTheme.motionScheme.fastSpatialSpec())
+    val haptics = LocalHapticFeedback.current
+
+    Surface(
+        shape = shape,
+        color = when {
+            layout == BubbleLayout.Bare -> Color.Transparent
+            own -> colors.primary
+            else -> colors.surfaceContainerHigh
+        },
+        contentColor = when {
+            layout == BubbleLayout.Bare -> colors.onSurface
+            own -> colors.onPrimary
+            else -> colors.onSurface
+        },
+        modifier = Modifier
+            .widthIn(max = MaxBubbleWidth)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clip(shape)
+            .combinedClickable(
+                interactionSource = interaction,
+                indication = null,
+                onClick = {},
+                onLongClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    actions.onLongPress(message)
+                }
+            )
+    ) {
+        BubbleContent(message, layout, actions)
+    }
+}
+
+/** A stable colour per sender from the theme's accent roles, so names stay legible in any palette. */
+@Composable
+private fun senderColor(senderId: String): Color {
+    val colors = MaterialTheme.colorScheme
+    val palette = listOf(colors.primary, colors.tertiary, colors.secondary)
+    return palette[Math.floorMod(senderId.hashCode(), palette.size)]
+}

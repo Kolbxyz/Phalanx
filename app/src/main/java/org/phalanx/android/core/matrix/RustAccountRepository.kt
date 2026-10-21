@@ -168,7 +168,9 @@ private fun Client.ownProfile(cachedName: String?): Flow<AccountProfile?> = call
         val userId = userId()
         trySend(AccountProfile(userId, cachedName, avatarUrl = cachedAvatarUrl()))
         try {
-            trySend(AccountProfile(userId, displayName(), cachedAvatarUrl()))
+            // avatarUrl() asks the server and refreshes the cache; cachedAvatarUrl() stays empty on a
+            // fresh login until something else fetched it.
+            trySend(AccountProfile(userId, displayName(), avatarUrl()))
         } catch (_: ClientException) {
             // Offline: the live listener below fills the name in once the server answers.
         }

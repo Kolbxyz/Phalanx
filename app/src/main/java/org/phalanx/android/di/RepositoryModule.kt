@@ -6,11 +6,29 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import org.phalanx.android.core.matrix.RustAccountRepository
 import org.phalanx.android.core.matrix.RustAuthRepository
+import org.phalanx.android.core.matrix.PushRulesMutedUsersRepository
+import org.phalanx.android.core.matrix.RustBlockedUsersRepository
+import org.phalanx.android.core.matrix.RustSearchRepository
+import org.phalanx.android.core.matrix.RustMediaRepository
+import org.phalanx.android.core.matrix.RustRoomActionsRepository
+import org.phalanx.android.core.matrix.RustRoomGalleryRepository
 import org.phalanx.android.core.matrix.RustRoomListRepository
+import org.phalanx.android.core.matrix.RustSecurityRepository
 import org.phalanx.android.core.matrix.RustTimelineRepository
+import org.phalanx.android.core.push.PushRegistrar
+import org.phalanx.android.core.schedule.MessageScheduler
 import org.phalanx.android.data.repository.AccountRepository
 import org.phalanx.android.data.repository.AuthRepository
+import org.phalanx.android.data.repository.BlockedUsersRepository
+import org.phalanx.android.data.repository.MutedUsersRepository
+import org.phalanx.android.data.repository.MediaRepository
+import org.phalanx.android.data.repository.PushRepository
+import org.phalanx.android.data.repository.RoomActionsRepository
+import org.phalanx.android.data.repository.RoomGalleryRepository
 import org.phalanx.android.data.repository.RoomListRepository
+import org.phalanx.android.data.repository.SearchRepository
+import org.phalanx.android.data.repository.ScheduleRepository
+import org.phalanx.android.data.repository.SecurityRepository
 import org.phalanx.android.data.repository.TimelineRepository
 
 @Module
@@ -26,5 +44,32 @@ internal abstract class RepositoryModule {
     abstract fun timelineRepository(impl: RustTimelineRepository): TimelineRepository
 
     @Binds
+    abstract fun mediaRepository(impl: RustMediaRepository): MediaRepository
+
+    @Binds
+    abstract fun blockedUsersRepository(impl: RustBlockedUsersRepository): BlockedUsersRepository
+
+    @Binds
+    abstract fun roomActionsRepository(impl: RustRoomActionsRepository): RoomActionsRepository
+
+    @Binds
+    abstract fun roomGalleryRepository(impl: RustRoomGalleryRepository): RoomGalleryRepository
+
+    @Binds
+    abstract fun scheduleRepository(impl: MessageScheduler): ScheduleRepository
+
+    @Binds
+    abstract fun securityRepository(impl: RustSecurityRepository): SecurityRepository
+
+    @Binds
     abstract fun accountRepository(impl: RustAccountRepository): AccountRepository
+
+    @Binds
+    abstract fun pushRepository(impl: PushRegistrar): PushRepository
+
+    @Binds
+    abstract fun mutedUsersRepository(impl: PushRulesMutedUsersRepository): MutedUsersRepository
+
+    @Binds
+    abstract fun searchRepository(impl: RustSearchRepository): SearchRepository
 }

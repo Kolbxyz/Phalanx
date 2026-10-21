@@ -4,79 +4,89 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.phalanx.android.R
 import org.phalanx.android.data.model.TimelineEntry
+import org.phalanx.android.ui.components.OpenFileEffect
 import org.phalanx.android.ui.components.TimelinePlaceholder
-import org.phalanx.android.ui.theme.LocalReducedMotion
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
+import org.phalanx.android.ui.components.TopNoticeHost
 
 @Composable
-fun RoomScreen(onBack: () -> Unit, viewModel: RoomViewModel = hiltViewModel()) {
+fun RoomScreen(
+    onBack: () -> Unit,
+    onOpenDetails: (roomId: String) -> Unit,
+    onOpenMedia: (roomId: String, entryId: String) -> Unit,
+    viewModel: RoomViewModel = hiltViewModel()
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val draft by viewModel.draft.collectAsStateWithLifecycle()
-    val sendFailed by viewModel.sendFailed.collectAsStateWithLifecycle()
-    val snackbar = remember { SnackbarHostState() }
-    val failedMessage = stringResource(R.string.composer_send_failed)
+    val composerState by viewModel.composer.state.collectAsStateWithLifecycle()
+    val notice by viewModel.notice.collectAsStateWithLifecycle()
+    val openRequest by viewModel.openRequest.collectAsStateWithLifecycle()
+    val header by viewModel.header.collectAsStateWithLifecycle()
+    val settings by viewModel.settings.collectAsStateWithLifecycle()
+    var selected by remember { mutableStateOf<TimelineEntry.Message?>(null) }
+    var attaching by remember { mutableStateOf(false) }
+    var scheduling by remember { mutableStateOf(false) }
+    val scheduled by viewModel.scheduled.collectAsStateWithLifecycle()
+    val launchers = rememberAttachLaunchers(viewModel)
 
-    LaunchedEffect(sendFailed) {
-        if (sendFailed) {
-            snackbar.showSnackbar(failedMessage)
-            viewModel.dismissSendFailed()
-        }
+    OpenFileEffect(openRequest, viewModel::onOpened) { viewModel.notify(R.string.timeline_open_failed) }
+
+    val actions = remember(viewModel) {
+        MessageActions(
+            onOpenMedia = { onOpenMedia(viewModel.roomId, it.id) },
+            onOpenFile = viewModel::openFile,
+            resolveAudio = viewModel::audioUri,
+            onToggleReaction = viewModel::toggleReaction,
+            onShowReactors = viewModel::showReactors,
+            onReply = viewModel.composer::reply,
+            onLongPress = { selected = it }
+        )
+    }
+    val composerActions = remember(viewModel) {
+        val composer = viewModel.composer
+        ComposerActions(
+            onDraftChange = composer::onDraftChange,
+            onSend = composer::send,
+            onCancelMode = composer::cancelMode,
+            onAttach = { attaching = true },
+            onRemoveAttachment = composer::removeAttachment,
+            onRecord = launchers.record,
+            onCancelRecording = composer::cancelRecording,
+            onSendRecording = composer::sendRecording,
+            onSchedule = { scheduling = true },
+            onSendScheduledNow = viewModel::sendScheduledNow,
+            onCancelScheduled = viewModel::cancelScheduled
+        )
     }
 
     val ready = state as? RoomUiState.Ready
+    val prefs = settings?.timelinePrefs() ?: TimelinePrefs()
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = ready?.title.orEmpty(), maxLines = 1) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
-                }
-            )
-        },
+        topBar = { RoomTopBar(header, ready?.title, onBack, onOpenDetails = { onOpenDetails(viewModel.roomId) }) },
         bottomBar = {
-            if (ready != null) Composer(draft, viewModel::onDraftChange, viewModel::send)
-        },
-        snackbarHost = { SnackbarHost(snackbar) }
+            if (ready != null) {
+                Composer(composerState, composerActions, enterToSend = settings?.enterToSend == true, scheduled)
+            }
+        }
     ) { padding ->
         val fade = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
         AnimatedContent(
@@ -93,9 +103,40 @@ fun RoomScreen(onBack: () -> Unit, viewModel: RoomViewModel = hiltViewModel()) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                is RoomUiState.Ready -> Timeline(current, padding, viewModel::loadOlder)
+                is RoomUiState.Ready -> CompositionLocalProvider(LocalTimelinePrefs provides prefs) {
+                    TimelineList(current, padding, actions, viewModel::loadOlder)
+                }
             }
         }
+    }
+    TopNoticeHost(notice, onDismiss = viewModel::dismissNotice)
+
+    MessageMenu(selected, onDismiss = { selected = null }, viewModel)
+    val reactors by viewModel.reactors.collectAsStateWithLifecycle()
+    reactors?.let { ReactorsSheet(it, onDismiss = viewModel::dismissReactors) }
+    if (scheduling) {
+        ScheduleSheet(
+            exact = viewModel.canScheduleExactly(),
+            onDismiss = { scheduling = false },
+            onPick = { at ->
+                scheduling = false
+                viewModel.scheduleDraft(at)
+            }
+        )
+    }
+    if (attaching) {
+        // Each choice leaves the app for a picker, so the sheet closes first.
+        fun pick(launch: () -> Unit): () -> Unit = {
+            attaching = false
+            launch()
+        }
+        AttachSheet(
+            onDismiss = { attaching = false },
+            onPhoto = pick(launchers.photo),
+            onVideo = pick(launchers.video),
+            onGallery = pick(launchers.gallery),
+            onFile = pick(launchers.file)
+        )
     }
 }
 
@@ -103,79 +144,3 @@ fun RoomScreen(onBack: () -> Unit, viewModel: RoomViewModel = hiltViewModel()) {
 private fun Centered(padding: PaddingValues, content: @Composable () -> Unit) {
     Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) { content() }
 }
-
-@Composable
-private fun Timeline(state: RoomUiState.Ready, padding: PaddingValues, onLoadOlder: () -> Unit) {
-    val listState = rememberLazyListState()
-    val motion = MaterialTheme.motionScheme
-
-    // The list is reversed, so the oldest message is the last item; ask for more history when it
-    // gets close, and again each time the list grows and it is still close.
-    LaunchedEffect(listState, state.canLoadOlder) {
-        if (!state.canLoadOlder) return@LaunchedEffect
-        snapshotFlow {
-            val info = listState.layoutInfo
-            (info.visibleItemsInfo.lastOrNull()?.index ?: 0) >= info.totalItemsCount - LOAD_AHEAD
-        }.collect { nearTop -> if (nearTop) onLoadOlder() }
-    }
-
-    // A message arriving while the user reads the newest ones should come into view, not land
-    // below the fold because the list kept its anchor on the previous item.
-    val reducedMotion = LocalReducedMotion.current
-    val newestId = state.entries.firstOrNull()?.id
-    LaunchedEffect(newestId) {
-        if (listState.firstVisibleItemIndex <= 1) {
-            if (reducedMotion) listState.scrollToItem(0) else listState.animateScrollToItem(0)
-        }
-    }
-
-    LazyColumn(
-        state = listState,
-        modifier = Modifier.fillMaxSize(),
-        reverseLayout = true,
-        contentPadding = PaddingValues(
-            start = 12.dp,
-            end = 12.dp,
-            top = padding.calculateTopPadding() + 8.dp,
-            bottom = padding.calculateBottomPadding() + 8.dp
-        ),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        items(state.entries, key = { it.id }, contentType = { it::class }) { entry ->
-            val animated = Modifier.animateItem(
-                fadeInSpec = motion.defaultEffectsSpec(),
-                placementSpec = motion.defaultSpatialSpec(),
-                fadeOutSpec = motion.defaultEffectsSpec()
-            )
-            when (entry) {
-                is TimelineEntry.Message -> MessageBubble(entry, showSender = !state.isDirect, modifier = animated)
-                is TimelineEntry.DayDivider -> DayDivider(entry.millis, animated)
-            }
-        }
-        // Last in a reversed list, so it sits above the oldest message while history loads.
-        if (state.canLoadOlder) {
-            item(key = OLDER_KEY, contentType = OLDER_KEY) {
-                Box(Modifier.fillMaxWidth().padding(vertical = 8.dp), Alignment.Center) {
-                    LoadingIndicator(Modifier.size(32.dp))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DayDivider(millis: Long, modifier: Modifier = Modifier) {
-    val label = remember(millis) {
-        DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).format(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()))
-    }
-    Text(
-        text = label,
-        modifier = modifier.fillMaxWidth().padding(vertical = 12.dp),
-        textAlign = TextAlign.Center,
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-}
-
-private const val LOAD_AHEAD = 5
-private const val OLDER_KEY = "older"
