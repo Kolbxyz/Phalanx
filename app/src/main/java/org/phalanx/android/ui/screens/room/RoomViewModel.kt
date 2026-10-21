@@ -132,7 +132,9 @@ class RoomViewModel @Inject constructor(
         viewModelScope.launch {
             val result = if (muted) mutedUsers.mute(userId) else mutedUsers.unmute(userId)
             result.fold(
-                onSuccess = { notify(if (muted) R.string.timeline_muted else R.string.timeline_unmuted, NoticeKind.Done) },
+                onSuccess = {
+                    notify(if (muted) R.string.timeline_muted else R.string.timeline_unmuted, NoticeKind.Done)
+                },
                 onFailure = { notify(R.string.timeline_action_failed) }
             )
         }

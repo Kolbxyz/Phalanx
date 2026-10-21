@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialShapes
@@ -40,6 +38,7 @@ import org.phalanx.android.data.repository.AccountProfile
 import org.phalanx.android.ui.components.InitialAvatar
 import org.phalanx.android.ui.components.SegmentedRow
 import org.phalanx.android.ui.components.segmentedShape
+import org.phalanx.android.ui.theme.Symbols
 
 /**
  * A cookie avatar with the name and Matrix ID under it, centred like a profile card. Tapping the
@@ -83,7 +82,7 @@ internal fun ProfileHeader(
                 modifier = Modifier.align(Alignment.BottomEnd).size(36.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.PhotoCamera, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Icon(Symbols.PhotoCamera, contentDescription = null, modifier = Modifier.size(20.dp))
                 }
             }
         }

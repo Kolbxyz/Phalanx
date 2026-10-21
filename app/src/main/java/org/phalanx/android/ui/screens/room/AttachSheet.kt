@@ -8,11 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.InsertDriveFile
-import androidx.compose.material.icons.rounded.PhotoCamera
-import androidx.compose.material.icons.rounded.PhotoLibrary
-import androidx.compose.material.icons.rounded.Videocam
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +24,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
+import org.phalanx.android.ui.theme.Symbols
 
 /** The composer's "+": each choice closes the sheet and hands over to the system picker or camera. */
 @Composable
@@ -45,13 +41,13 @@ internal fun AttachSheet(
             modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Choice(Icons.Rounded.PhotoLibrary, R.string.composer_attach_gallery, MaterialShapes.Cookie9Sided.toShape(),
+            Choice(Symbols.PhotoLibrary, R.string.composer_attach_gallery, MaterialShapes.Cookie9Sided.toShape(),
                 colors.primaryContainer, colors.onPrimaryContainer, onGallery)
-            Choice(Icons.Rounded.PhotoCamera, R.string.composer_attach_camera, MaterialShapes.Sunny.toShape(),
+            Choice(Symbols.PhotoCamera, R.string.composer_attach_camera, MaterialShapes.Sunny.toShape(),
                 colors.secondaryContainer, colors.onSecondaryContainer, onPhoto)
-            Choice(Icons.Rounded.Videocam, R.string.composer_attach_video, MaterialShapes.Pill.toShape(),
+            Choice(Symbols.Videocam, R.string.composer_attach_video, MaterialShapes.Pill.toShape(),
                 colors.tertiaryContainer, colors.onTertiaryContainer, onVideo)
-            Choice(Icons.AutoMirrored.Rounded.InsertDriveFile, R.string.composer_attach_file,
+            Choice(Symbols.InsertDriveFile, R.string.composer_attach_file,
                 MaterialShapes.Clover4Leaf.toShape(), colors.surfaceContainerHighest, colors.onSurface, onFile)
         }
     }

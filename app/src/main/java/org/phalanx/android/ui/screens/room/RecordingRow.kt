@@ -10,9 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Send
-import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,6 +23,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
+import org.phalanx.android.ui.theme.Symbols
 
 // Must match the recorder's sampling interval: one level per tenth of a second.
 private const val MILLIS_PER_SAMPLE = 100L
@@ -45,7 +43,7 @@ internal fun RecordingRow(levels: List<Float>, onCancel: () -> Unit, onSend: () 
     ) {
         IconButton(onClick = onCancel) {
             Icon(
-                Icons.Rounded.Delete,
+                Symbols.Delete,
                 contentDescription = stringResource(R.string.composer_record_cancel),
                 tint = colors.error
             )
@@ -70,7 +68,7 @@ internal fun RecordingRow(levels: List<Float>, onCancel: () -> Unit, onSend: () 
             )
         }
         FilledIconButton(onClick = onSend, modifier = Modifier.size(48.dp)) {
-            Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = stringResource(R.string.composer_record_send))
+            Icon(Symbols.Send, contentDescription = stringResource(R.string.composer_record_send))
         }
     }
 }

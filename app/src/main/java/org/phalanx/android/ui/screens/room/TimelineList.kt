@@ -18,8 +18,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
@@ -49,6 +47,7 @@ import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.theme.LocalReducedMotion
+import org.phalanx.android.ui.theme.Symbols
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -246,7 +245,7 @@ private fun JumpToLatest(visible: Boolean, onClick: () -> Unit, modifier: Modifi
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
         ) {
-            Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = stringResource(R.string.timeline_jump_latest))
+            Icon(Symbols.KeyboardArrowDown, contentDescription = stringResource(R.string.timeline_jump_latest))
         }
     }
 }

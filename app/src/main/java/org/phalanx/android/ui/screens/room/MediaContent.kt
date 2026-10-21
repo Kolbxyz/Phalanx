@@ -13,11 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.InsertDriveFile
-import androidx.compose.material.icons.rounded.Download
-import androidx.compose.material.icons.rounded.LocationOn
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +37,7 @@ import org.phalanx.android.R
 import org.phalanx.android.data.model.MediaRef
 import org.phalanx.android.data.model.MediaRequest
 import org.phalanx.android.data.model.MessageBody
+import org.phalanx.android.ui.theme.Symbols
 
 internal val MediaWidth = 260.dp
 private val StickerSize = 160.dp
@@ -89,7 +85,7 @@ private fun TapToLoad(description: String, modifier: Modifier, onLoad: () -> Uni
     Box(modifier.clickable(onClick = onLoad), contentAlignment = Alignment.Center) {
         Surface(shape = MaterialShapes.Cookie9Sided.toShape(), color = MaterialTheme.colorScheme.secondaryContainer) {
             Icon(
-                Icons.Rounded.Download,
+                Symbols.Download,
                 contentDescription = stringResource(R.string.timeline_load_media, description),
                 modifier = Modifier.padding(14.dp).size(28.dp)
             )
@@ -118,7 +114,7 @@ internal fun VideoContent(body: MessageBody.Video, onOpen: () -> Unit, modifier:
         }
         Surface(shape = MaterialShapes.Circle.toShape(), color = MaterialTheme.colorScheme.primaryContainer) {
             Icon(
-                Icons.Rounded.PlayArrow,
+                Symbols.PlayArrow,
                 contentDescription = stringResource(R.string.timeline_play),
                 modifier = Modifier.padding(12.dp).size(32.dp)
             )
@@ -154,7 +150,7 @@ internal fun FileContent(
     ) {
         Surface(shape = MaterialShapes.Cookie4Sided.toShape(), color = MaterialTheme.colorScheme.secondaryContainer) {
             Icon(
-                Icons.AutoMirrored.Rounded.InsertDriveFile,
+                Symbols.InsertDriveFile,
                 contentDescription = null,
                 modifier = Modifier.padding(10.dp)
             )
@@ -184,7 +180,7 @@ internal fun LocationContent(body: MessageBody.Location, modifier: Modifier = Mo
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Rounded.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        Icon(Symbols.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         Text(
             text = body.description ?: stringResource(R.string.timeline_kind_location),
             style = MaterialTheme.typography.bodyLarge

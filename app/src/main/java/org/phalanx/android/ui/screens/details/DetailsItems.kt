@@ -11,11 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.InsertDriveFile
-import androidx.compose.material.icons.rounded.GraphicEq
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.PushPin
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -33,6 +28,7 @@ import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.components.SegmentedRow
 import org.phalanx.android.ui.screens.room.summaryOf
+import org.phalanx.android.ui.theme.Symbols
 
 private const val TILE_PX = 360
 private val TileShape = RoundedCornerShape(12.dp)
@@ -45,7 +41,7 @@ internal fun PinnedRow(message: TimelineEntry.Message, shape: Shape, onClick: ()
         supporting = message.senderName,
         shape = shape,
         interaction = Modifier.clickable(onClick = onClick),
-        leading = { Icon(Icons.Rounded.PushPin, contentDescription = null) }
+        leading = { Icon(Symbols.PushPin, contentDescription = null) }
     )
 }
 
@@ -82,7 +78,7 @@ private fun MediaTile(message: TimelineEntry.Message, modifier: Modifier, onOpen
             }
             if (body is MessageBody.Video) {
                 Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
-                    Icon(Icons.Rounded.PlayArrow, contentDescription = null, modifier = Modifier.size(28.dp))
+                    Icon(Symbols.PlayArrow, contentDescription = null, modifier = Modifier.size(28.dp))
                 }
             }
         }
@@ -104,7 +100,7 @@ internal fun FileRow(message: TimelineEntry.Message, shape: Shape, onClick: () -
         interaction = Modifier.clickable(onClick = onClick),
         leading = {
             Icon(
-                if (body is MessageBody.Audio) Icons.Rounded.GraphicEq else Icons.AutoMirrored.Rounded.InsertDriveFile,
+                if (body is MessageBody.Audio) Symbols.GraphicEq else Symbols.InsertDriveFile,
                 contentDescription = null
             )
         }

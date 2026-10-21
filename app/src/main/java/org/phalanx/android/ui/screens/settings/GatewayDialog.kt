@@ -3,8 +3,6 @@ package org.phalanx.android.ui.screens.settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Hub
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -19,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
+import org.phalanx.android.ui.theme.Symbols
 
 /** Edits the push gateway; saving an empty field goes back to automatic. */
 @Composable
@@ -26,7 +25,7 @@ internal fun GatewayDialog(current: String, invalid: Boolean, onSave: (String) -
     var text by rememberSaveable { mutableStateOf(current) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Rounded.Hub, contentDescription = null) },
+        icon = { Icon(Symbols.Hub, contentDescription = null) },
         title = { Text(stringResource(R.string.push_gateway)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {

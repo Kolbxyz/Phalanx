@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -35,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.ui.components.MatrixAvatar
+import org.phalanx.android.ui.theme.Symbols
 
 /** Picks the conversation a message is forwarded to; [rooms] null while the list loads. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,7 +43,10 @@ internal fun ForwardSheet(rooms: List<RoomSummary>?, onPick: (roomId: String) ->
     val shown = remember(rooms, query) {
         rooms?.filter { query.isBlank() || it.name.contains(query.trim(), ignoreCase = true) }
     }
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
         Text(
             text = stringResource(R.string.forward_title),
             style = MaterialTheme.typography.titleLarge,
@@ -54,7 +56,7 @@ internal fun ForwardSheet(rooms: List<RoomSummary>?, onPick: (roomId: String) ->
             value = query,
             onValueChange = { query = it },
             placeholder = { Text(stringResource(R.string.forward_search)) },
-            leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
+            leadingIcon = { Icon(Symbols.Search, contentDescription = null) },
             singleLine = true,
             shape = CircleShape,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
@@ -67,7 +69,9 @@ internal fun ForwardSheet(rooms: List<RoomSummary>?, onPick: (roomId: String) ->
                     ListItem(
                         headlineContent = { Text(room.name, maxLines = 1) },
                         leadingContent = { MatrixAvatar(room.name, room.avatar, 40.dp) },
-                        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                        colors = ListItemDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                        ),
                         modifier = Modifier.clickable(role = Role.Button) { onPick(room.id) }
                     )
                 }

@@ -11,9 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Logout
-import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -46,6 +43,7 @@ import org.phalanx.android.ui.components.SegmentedSection
 import org.phalanx.android.ui.components.segmentedShape
 import org.phalanx.android.ui.screens.room.BlockUserDialog
 import org.phalanx.android.ui.screens.roomlist.LeaveRoomDialog
+import org.phalanx.android.ui.theme.Symbols
 
 /** Everything about one conversation: who and what it is, pinned messages, shared media and files. */
 @Composable
@@ -130,12 +128,12 @@ fun RoomDetailsScreen(
                     val dmUser = current.dmUserId
                     val count = if (dmUser != null) 2 else 1
                     if (dmUser != null) {
-                        DangerRow(R.string.action_block, Icons.Rounded.Block, segmentedShape(0, count)) {
+                        DangerRow(R.string.action_block, Symbols.Block, segmentedShape(0, count)) {
                             blocking = true
                         }
                     }
                     val leaveShape = segmentedShape(count - 1, count)
-                    DangerRow(R.string.room_action_leave, Icons.AutoMirrored.Rounded.Logout, leaveShape) {
+                    DangerRow(R.string.room_action_leave, Symbols.Logout, leaveShape) {
                         leaving = true
                     }
                 }

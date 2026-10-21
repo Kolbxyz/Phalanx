@@ -8,6 +8,7 @@ import org.phalanx.android.core.matrix.RustAccountRepository
 import org.phalanx.android.core.matrix.RustAuthRepository
 import org.phalanx.android.core.matrix.PushRulesMutedUsersRepository
 import org.phalanx.android.core.matrix.RustBlockedUsersRepository
+import org.phalanx.android.core.matrix.RustSearchRepository
 import org.phalanx.android.core.matrix.RustMediaRepository
 import org.phalanx.android.core.matrix.RustRoomActionsRepository
 import org.phalanx.android.core.matrix.RustRoomGalleryRepository
@@ -25,6 +26,7 @@ import org.phalanx.android.data.repository.PushRepository
 import org.phalanx.android.data.repository.RoomActionsRepository
 import org.phalanx.android.data.repository.RoomGalleryRepository
 import org.phalanx.android.data.repository.RoomListRepository
+import org.phalanx.android.data.repository.SearchRepository
 import org.phalanx.android.data.repository.ScheduleRepository
 import org.phalanx.android.data.repository.SecurityRepository
 import org.phalanx.android.data.repository.TimelineRepository
@@ -67,4 +69,7 @@ internal abstract class RepositoryModule {
 
     @Binds
     abstract fun mutedUsersRepository(impl: PushRulesMutedUsersRepository): MutedUsersRepository
+
+    @Binds
+    abstract fun searchRepository(impl: RustSearchRepository): SearchRepository
 }

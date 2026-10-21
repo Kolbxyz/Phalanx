@@ -123,7 +123,7 @@ internal class ComposerController(
             is ComposerMode.Edit -> scope.launch {
                 current.edit(mode.message, text).fold(
                     onSuccess = { update { if (it.mode == mode) ComposerState() else it } },
-                    onFailure = { notify(Notice(R.string.composer_send_failed, NoticeKind.Error)) }
+                    onFailure = { notify(SEND_FAILED) }
                 )
             }
             else -> sendNew(current, snapshot, text, (mode as? ComposerMode.Reply)?.message)
@@ -144,7 +144,7 @@ internal class ComposerController(
                     onSuccess = {
                         update { if (it.draft.trim() == text) it.copy(draft = "", mode = ComposerMode.New) else it }
                     },
-                    onFailure = { notify(Notice(R.string.composer_send_failed, NoticeKind.Error)) }
+                    onFailure = { notify(SEND_FAILED) }
                 )
             }
             return
@@ -155,12 +155,12 @@ internal class ComposerController(
         val caption = text.takeIf { it.isNotEmpty() && media.size == 1 }
         scope.launch {
             if (caption == null && text.isNotEmpty()) {
-                current.send(text, replyTo).onFailure { notify(Notice(R.string.composer_send_failed, NoticeKind.Error)) }
+                current.send(text, replyTo).onFailure { notify(SEND_FAILED) }
             }
             media.forEachIndexed { index, item ->
                 launch {
                     current.sendMedia(item, caption, replyTo.takeIf { index == 0 && caption != null })
-                        .onFailure { notify(Notice(R.string.composer_send_failed, NoticeKind.Error)) }
+                        .onFailure { notify(SEND_FAILED) }
                 }
             }
         }
@@ -202,7 +202,7 @@ internal class ComposerController(
         }
         val current = session ?: return preparer.discard(voice)
         if (replyTo != null) update { it.copy(mode = ComposerMode.New) }
-        scope.launch { current.sendMedia(voice, null, replyTo).onFailure { notify(Notice(R.string.composer_send_failed, NoticeKind.Error)) } }
+        scope.launch { current.sendMedia(voice, null, replyTo).onFailure { notify(SEND_FAILED) } }
     }
 
     /** Keeps the draft and drops everything that was only in memory. */
@@ -220,3 +220,5 @@ internal class ComposerController(
         const val DRAFT_SAVE_DELAY_MILLIS = 600L
     }
 }
+
+private val SEND_FAILED = Notice(R.string.composer_send_failed, NoticeKind.Error)

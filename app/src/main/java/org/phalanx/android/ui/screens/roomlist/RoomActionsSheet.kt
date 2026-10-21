@@ -7,15 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Logout
-import androidx.compose.material.icons.rounded.Archive
-import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.MarkChatRead
-import androidx.compose.material.icons.rounded.MarkChatUnread
-import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.StarOutline
-import androidx.compose.material.icons.rounded.Unarchive
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -35,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.ui.components.MatrixAvatar
+import org.phalanx.android.ui.theme.Symbols
 
 /** A long press on a chat in the list: the room's name, then what can be done without opening it. */
 @Composable
@@ -58,22 +50,22 @@ internal fun RoomActionsSheet(
         }
         Spacer(Modifier.height(8.dp))
         if (room.hasUnread) {
-            Action(Icons.Rounded.MarkChatRead, R.string.room_action_mark_read, onToggleRead)
+            Action(Symbols.MarkChatRead, R.string.room_action_mark_read, onToggleRead)
         } else {
-            Action(Icons.Rounded.MarkChatUnread, R.string.room_action_mark_unread, onToggleRead)
+            Action(Symbols.MarkChatUnread, R.string.room_action_mark_unread, onToggleRead)
         }
         if (room.isFavourite) {
-            Action(Icons.Rounded.StarOutline, R.string.room_action_unfavourite, onToggleFavourite)
+            Action(Symbols.StarOutline, R.string.room_action_unfavourite, onToggleFavourite)
         } else {
-            Action(Icons.Rounded.Star, R.string.room_action_favourite, onToggleFavourite)
+            Action(Symbols.Star, R.string.room_action_favourite, onToggleFavourite)
         }
         if (room.isLowPriority) {
-            Action(Icons.Rounded.Unarchive, R.string.room_action_unarchive, onToggleArchived)
+            Action(Symbols.Unarchive, R.string.room_action_unarchive, onToggleArchived)
         } else {
-            Action(Icons.Rounded.Archive, R.string.room_action_archive, onToggleArchived)
+            Action(Symbols.Archive, R.string.room_action_archive, onToggleArchived)
         }
-        Action(Icons.Rounded.Info, R.string.room_action_details, onDetails)
-        Action(Icons.AutoMirrored.Rounded.Logout, R.string.room_action_leave, onLeave, destructive = true)
+        Action(Symbols.Info, R.string.room_action_details, onDetails)
+        Action(Symbols.Logout, R.string.room_action_leave, onLeave, destructive = true)
         Spacer(Modifier.height(8.dp))
     }
 }
@@ -94,7 +86,7 @@ private fun Action(icon: ImageVector, @StringRes label: Int, onClick: () -> Unit
 internal fun LeaveRoomDialog(name: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon = { Icon(Icons.AutoMirrored.Rounded.Logout, contentDescription = null) },
+        icon = { Icon(Symbols.Logout, contentDescription = null) },
         title = { Text(stringResource(R.string.leave_title, name)) },
         text = { Text(stringResource(R.string.leave_body)) },
         confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.room_action_leave)) } },

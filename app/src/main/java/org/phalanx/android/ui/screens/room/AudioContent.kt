@@ -11,9 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
@@ -42,6 +39,7 @@ import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.data.model.MediaRef
 import org.phalanx.android.data.model.MessageBody
+import org.phalanx.android.ui.theme.Symbols
 import java.io.IOException
 
 private const val PROGRESS_TICK_MILLIS = 100L
@@ -99,8 +97,8 @@ internal fun AudioContent(
         FilledTonalIconButton(onClick = ::toggle) {
             when {
                 loading -> LoadingIndicator(Modifier.size(24.dp))
-                playing -> Icon(Icons.Rounded.Pause, contentDescription = stringResource(R.string.timeline_pause))
-                else -> Icon(Icons.Rounded.PlayArrow, contentDescription = stringResource(R.string.timeline_play))
+                playing -> Icon(Symbols.Pause, contentDescription = stringResource(R.string.timeline_pause))
+                else -> Icon(Symbols.PlayArrow, contentDescription = stringResource(R.string.timeline_play))
             }
         }
         // Every audio message gets the same bars; senders that include no waveform get a flat one,

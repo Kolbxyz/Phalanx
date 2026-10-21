@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
 import org.phalanx.android.data.model.ReplyPreview
 import org.phalanx.android.data.model.ScheduledMessage
+import org.phalanx.android.ui.theme.Symbols
 
 /** Sits in the Scaffold's bottom bar, so it owns the keyboard and navigation-bar insets itself. */
 @Composable
@@ -106,7 +105,7 @@ private fun ModeBanner(mode: ComposerMode, onCancel: () -> Unit) {
         ) {
             ReplyQuote(preview, Modifier.weight(1f))
             IconButton(onClick = onCancel) {
-                Icon(Icons.Rounded.Close, contentDescription = stringResource(cancel))
+                Icon(Symbols.Close, contentDescription = stringResource(cancel))
             }
         }
     }

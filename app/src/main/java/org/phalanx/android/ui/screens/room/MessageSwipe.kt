@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Reply
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.phalanx.android.ui.theme.LocalReducedMotion
+import org.phalanx.android.ui.theme.Symbols
 import kotlin.math.roundToInt
 
 private val ReplyThreshold = 64.dp
@@ -114,7 +113,7 @@ internal fun MessageSwipe(
         val replyProgress = (reply / threshold).coerceIn(0f, 1f)
         val revealProgress = (-reveal.offset / revealWidth).coerceIn(0f, 1f)
         Icon(
-            Icons.AutoMirrored.Rounded.Reply,
+            Symbols.Reply,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier

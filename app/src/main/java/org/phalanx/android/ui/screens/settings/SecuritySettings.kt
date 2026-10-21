@@ -9,13 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Devices
-import androidx.compose.material.icons.rounded.GppMaybe
-import androidx.compose.material.icons.rounded.Key
-import androidx.compose.material.icons.rounded.Password
-import androidx.compose.material.icons.rounded.PhonelinkLock
-import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
@@ -39,6 +32,7 @@ import org.phalanx.android.data.repository.VerificationStep
 import org.phalanx.android.ui.components.SegmentedRow
 import org.phalanx.android.ui.components.SegmentedSection
 import org.phalanx.android.ui.components.segmentedShape
+import org.phalanx.android.ui.theme.Symbols
 
 /** This session's verification, the account's recovery key, and the list of signed-in devices. */
 @Composable
@@ -51,15 +45,15 @@ internal fun SecuritySettings(onOpenDevices: () -> Unit, viewModel: SecurityView
     SegmentedSection(stringResource(R.string.security_recovery)) {
         when (status?.recovery) {
             RecoveryStatus.Off -> ActionRow(
-                Icons.Rounded.Key, R.string.security_set_up, R.string.security_set_up_summary, ui.busy,
+                Symbols.Key, R.string.security_set_up, R.string.security_set_up_summary, ui.busy,
                 viewModel::setUpRecovery
             )
             RecoveryStatus.On -> ActionRow(
-                Icons.Rounded.Password, R.string.security_change_key, R.string.security_change_key_summary, ui.busy,
+                Symbols.Password, R.string.security_change_key, R.string.security_change_key_summary, ui.busy,
                 viewModel::changeRecoveryKey
             )
             RecoveryStatus.Incomplete -> ActionRow(
-                Icons.Rounded.Key, R.string.security_enter_key, R.string.security_enter_key_summary, ui.busy,
+                Symbols.Key, R.string.security_enter_key, R.string.security_enter_key_summary, ui.busy,
                 viewModel::startEntering
             )
             RecoveryStatus.Unknown, null -> SegmentedRow(
@@ -74,7 +68,7 @@ internal fun SecuritySettings(onOpenDevices: () -> Unit, viewModel: SecurityView
             headline = stringResource(R.string.account_devices),
             supporting = stringResource(R.string.account_devices_summary),
             shape = segmentedShape(0, 1),
-            leading = { Icon(Icons.Rounded.Devices, contentDescription = null) },
+            leading = { Icon(Symbols.Devices, contentDescription = null) },
             interaction = Modifier.clickable(onClick = onOpenDevices)
         )
     }
@@ -106,7 +100,7 @@ private fun StatusCard(status: SecurityStatus?, onVerify: () -> Unit, onEnterKey
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    if (verified) Icons.Rounded.VerifiedUser else Icons.Rounded.GppMaybe,
+                    if (verified) Symbols.VerifiedUser else Symbols.GppMaybe,
                     contentDescription = null,
                     modifier = Modifier.size(32.dp)
                 )
@@ -125,11 +119,11 @@ private fun StatusCard(status: SecurityStatus?, onVerify: () -> Unit, onEnterKey
                 // Stacked: side by side, the second label wraps over several lines on a phone.
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp)) {
                     Button(onClick = onVerify, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Rounded.PhonelinkLock, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Icon(Symbols.PhonelinkLock, contentDescription = null, modifier = Modifier.size(18.dp))
                         Text(stringResource(R.string.security_verify_device), modifier = Modifier.padding(start = 8.dp))
                     }
                     OutlinedButton(onClick = onEnterKey, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Rounded.Key, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Icon(Symbols.Key, contentDescription = null, modifier = Modifier.size(18.dp))
                         Text(stringResource(R.string.security_use_key), modifier = Modifier.padding(start = 8.dp))
                     }
                 }

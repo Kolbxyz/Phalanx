@@ -1,8 +1,11 @@
 package org.phalanx.android.ui.screens.roomlist
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,10 +30,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -46,6 +51,8 @@ import org.phalanx.android.ui.components.InitialAvatar
 import org.phalanx.android.ui.components.RoomListPlaceholder
 import org.phalanx.android.ui.components.SegmentGap
 import org.phalanx.android.ui.components.segmentedShape
+import org.phalanx.android.ui.screens.search.SearchOverlay
+import org.phalanx.android.ui.theme.Symbols
 
 @Composable
 fun RoomListScreen(
@@ -60,6 +67,7 @@ fun RoomListScreen(
     val actionFailed by viewModel.actionFailed.collectAsStateWithLifecycle()
     var menuFor by remember { mutableStateOf<RoomSummary?>(null) }
     var leaving by remember { mutableStateOf<RoomSummary?>(null) }
+    var searching by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
     val failure = stringResource(R.string.timeline_action_failed)
     LaunchedEffect(actionFailed) {
@@ -81,7 +89,12 @@ fun RoomListScreen(
                         style = MaterialTheme.typography.headlineLarge
                     )
                 },
-                actions = { AccountButton(profile?.label.orEmpty(), avatar, onOpenAccount) },
+                actions = {
+                    IconButton(onClick = { searching = true }) {
+                        Icon(Symbols.Search, contentDescription = stringResource(R.string.search_open))
+                    }
+                    AccountButton(profile?.label.orEmpty(), avatar, onOpenAccount)
+                },
                 expandedHeight = 72.dp,
                 scrollBehavior = scrollBehavior
             )
@@ -101,6 +114,18 @@ fun RoomListScreen(
                     RoomList(current, padding, viewModel::setFilter, onOpenRoom, onLongClick = { menuFor = it })
             }
         }
+    }
+
+    // Grows out of the search button's corner, the way a search bar expands in Material 3.
+    val motion = MaterialTheme.motionScheme
+    AnimatedVisibility(
+        visible = searching,
+        enter = fadeIn(motion.defaultEffectsSpec()) +
+            scaleIn(motion.defaultSpatialSpec(), initialScale = SEARCH_FROM_SCALE, transformOrigin = SearchOrigin),
+        exit = fadeOut(motion.fastEffectsSpec()) +
+            scaleOut(motion.fastSpatialSpec(), targetScale = SEARCH_FROM_SCALE, transformOrigin = SearchOrigin)
+    ) {
+        SearchOverlay(onClose = { searching = false }, onOpenRoom = onOpenRoom)
     }
 
     menuFor?.let { room ->
@@ -214,6 +239,8 @@ private fun RoomList(
 }
 
 private const val ROOM_ROW = 0
+private const val SEARCH_FROM_SCALE = 0.85f
+private val SearchOrigin = TransformOrigin(1f, 0f)
 private const val FILTERS_KEY = "filters"
 private const val EMPTY_KEY = "empty"
 private const val INTRO_MILLIS = 600L

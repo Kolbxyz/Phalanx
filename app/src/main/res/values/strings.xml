@@ -317,4 +317,16 @@
     <string name="roomlist_filter_empty">Nothing here</string>
     <string name="room_action_archive">Archive</string>
     <string name="room_action_unarchive">Move out of archive</string>
+    <string name="search_all">All</string>
+    <string name="search_chats">Chats</string>
+    <string name="search_messages">Messages</string>
+    <string name="search_media">Photos and videos</string>
+    <string name="search_files">Files</string>
+    <string name="search_hint">Search messages, chats, files</string>
+    <string name="search_clear">Clear</string>
+    <string name="search_open">Search</string>
+    <string name="search_intro">Search your chats by name, and messages, photos, videos and files by their text, caption or file name. Everything is searched on this phone; nothing is sent to the server.</string>
+    <string name="search_none">No results</string>
+    <string name="search_scope">Only messages this phone has received since search was turned on can be found.</string>
+    <string name="search_failed">Search failed</string>
 </resources>

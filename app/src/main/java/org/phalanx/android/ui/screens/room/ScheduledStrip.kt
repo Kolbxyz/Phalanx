@@ -7,11 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Send
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.ErrorOutline
-import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
 import org.phalanx.android.data.model.ScheduledMessage
+import org.phalanx.android.ui.theme.Symbols
 
 /** This room's messages waiting to be sent, above the composer, each with "send now" and cancel. */
 @Composable
@@ -58,7 +54,7 @@ private fun ScheduledRow(message: ScheduledMessage, onSendNow: (String) -> Unit,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(if (failed) Icons.Rounded.ErrorOutline else Icons.Rounded.Schedule, contentDescription = null)
+            Icon(if (failed) Symbols.ErrorOutline else Symbols.Schedule, contentDescription = null)
             Column(Modifier.weight(1f)) {
                 val time = DateUtils.formatDateTime(
                     context,
@@ -81,10 +77,10 @@ private fun ScheduledRow(message: ScheduledMessage, onSendNow: (String) -> Unit,
                 )
             }
             IconButton(onClick = { onSendNow(message.id) }) {
-                Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = stringResource(R.string.schedule_send_now))
+                Icon(Symbols.Send, contentDescription = stringResource(R.string.schedule_send_now))
             }
             IconButton(onClick = { onCancel(message.id) }) {
-                Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.schedule_cancel))
+                Icon(Symbols.Close, contentDescription = stringResource(R.string.schedule_cancel))
             }
         }
     }

@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +30,7 @@ import org.phalanx.android.ui.components.BackButton
 import org.phalanx.android.ui.components.SegmentedRow
 import org.phalanx.android.ui.components.SegmentedSection
 import org.phalanx.android.ui.components.segmentedShape
+import org.phalanx.android.ui.theme.Symbols
 
 @Composable
 fun AccountScreen(
@@ -127,7 +126,7 @@ fun AccountScreen(
                     headlineColor = MaterialTheme.colorScheme.error,
                     leading = {
                         Icon(
-                            Icons.AutoMirrored.Filled.ExitToApp,
+                            Symbols.ExitToApp,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.error
                         )

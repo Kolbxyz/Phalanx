@@ -8,17 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardReturn
-import androidx.compose.material.icons.rounded.Animation
-import androidx.compose.material.icons.rounded.Contrast
-import androidx.compose.material.icons.rounded.DoneAll
-import androidx.compose.material.icons.rounded.FormatBold
-import androidx.compose.material.icons.rounded.HighQuality
-import androidx.compose.material.icons.rounded.Image
-import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.Keyboard
-import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
@@ -46,15 +35,16 @@ import org.phalanx.android.ui.components.ConnectedToggleGroup
 import org.phalanx.android.ui.components.SegmentGap
 import org.phalanx.android.ui.components.SegmentedRow
 import org.phalanx.android.ui.components.segmentedShape
+import org.phalanx.android.ui.theme.Symbols
 
 @Composable
 internal fun MediaSettings(current: AppSettings, viewModel: SettingsViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(SegmentGap)) {
         SwitchGroup(
             listOf(
-                SwitchSetting(Icons.Rounded.Image, R.string.settings_auto_load_media,
+                SwitchSetting(Symbols.Image, R.string.settings_auto_load_media,
                     R.string.settings_auto_load_media_summary, current.autoLoadMedia, viewModel::setAutoLoadMedia),
-                SwitchSetting(Icons.Rounded.HighQuality, R.string.settings_full_quality,
+                SwitchSetting(Symbols.HighQuality, R.string.settings_full_quality,
                     R.string.settings_full_quality_summary, current.fullQualityImages, viewModel::setFullQualityImages)
             )
         )
@@ -66,10 +56,10 @@ internal fun PrivacySettings(current: AppSettings, viewModel: SettingsViewModel)
     Column(verticalArrangement = Arrangement.spacedBy(SegmentGap)) {
         SwitchGroup(
             listOf(
-                SwitchSetting(Icons.Rounded.DoneAll, R.string.settings_read_receipts,
+                SwitchSetting(Symbols.DoneAll, R.string.settings_read_receipts,
                     R.string.settings_read_receipts_summary, current.publicReadReceipts,
                     viewModel::setPublicReadReceipts),
-                SwitchSetting(Icons.Rounded.Keyboard, R.string.settings_send_typing,
+                SwitchSetting(Symbols.Keyboard, R.string.settings_send_typing,
                     R.string.settings_send_typing_summary, current.sendTypingNotices,
                     viewModel::setSendTypingNotices)
             )
@@ -84,7 +74,7 @@ internal fun AboutSettings() {
             headline = stringResource(R.string.app_name),
             supporting = stringResource(R.string.settings_version, BuildConfig.VERSION_NAME),
             shape = segmentedShape(0, 1),
-            leading = { Icon(Icons.Rounded.Info, contentDescription = null) }
+            leading = { Icon(Symbols.Info, contentDescription = null) }
         )
     }
 }
@@ -103,12 +93,12 @@ internal fun AppearanceSettings(current: AppSettings, viewModel: SettingsViewMod
             buildList {
                 // Wallpaper colours exist from Android 12; below that the switch would do nothing.
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    add(SwitchSetting(Icons.Rounded.Palette, R.string.settings_dynamic_color,
+                    add(SwitchSetting(Symbols.Palette, R.string.settings_dynamic_color,
                         R.string.settings_dynamic_color_summary, current.dynamicColor, viewModel::setDynamicColor))
                 }
-                add(SwitchSetting(Icons.Rounded.Contrast, R.string.settings_amoled,
+                add(SwitchSetting(Symbols.Contrast, R.string.settings_amoled,
                     R.string.settings_amoled_summary, current.amoledBlack, viewModel::setAmoledBlack))
-                add(SwitchSetting(Icons.Rounded.Animation, R.string.settings_reduce_motion,
+                add(SwitchSetting(Symbols.Animation, R.string.settings_reduce_motion,
                     R.string.settings_reduce_motion_summary, current.reduceMotion, viewModel::setReduceMotion))
             }
         )
@@ -131,9 +121,9 @@ internal fun ConversationSettings(current: AppSettings, viewModel: SettingsViewM
         )
         SwitchGroup(
             listOf(
-                SwitchSetting(Icons.AutoMirrored.Rounded.KeyboardReturn, R.string.settings_enter_to_send,
+                SwitchSetting(Symbols.KeyboardReturn, R.string.settings_enter_to_send,
                     R.string.settings_enter_to_send_summary, current.enterToSend, viewModel::setEnterToSend),
-                SwitchSetting(Icons.Rounded.FormatBold, R.string.settings_markdown,
+                SwitchSetting(Symbols.FormatBold, R.string.settings_markdown,
                     R.string.settings_markdown_summary, current.markdown, viewModel::setMarkdown)
             )
         )

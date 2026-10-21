@@ -14,8 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialShapes
@@ -43,6 +41,7 @@ import org.phalanx.android.ui.components.InitialAvatar
 import org.phalanx.android.ui.components.SegmentGap
 import org.phalanx.android.ui.components.SegmentedRow
 import org.phalanx.android.ui.components.segmentedShape
+import org.phalanx.android.ui.theme.Symbols
 
 /** The settings home: who is signed in, then one row per page of settings. */
 @Composable
@@ -82,7 +81,7 @@ fun SettingsScreen(
                     supporting = stringResource(category.summary),
                     shape = segmentedShape(index, categories.size),
                     leading = { CategoryIcon(category, index) },
-                    trailing = { Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null) },
+                    trailing = { Icon(Symbols.KeyboardArrowRight, contentDescription = null) },
                     interaction = Modifier.clickable { onOpenCategory(category) }
                 )
             }

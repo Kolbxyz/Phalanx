@@ -19,11 +19,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Send
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +39,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
+import org.phalanx.android.ui.theme.Symbols
 
 private const val MAX_LINES = 6
 private val ButtonSize = 48.dp
@@ -65,7 +61,7 @@ internal fun InputRow(state: ComposerState, actions: ComposerActions, enterToSen
                 enabled = state.mode !is ComposerMode.Edit,
                 modifier = Modifier.size(ButtonSize)
             ) {
-                Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.composer_attach))
+                Icon(Symbols.Add, contentDescription = stringResource(R.string.composer_attach))
             }
         }
         TextField(
@@ -104,7 +100,7 @@ private fun SendOrRecord(state: ComposerState, actions: ComposerActions) {
     ) { mic ->
         if (mic) {
             FilledTonalIconButton(onClick = actions.onRecord, modifier = Modifier.size(ButtonSize)) {
-                Icon(Icons.Rounded.Mic, contentDescription = stringResource(R.string.composer_record))
+                Icon(Symbols.Mic, contentDescription = stringResource(R.string.composer_record))
             }
         } else {
             val editing = state.mode is ComposerMode.Edit
@@ -148,7 +144,7 @@ private fun SendButton(editing: Boolean, enabled: Boolean, onSend: () -> Unit, o
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
-                if (editing) Icons.Rounded.Check else Icons.AutoMirrored.Rounded.Send,
+                if (editing) Symbols.Check else Symbols.Send,
                 contentDescription = stringResource(
                     if (editing) R.string.composer_save_edit else R.string.composer_send
                 )

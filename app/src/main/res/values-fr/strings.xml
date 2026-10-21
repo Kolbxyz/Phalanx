@@ -320,4 +320,16 @@
     <string name="roomlist_filter_empty">Rien ici</string>
     <string name="room_action_archive">Archiver</string>
     <string name="room_action_unarchive">Sortir des archives</string>
+    <string name="search_all">Tout</string>
+    <string name="search_chats">Conversations</string>
+    <string name="search_messages">Messages</string>
+    <string name="search_media">Photos et vidéos</string>
+    <string name="search_files">Fichiers</string>
+    <string name="search_hint">Rechercher messages, conversations, fichiers</string>
+    <string name="search_clear">Effacer</string>
+    <string name="search_open">Rechercher</string>
+    <string name="search_intro">Cherchez vos conversations par nom, et les messages, photos, vidéos et fichiers par leur texte, légende ou nom de fichier. Tout est cherché sur ce téléphone ; rien n’est envoyé au serveur.</string>
+    <string name="search_none">Aucun résultat</string>
+    <string name="search_scope">Seuls les messages reçus par ce téléphone depuis l’activation de la recherche peuvent être trouvés.</string>
+    <string name="search_failed">La recherche a échoué</string>
 </resources>

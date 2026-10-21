@@ -20,11 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.ErrorOutline
-import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
@@ -48,6 +43,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import org.phalanx.android.ui.theme.Symbols
 
 enum class NoticeKind { Info, Done, Scheduled, Error }
 
@@ -130,7 +126,11 @@ private fun NoticeCard(notice: Notice, onDismiss: () -> Unit) {
                 }
                 Text(
                     text = stringResource(notice.text),
-                    style = if (notice.atMillis == null) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium,
+                    style = if (notice.atMillis == null) {
+                        MaterialTheme.typography.titleSmall
+                    } else {
+                        MaterialTheme.typography.bodyMedium
+                    },
                     color = if (notice.atMillis == null) Color.Unspecified else content.copy(alpha = 0.85f)
                 )
             }
@@ -139,8 +139,8 @@ private fun NoticeCard(notice: Notice, onDismiss: () -> Unit) {
 }
 
 private fun iconOf(kind: NoticeKind) = when (kind) {
-    NoticeKind.Info -> Icons.Rounded.Info
-    NoticeKind.Done -> Icons.Rounded.CheckCircle
-    NoticeKind.Scheduled -> Icons.Rounded.Schedule
-    NoticeKind.Error -> Icons.Rounded.ErrorOutline
+    NoticeKind.Info -> Symbols.Info
+    NoticeKind.Done -> Symbols.CheckCircle
+    NoticeKind.Scheduled -> Symbols.Schedule
+    NoticeKind.Error -> Symbols.ErrorOutline
 }

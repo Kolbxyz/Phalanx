@@ -16,9 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ErrorOutline
-import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -42,6 +39,7 @@ import org.phalanx.android.data.model.SendState
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.components.MatrixAvatar
 import org.phalanx.android.ui.theme.LocalReducedMotion
+import org.phalanx.android.ui.theme.Symbols
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -148,13 +146,13 @@ private fun SendStatus(state: SendState, modifier: Modifier = Modifier) {
     when (state) {
         SendState.Sent -> Unit
         SendState.Sending -> Icon(
-            Icons.Rounded.Schedule,
+            Symbols.Schedule,
             contentDescription = stringResource(R.string.timeline_sending),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = modifier.size(14.dp)
         )
         SendState.Failed -> Icon(
-            Icons.Rounded.ErrorOutline,
+            Symbols.ErrorOutline,
             contentDescription = stringResource(R.string.timeline_failed),
             tint = MaterialTheme.colorScheme.error,
             modifier = modifier.size(16.dp)

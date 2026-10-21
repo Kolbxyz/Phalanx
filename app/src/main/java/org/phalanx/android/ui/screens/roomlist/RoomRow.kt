@@ -22,8 +22,6 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
@@ -48,6 +46,7 @@ import org.phalanx.android.R
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.ui.components.MatrixAvatar
 import org.phalanx.android.ui.screens.room.summaryOf
+import org.phalanx.android.ui.theme.Symbols
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -78,7 +77,12 @@ internal fun RoomRow(
     ) {
         Row(
             modifier = Modifier
-                .combinedClickable(interactionSource = interaction, indication = ripple(), onClick = onClick, onLongClick = onLongClick)
+                .combinedClickable(
+                    interactionSource = interaction,
+                    indication = ripple(),
+                    onClick = onClick,
+                    onLongClick = onLongClick
+                )
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -100,7 +104,7 @@ internal fun RoomRow(
                     )
                     if (room.isFavourite) {
                         Icon(
-                            Icons.Rounded.Star,
+                            Symbols.Star,
                             contentDescription = stringResource(R.string.roomlist_favourite),
                             tint = colors.tertiary,
                             modifier = Modifier.size(16.dp)

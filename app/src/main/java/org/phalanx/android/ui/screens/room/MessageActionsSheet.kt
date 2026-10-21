@@ -10,15 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Forward
-import androidx.compose.material.icons.automirrored.rounded.Reply
-import androidx.compose.material.icons.rounded.ContentCopy
-import androidx.compose.material.icons.rounded.Block
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.NotificationsActive
-import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -40,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
+import org.phalanx.android.ui.theme.Symbols
 
 private val QuickReactions = listOf("👍", "❤️", "😂", "😮", "😢", "🙏")
 
@@ -81,23 +73,23 @@ internal fun MessageActionsSheet(
                 }
             }
         }
-        if (message.canReply) Action(Icons.AutoMirrored.Rounded.Reply, R.string.action_reply, onReply)
-        if (message.body is MessageBody.Text) Action(Icons.Rounded.ContentCopy, R.string.action_copy, onCopy)
+        if (message.canReply) Action(Symbols.Reply, R.string.action_reply, onReply)
+        if (message.body is MessageBody.Text) Action(Symbols.ContentCopy, R.string.action_copy, onCopy)
         if (live && message.eventId != null && message.body.isForwardable()) {
-            Action(Icons.AutoMirrored.Rounded.Forward, R.string.action_forward, onForward)
+            Action(Symbols.Forward, R.string.action_forward, onForward)
         }
         if (message.canEdit && message.body is MessageBody.Text) {
-            Action(Icons.Rounded.Edit, R.string.action_edit, onEdit)
+            Action(Symbols.Edit, R.string.action_edit, onEdit)
         }
         if (!message.isOwn) {
             if (senderMuted) {
-                Action(Icons.Rounded.NotificationsActive, R.string.action_unmute, onToggleMute)
+                Action(Symbols.NotificationsActive, R.string.action_unmute, onToggleMute)
             } else {
-                Action(Icons.Rounded.NotificationsOff, R.string.action_mute, onToggleMute)
+                Action(Symbols.NotificationsOff, R.string.action_mute, onToggleMute)
             }
         }
-        if (!message.isOwn) Action(Icons.Rounded.Block, R.string.action_block, onBlock, destructive = true)
-        if (message.isOwn && live) Action(Icons.Rounded.Delete, R.string.action_delete, onDelete, destructive = true)
+        if (!message.isOwn) Action(Symbols.Block, R.string.action_block, onBlock, destructive = true)
+        if (message.isOwn && live) Action(Symbols.Delete, R.string.action_delete, onDelete, destructive = true)
         Spacer(Modifier.height(8.dp))
     }
 }
@@ -117,7 +109,7 @@ private fun Action(icon: ImageVector, @StringRes label: Int, onClick: () -> Unit
 internal fun DeleteMessageDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Rounded.Delete, contentDescription = null) },
+        icon = { Icon(Symbols.Delete, contentDescription = null) },
         title = { Text(stringResource(R.string.delete_title)) },
         text = { Text(stringResource(R.string.delete_body)) },
         confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.action_delete)) } },
@@ -129,7 +121,7 @@ internal fun DeleteMessageDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
 internal fun BlockUserDialog(name: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Rounded.Block, contentDescription = null) },
+        icon = { Icon(Symbols.Block, contentDescription = null) },
         title = { Text(stringResource(R.string.block_title, name)) },
         text = { Text(stringResource(R.string.block_body)) },
         confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.action_block)) } },

@@ -15,9 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -41,6 +38,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.delay
 import org.phalanx.android.R
 import org.phalanx.android.ui.screens.room.formatDuration
+import org.phalanx.android.ui.theme.Symbols
 
 private const val TICK_MILLIS = 250L
 private const val HIDE_CONTROLS_MILLIS = 2_500L
@@ -113,7 +111,7 @@ internal fun VideoPlayer(uri: Uri, modifier: Modifier = Modifier) {
                     modifier = Modifier.align(Alignment.Center).size(72.dp)
                 ) {
                     Icon(
-                        if (playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                        if (playing) Symbols.Pause else Symbols.PlayArrow,
                         contentDescription = stringResource(
                             if (playing) R.string.timeline_pause else R.string.timeline_play
                         ),

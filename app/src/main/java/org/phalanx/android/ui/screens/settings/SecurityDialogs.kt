@@ -11,12 +11,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ContentCopy
-import androidx.compose.material.icons.rounded.ErrorOutline
-import androidx.compose.material.icons.rounded.Key
-import androidx.compose.material.icons.rounded.PhonelinkLock
-import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
@@ -43,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.data.repository.VerificationStep
+import org.phalanx.android.ui.theme.Symbols
 
 /** The recovery key, shown once: the user must save it somewhere safe before closing. */
 @Composable
@@ -51,7 +46,7 @@ internal fun RecoveryKeyDialog(key: String, onDismiss: () -> Unit) {
     val scope = rememberCoroutineScope()
     AlertDialog(
         onDismissRequest = {},
-        icon = { Icon(Icons.Rounded.Key, contentDescription = null) },
+        icon = { Icon(Symbols.Key, contentDescription = null) },
         title = { Text(stringResource(R.string.security_key_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -75,7 +70,7 @@ internal fun RecoveryKeyDialog(key: String, onDismiss: () -> Unit) {
                     }
                     scope.launch { clipboard.setClipEntry(ClipEntry(clip)) }
                 }) {
-                    Icon(Icons.Rounded.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Icon(Symbols.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
                     Text(stringResource(R.string.account_copy), modifier = Modifier.padding(start = 8.dp))
                 }
             }
@@ -89,7 +84,7 @@ internal fun EnterKeyDialog(busy: Boolean, rejected: Boolean, onSubmit: (String)
     var key by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Rounded.Key, contentDescription = null) },
+        icon = { Icon(Symbols.Key, contentDescription = null) },
         title = { Text(stringResource(R.string.security_enter_key)) },
         text = {
             OutlinedTextField(
@@ -120,7 +115,7 @@ internal fun EnterKeyDialog(busy: Boolean, rejected: Boolean, onSubmit: (String)
 internal fun FailedDialog(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Rounded.ErrorOutline, contentDescription = null) },
+        icon = { Icon(Symbols.ErrorOutline, contentDescription = null) },
         text = { Text(stringResource(R.string.timeline_action_failed)) },
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.ok)) } }
     )
@@ -140,9 +135,9 @@ internal fun VerificationDialog(
         icon = {
             Icon(
                 when (step) {
-                    VerificationStep.Done -> Icons.Rounded.VerifiedUser
-                    VerificationStep.Failed -> Icons.Rounded.ErrorOutline
-                    else -> Icons.Rounded.PhonelinkLock
+                    VerificationStep.Done -> Symbols.VerifiedUser
+                    VerificationStep.Failed -> Symbols.ErrorOutline
+                    else -> Symbols.PhonelinkLock
                 },
                 contentDescription = null
             )

@@ -10,10 +10,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.InsertDriveFile
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
@@ -32,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import org.phalanx.android.R
 import org.phalanx.android.data.model.OutgoingMedia
+import org.phalanx.android.ui.theme.Symbols
 
 private val TileSize = 76.dp
 private val TileShape = RoundedCornerShape(16.dp)
@@ -62,7 +59,7 @@ internal fun AttachmentStrip(attachments: List<PendingAttachment>, onRemove: (St
                     )
                 ) {
                     Icon(
-                        Icons.Rounded.Close,
+                        Symbols.Close,
                         contentDescription = stringResource(R.string.composer_remove_attachment),
                         modifier = Modifier.size(16.dp)
                     )
@@ -84,14 +81,14 @@ private fun Tile(media: OutgoingMedia?) {
             is OutgoingMedia.Image -> Preview(media)
             is OutgoingMedia.Video -> Box(contentAlignment = Alignment.Center) {
                 media.thumbnail?.let { Preview(it) }
-                Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
+                Icon(Symbols.PlayArrow, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
             }
             is OutgoingMedia.Document, is OutgoingMedia.Voice -> Column(
                 modifier = Modifier.padding(6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Icon(Icons.AutoMirrored.Rounded.InsertDriveFile, contentDescription = null)
+                Icon(Symbols.InsertDriveFile, contentDescription = null)
                 Text(
                     text = media.file.name,
                     style = MaterialTheme.typography.labelSmall,

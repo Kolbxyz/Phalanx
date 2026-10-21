@@ -7,12 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AlarmOn
-import androidx.compose.material.icons.rounded.Bedtime
-import androidx.compose.material.icons.rounded.EditCalendar
-import androidx.compose.material.icons.rounded.Timer
-import androidx.compose.material.icons.rounded.WbSunny
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -39,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import org.phalanx.android.R
+import org.phalanx.android.ui.theme.Symbols
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -61,16 +56,16 @@ internal fun ScheduleSheet(exact: Boolean, onDismiss: () -> Unit, onPick: (Long)
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(start = 24.dp, bottom = 8.dp)
         )
-        Choice(Icons.Rounded.Timer, stringResource(R.string.schedule_in_hour)) { onPick(now.plusHours(1).millis()) }
+        Choice(Symbols.Timer, stringResource(R.string.schedule_in_hour)) { onPick(now.plusHours(1).millis()) }
         if (now.hour < EVENING_HOUR - 1) {
-            Choice(Icons.Rounded.Bedtime, stringResource(R.string.schedule_tonight)) {
+            Choice(Symbols.Bedtime, stringResource(R.string.schedule_tonight)) {
                 onPick(now.with(LocalTime.of(EVENING_HOUR, 0)).millis())
             }
         }
-        Choice(Icons.Rounded.WbSunny, stringResource(R.string.schedule_tomorrow_morning)) {
+        Choice(Symbols.WbSunny, stringResource(R.string.schedule_tomorrow_morning)) {
             onPick(now.plusDays(1).with(LocalTime.of(MORNING_HOUR, 0)).millis())
         }
-        Choice(Icons.Rounded.EditCalendar, stringResource(R.string.schedule_pick)) { picking = true }
+        Choice(Symbols.EditCalendar, stringResource(R.string.schedule_pick)) { picking = true }
         if (!exact) ExactTimingRow()
         Spacer(Modifier.height(16.dp))
     }
@@ -94,7 +89,7 @@ private fun ExactTimingRow() {
     ListItem(
         headlineContent = { Text(stringResource(R.string.schedule_exact)) },
         supportingContent = { Text(stringResource(R.string.schedule_exact_summary)) },
-        leadingContent = { Icon(Icons.Rounded.AlarmOn, contentDescription = null) },
+        leadingContent = { Icon(Symbols.AlarmOn, contentDescription = null) },
         colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         modifier = Modifier.clickable {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

@@ -7,12 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.MarkChatRead
-import androidx.compose.material.icons.rounded.MarkChatUnread
-import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.FilledTonalIconToggleButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes
@@ -30,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.ui.components.MatrixAvatar
+import org.phalanx.android.ui.theme.Symbols
 
 /** The room's face: a large shaped avatar, its name, topic and who is in it, then quick toggles. */
 @Composable
@@ -56,7 +51,7 @@ internal fun DetailsHeader(room: RoomSummary, onFavourite: (Boolean) -> Unit, on
             modifier = Modifier.padding(top = 8.dp, start = 24.dp, end = 24.dp)
         )
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-            if (room.isEncrypted) Icon(Icons.Rounded.Lock, contentDescription = null, modifier = Modifier.size(14.dp))
+            if (room.isEncrypted) Icon(Symbols.Lock, contentDescription = null, modifier = Modifier.size(14.dp))
             Text(
                 text = buildString {
                     if (!room.isDirect) {
@@ -85,13 +80,13 @@ internal fun DetailsHeader(room: RoomSummary, onFavourite: (Boolean) -> Unit, on
         Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
             QuickToggle(
                 checked = room.isFavourite,
-                icon = if (room.isFavourite) Icons.Rounded.Star else Icons.Rounded.StarOutline,
+                icon = if (room.isFavourite) Symbols.Star else Symbols.StarOutline,
                 label = R.string.details_favourite,
                 onToggle = onFavourite
             )
             QuickToggle(
                 checked = room.hasUnread,
-                icon = if (room.hasUnread) Icons.Rounded.MarkChatUnread else Icons.Rounded.MarkChatRead,
+                icon = if (room.hasUnread) Symbols.MarkChatUnread else Symbols.MarkChatRead,
                 label = R.string.details_unread,
                 onToggle = onUnread
             )

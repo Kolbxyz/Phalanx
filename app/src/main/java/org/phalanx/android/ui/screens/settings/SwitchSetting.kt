@@ -3,11 +3,9 @@ package org.phalanx.android.ui.screens.settings
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -15,6 +13,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import org.phalanx.android.ui.components.SegmentedRow
 import org.phalanx.android.ui.components.segmentedShape
+import org.phalanx.android.ui.theme.Symbols
 
 internal class SwitchSetting(
     val icon: ImageVector,
@@ -41,7 +40,7 @@ internal fun SwitchGroup(items: List<SwitchSetting>) {
                     onCheckedChange = null,
                     // Expressive switches carry a check in the thumb when on.
                     thumbContent = if (item.checked) {
-                        { Icon(Icons.Rounded.Check, null, Modifier.size(SwitchDefaults.IconSize)) }
+                        { Icon(Symbols.Check, null, Modifier.size(SwitchDefaults.IconSize)) }
                     } else {
                         null
                     }

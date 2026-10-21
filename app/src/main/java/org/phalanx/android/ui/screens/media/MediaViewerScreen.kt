@@ -15,10 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Download
-import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,6 +43,7 @@ import org.phalanx.android.R
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.components.OpenRequest
 import org.phalanx.android.ui.components.TopNoticeHost
+import org.phalanx.android.ui.theme.Symbols
 
 private const val CHROME_ALPHA = 0.72f
 
@@ -146,12 +143,12 @@ private fun ViewerTopBar(entry: TimelineEntry.Message, viewModel: MediaViewerVie
         },
         navigationIcon = {
             IconButton(onClick = onClose) {
-                Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.media_viewer_close))
+                Icon(Symbols.Close, contentDescription = stringResource(R.string.media_viewer_close))
             }
         },
         actions = {
             IconButton(onClick = { viewModel.share(entry) }) {
-                Icon(Icons.Rounded.Share, contentDescription = stringResource(R.string.media_share))
+                Icon(Symbols.Share, contentDescription = stringResource(R.string.media_share))
             }
             IconButton(
                 onClick = {
@@ -162,7 +159,7 @@ private fun ViewerTopBar(entry: TimelineEntry.Message, viewModel: MediaViewerVie
                     }
                 }
             ) {
-                Icon(Icons.Rounded.Download, contentDescription = stringResource(R.string.media_save))
+                Icon(Symbols.Download, contentDescription = stringResource(R.string.media_save))
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
