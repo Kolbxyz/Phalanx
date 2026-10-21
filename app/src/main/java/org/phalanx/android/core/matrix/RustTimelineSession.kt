@@ -22,7 +22,13 @@ import org.matrix.rustcomponents.sdk.TaskHandle
 import org.matrix.rustcomponents.sdk.Timeline
 import org.matrix.rustcomponents.sdk.TimelineDiff
 import org.matrix.rustcomponents.sdk.TimelineListener
+import org.matrix.rustcomponents.sdk.EmoteMessageContent
+import org.matrix.rustcomponents.sdk.MessageType
+import org.matrix.rustcomponents.sdk.RoomMessageEventContentWithoutRelation
+import org.matrix.rustcomponents.sdk.TextMessageContent
 import org.matrix.rustcomponents.sdk.messageEventContentFromMarkdown
+import org.matrix.rustcomponents.sdk.messageEventContentFromMarkdownAsEmote
+import org.matrix.rustcomponents.sdk.messageEventContentNew
 import org.matrix.rustcomponents.sdk.use
 import org.phalanx.android.core.media.AttachmentPreparer
 import org.phalanx.android.core.prefs.SettingsStore
@@ -60,7 +66,7 @@ internal class RustTimelineSession private constructor(
     }
 
     override suspend fun send(text: String, replyTo: TimelineEntry.Message?): Result<Unit> = io {
-        val content = messageEventContentFromMarkdown(text)
+        val content = contentOf(text)
         val eventId = replyTo?.eventId
         if (eventId != null) timeline.sendReply(content, eventId).close() else timeline.send(content).close()
     }
@@ -77,7 +83,24 @@ internal class RustTimelineSession private constructor(
 
     override suspend fun edit(message: TimelineEntry.Message, text: String): Result<Unit> = io {
         val target = message.target() ?: return@io
-        timeline.edit(target, EditedContent.RoomMessage(messageEventContentFromMarkdown(text)))
+        timeline.edit(target, EditedContent.RoomMessage(contentOf(text)))
+    }
+
+    /** "/me waves" is an emote, as in every Matrix client; markdown follows the user's setting. */
+    private suspend fun contentOf(text: String): RoomMessageEventContentWithoutRelation {
+        val emote = text.startsWith(EMOTE_PREFIX)
+        val body = if (emote) text.removePrefix(EMOTE_PREFIX) else text
+        return when {
+            !settings.current().markdown -> messageEventContentNew(
+                if (emote) {
+                    MessageType.Emote(EmoteMessageContent(body, null))
+                } else {
+                    MessageType.Text(TextMessageContent(body, null))
+                }
+            )
+            emote -> messageEventContentFromMarkdownAsEmote(body)
+            else -> messageEventContentFromMarkdown(body)
+        }
     }
 
     override suspend fun loadDraft(): String? = withContext(Dispatchers.IO) {
@@ -198,6 +221,7 @@ internal class RustTimelineSession private constructor(
 
     companion object {
         private const val PAGE_SIZE = 30
+        private const val EMOTE_PREFIX = "/me "
 
         /** Opens [room]'s live timeline; the session owns [room] from here and releases it in [close]. */
         suspend fun open(room: Room, settings: SettingsStore, attachments: AttachmentPreparer): RustTimelineSession {

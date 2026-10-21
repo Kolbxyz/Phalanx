@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Send
@@ -32,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
@@ -41,7 +43,7 @@ private val ButtonSize = 48.dp
 
 /** Attach, the text, then send, which is a microphone while there is nothing to send. */
 @Composable
-internal fun InputRow(state: ComposerState, actions: ComposerActions) {
+internal fun InputRow(state: ComposerState, actions: ComposerActions, enterToSend: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -66,7 +68,11 @@ internal fun InputRow(state: ComposerState, actions: ComposerActions) {
             placeholder = { Text(stringResource(R.string.composer_hint)) },
             shape = RoundedCornerShape(24.dp),
             maxLines = MAX_LINES,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,
+                imeAction = if (enterToSend) ImeAction.Send else ImeAction.Default
+            ),
+            keyboardActions = KeyboardActions(onSend = { if (state.canSend) actions.onSend() }),
             colors = TextFieldDefaults.colors(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,

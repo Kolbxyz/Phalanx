@@ -13,12 +13,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.core.media.AttachmentPreparer
 import org.phalanx.android.core.media.VoiceRecorder
+import org.phalanx.android.core.prefs.SettingsStore
+import org.phalanx.android.data.model.AppSettings
 import org.phalanx.android.data.model.MediaRef
+import org.phalanx.android.data.model.RoomSummary
+import org.phalanx.android.data.repository.BlockedUsersRepository
+import org.phalanx.android.data.repository.RoomListRepository
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.MediaRepository
 import org.phalanx.android.data.repository.TimelineRepository
@@ -35,9 +42,20 @@ class RoomViewModel @Inject constructor(
     timelines: TimelineRepository,
     private val media: MediaRepository,
     private val preparer: AttachmentPreparer,
-    recorder: VoiceRecorder
+    recorder: VoiceRecorder,
+    roomList: RoomListRepository,
+    private val blockedUsers: BlockedUsersRepository,
+    settingsStore: SettingsStore
 ) : ViewModel() {
     val roomId: String = savedStateHandle.toRoute<RoomRoute>().roomId
+
+    /** From the room list, which is already in memory, so the header shows before the timeline opens. */
+    val header: StateFlow<RoomSummary?> = roomList.rooms
+        .map { rooms -> rooms?.firstOrNull { it.id == roomId } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, roomList.rooms.value?.firstOrNull { it.id == roomId })
+
+    val settings: StateFlow<AppSettings?> = settingsStore.settings
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val mutableState = MutableStateFlow<RoomUiState>(RoomUiState.Loading)
     val state: StateFlow<RoomUiState> = mutableState.asStateFlow()
@@ -72,6 +90,10 @@ class RoomViewModel @Inject constructor(
     fun toggleReaction(message: TimelineEntry.Message, key: String) = act { it.toggleReaction(message, key) }
 
     fun redact(message: TimelineEntry.Message) = act { it.redact(message) }
+
+    fun block(userId: String) {
+        viewModelScope.launch { blockedUsers.block(userId).onFailure { notify(R.string.timeline_action_failed) } }
+    }
 
     fun openFile(ref: MediaRef, filename: String, mimeType: String?) {
         viewModelScope.launch {

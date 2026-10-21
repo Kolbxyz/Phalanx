@@ -11,6 +11,7 @@ import androidx.core.graphics.scale
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.model.OutgoingMedia
 import java.io.File
 import java.io.IOException
@@ -23,7 +24,10 @@ import javax.inject.Singleton
  * Both folders are wiped on every launch: an upload interrupted by the process dying is not resumed.
  */
 @Singleton
-class AttachmentPreparer @Inject constructor(@ApplicationContext private val context: Context) {
+class AttachmentPreparer @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val settings: SettingsStore
+) {
     private val uploads = File(context.cacheDir, UPLOAD_FOLDER).apply { deleteRecursively() }
     private val captures = File(context.cacheDir, CAPTURE_FOLDER).apply { deleteRecursively() }
 
@@ -47,7 +51,7 @@ class AttachmentPreparer @Inject constructor(@ApplicationContext private val con
             val mimeType = context.contentResolver.getType(uri) ?: DEFAULT_MIME
             val media = when {
                 mimeType == GIF_MIME -> copyImage(uri)
-                mimeType.startsWith("image/") -> encodeImage(uri, nameOf(uri))
+                mimeType.startsWith("image/") -> encodeImage(uri, nameOf(uri), settings.current().fullQualityImages)
                 mimeType.startsWith("video/") -> copyVideo(uri, mimeType)
                 else -> OutgoingMedia.Document(copy(uri, nameOf(uri)), mimeType)
             }
@@ -62,14 +66,21 @@ class AttachmentPreparer @Inject constructor(@ApplicationContext private val con
     }
 
     /** Scaled down and re-encoded; PNG when the picture has transparency, so it isn't lost. */
-    private fun encodeImage(uri: Uri, name: String): OutgoingMedia.Image =
-        writeImage(context.contentResolver.decodeScaled(uri, MAX_IMAGE_SIDE), name.substringBeforeLast('.'))
+    private fun encodeImage(uri: Uri, name: String, full: Boolean): OutgoingMedia.Image {
+        val bitmap = context.contentResolver.decodeScaled(uri, if (full) FULL_IMAGE_SIDE else MAX_IMAGE_SIDE)
+        return writeImage(bitmap, name.substringBeforeLast('.'), quality = if (full) FULL_QUALITY else JPEG_QUALITY)
+    }
 
-    private fun writeImage(bitmap: Bitmap, baseName: String, allowPng: Boolean = true): OutgoingMedia.Image {
+    private fun writeImage(
+        bitmap: Bitmap,
+        baseName: String,
+        allowPng: Boolean = true,
+        quality: Int = JPEG_QUALITY
+    ): OutgoingMedia.Image {
         val png = allowPng && bitmap.hasAlpha()
         val file = newFile("$baseName.${if (png) "png" else "jpg"}")
         file.outputStream().use {
-            bitmap.compress(if (png) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG, JPEG_QUALITY, it)
+            bitmap.compress(if (png) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG, quality, it)
         }
         return OutgoingMedia.Image(file, if (png) "image/png" else "image/jpeg", bitmap.width, bitmap.height)
     }
@@ -135,6 +146,8 @@ class AttachmentPreparer @Inject constructor(@ApplicationContext private val con
         const val DEFAULT_NAME = "attachment"
         const val GIF_MIME = "image/gif"
         const val MAX_IMAGE_SIDE = 2048
+        const val FULL_IMAGE_SIDE = 4096
+        const val FULL_QUALITY = 95
         const val MAX_THUMBNAIL_SIDE = 800
         const val JPEG_QUALITY = 85
         val TURNED = setOf(90, 270)

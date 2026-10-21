@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Reply
 import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.AlertDialog
@@ -48,7 +49,8 @@ internal fun MessageActionsSheet(
     onReply: () -> Unit,
     onCopy: () -> Unit,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onBlock: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
     ModalBottomSheet(onDismissRequest = onDismiss) {
@@ -78,6 +80,7 @@ internal fun MessageActionsSheet(
         if (message.canEdit && message.body is MessageBody.Text) {
             Action(Icons.Rounded.Edit, R.string.action_edit, onEdit)
         }
+        if (!message.isOwn) Action(Icons.Rounded.Block, R.string.action_block, onBlock, destructive = true)
         if (message.isOwn && live) Action(Icons.Rounded.Delete, R.string.action_delete, onDelete, destructive = true)
         Spacer(Modifier.height(8.dp))
     }
@@ -102,6 +105,18 @@ internal fun DeleteMessageDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
         title = { Text(stringResource(R.string.delete_title)) },
         text = { Text(stringResource(R.string.delete_body)) },
         confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.action_delete)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } }
+    )
+}
+
+@Composable
+internal fun BlockUserDialog(name: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Rounded.Block, contentDescription = null) },
+        title = { Text(stringResource(R.string.block_title, name)) },
+        text = { Text(stringResource(R.string.block_body)) },
+        confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.action_block)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } }
     )
 }

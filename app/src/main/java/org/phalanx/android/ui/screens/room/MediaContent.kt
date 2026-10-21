@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.InsertDriveFile
+import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Icon
@@ -24,6 +25,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -60,16 +65,36 @@ internal fun ImageContent(body: MessageBody.Image, onOpen: () -> Unit, modifier:
         )
         return
     }
+    val autoLoad = LocalTimelinePrefs.current.autoLoadMedia
+    var load by rememberSaveable(body.media) { mutableStateOf(autoLoad) }
+    val frame = modifier
+        .width(MediaWidth)
+        .aspectRatio(ratioOf(body.width, body.height))
+        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+    if (!load) {
+        TapToLoad(description, frame, onLoad = { load = true })
+        return
+    }
     AsyncImage(
         model = MediaRequest(body.thumbnail ?: body.media, THUMBNAIL_PX),
         contentDescription = description,
         contentScale = ContentScale.Crop,
-        modifier = modifier
-            .width(MediaWidth)
-            .aspectRatio(ratioOf(body.width, body.height))
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .clickable(onClick = onOpen)
+        modifier = frame.clickable(onClick = onOpen)
     )
+}
+
+/** Stands in for a picture until the user asks for it, when media isn't loaded automatically. */
+@Composable
+private fun TapToLoad(description: String, modifier: Modifier, onLoad: () -> Unit) {
+    Box(modifier.clickable(onClick = onLoad), contentAlignment = Alignment.Center) {
+        Surface(shape = MaterialShapes.Cookie9Sided.toShape(), color = MaterialTheme.colorScheme.secondaryContainer) {
+            Icon(
+                Icons.Rounded.Download,
+                contentDescription = stringResource(R.string.timeline_load_media, description),
+                modifier = Modifier.padding(14.dp).size(28.dp)
+            )
+        }
+    }
 }
 
 @Composable
@@ -82,7 +107,8 @@ internal fun VideoContent(body: MessageBody.Video, onOpen: () -> Unit, modifier:
             .clickable(onClick = onOpen),
         contentAlignment = Alignment.Center
     ) {
-        body.thumbnail?.let {
+        val load = LocalTimelinePrefs.current.autoLoadMedia
+        body.thumbnail?.takeIf { load }?.let {
             AsyncImage(
                 model = MediaRequest(it, THUMBNAIL_PX),
                 contentDescription = null,

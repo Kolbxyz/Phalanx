@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import org.phalanx.android.data.model.AppSettings
+import org.phalanx.android.data.model.TextSize
 import org.phalanx.android.data.model.ThemeMode
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,6 +40,16 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
 
     suspend fun setReduceMotion(enabled: Boolean) = store.edit { it[REDUCE_MOTION] = enabled }
 
+    suspend fun setMessageTextSize(size: TextSize) = store.edit { it[TEXT_SIZE] = size.name }
+
+    suspend fun setEnterToSend(enabled: Boolean) = store.edit { it[ENTER_TO_SEND] = enabled }
+
+    suspend fun setMarkdown(enabled: Boolean) = store.edit { it[MARKDOWN] = enabled }
+
+    suspend fun setFullQualityImages(enabled: Boolean) = store.edit { it[FULL_QUALITY_IMAGES] = enabled }
+
+    suspend fun setAutoLoadMedia(enabled: Boolean) = store.edit { it[AUTO_LOAD_MEDIA] = enabled }
+
     suspend fun setPublicReadReceipts(enabled: Boolean) = store.edit { it[PUBLIC_READ_RECEIPTS] = enabled }
 
     private fun Preferences.toSettings(): AppSettings {
@@ -49,6 +60,11 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
             dynamicColor = this[DYNAMIC_COLOR] ?: defaults.dynamicColor,
             amoledBlack = this[AMOLED_BLACK] ?: defaults.amoledBlack,
             reduceMotion = this[REDUCE_MOTION] ?: defaults.reduceMotion,
+            messageTextSize = TextSize.entries.firstOrNull { it.name == this[TEXT_SIZE] } ?: defaults.messageTextSize,
+            enterToSend = this[ENTER_TO_SEND] ?: defaults.enterToSend,
+            markdown = this[MARKDOWN] ?: defaults.markdown,
+            fullQualityImages = this[FULL_QUALITY_IMAGES] ?: defaults.fullQualityImages,
+            autoLoadMedia = this[AUTO_LOAD_MEDIA] ?: defaults.autoLoadMedia,
             publicReadReceipts = this[PUBLIC_READ_RECEIPTS] ?: defaults.publicReadReceipts
         )
     }
@@ -60,5 +76,10 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
         val AMOLED_BLACK = booleanPreferencesKey("amoled_black")
         val REDUCE_MOTION = booleanPreferencesKey("reduce_motion")
         val PUBLIC_READ_RECEIPTS = booleanPreferencesKey("public_read_receipts")
+        val TEXT_SIZE = stringPreferencesKey("message_text_size")
+        val ENTER_TO_SEND = booleanPreferencesKey("enter_to_send")
+        val MARKDOWN = booleanPreferencesKey("markdown")
+        val FULL_QUALITY_IMAGES = booleanPreferencesKey("full_quality_images")
+        val AUTO_LOAD_MEDIA = booleanPreferencesKey("auto_load_media")
     }
 }

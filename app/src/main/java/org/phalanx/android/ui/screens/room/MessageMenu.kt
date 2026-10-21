@@ -19,6 +19,7 @@ internal fun MessageMenu(message: TimelineEntry.Message?, onDismiss: () -> Unit,
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
     var deleting by remember { mutableStateOf<TimelineEntry.Message?>(null) }
+    var blocking by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     val text = (message?.body as? MessageBody.Text)?.text
 
     // Every choice closes the sheet once it has acted.
@@ -36,7 +37,8 @@ internal fun MessageMenu(message: TimelineEntry.Message?, onDismiss: () -> Unit,
             onCopy = then {
                 text?.let { scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, it))) } }
             },
-            onDelete = then { deleting = message }
+            onDelete = then { deleting = message },
+            onBlock = then { blocking = message }
         )
     }
     deleting?.let { target ->
@@ -46,6 +48,16 @@ internal fun MessageMenu(message: TimelineEntry.Message?, onDismiss: () -> Unit,
                 deleting = null
             },
             onDismiss = { deleting = null }
+        )
+    }
+    blocking?.let { target ->
+        BlockUserDialog(
+            name = target.senderName,
+            onConfirm = {
+                viewModel.block(target.senderId)
+                blocking = null
+            },
+            onDismiss = { blocking = null }
         )
     }
 }

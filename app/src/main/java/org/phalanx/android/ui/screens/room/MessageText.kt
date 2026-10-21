@@ -11,6 +11,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.fromHtml
@@ -36,12 +37,22 @@ internal fun MessageText(body: MessageBody.Text, senderName: String, modifier: M
     Text(
         text = text,
         modifier = modifier,
-        style = MaterialTheme.typography.bodyLarge,
+        style = messageTextStyle(),
         // Notices are what bots and bridges send about themselves; quieter than people's messages.
-        color = if (notice) MaterialTheme.colorScheme.onSurfaceVariant else LocalContentColor.current,
+        color = if (notice) LocalContentColor.current.copy(alpha = NOTICE_ALPHA) else LocalContentColor.current,
         fontStyle = if (body.style == MessageBody.TextStyle.Emote) FontStyle.Italic else null
     )
 }
+
+/** Body text at the size chosen in settings. */
+@Composable
+internal fun messageTextStyle(): TextStyle {
+    val style = MaterialTheme.typography.bodyLarge
+    val scale = LocalTimelinePrefs.current.textScale
+    return style.copy(fontSize = style.fontSize * scale, lineHeight = style.lineHeight * scale)
+}
+
+private const val NOTICE_ALPHA = 0.72f
 
 private fun linkify(text: String, styles: TextLinkStyles): AnnotatedString = buildAnnotatedString {
     append(text)

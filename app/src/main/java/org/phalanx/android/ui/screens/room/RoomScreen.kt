@@ -10,17 +10,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +42,8 @@ fun RoomScreen(
     val composerState by viewModel.composer.state.collectAsStateWithLifecycle()
     val notice by viewModel.notice.collectAsStateWithLifecycle()
     val openRequest by viewModel.openRequest.collectAsStateWithLifecycle()
+    val header by viewModel.header.collectAsStateWithLifecycle()
+    val settings by viewModel.settings.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val context = LocalContext.current
     var selected by remember { mutableStateOf<TimelineEntry.Message?>(null) }
@@ -97,19 +95,11 @@ fun RoomScreen(
     }
 
     val ready = state as? RoomUiState.Ready
+    val prefs = settings?.timelinePrefs() ?: TimelinePrefs()
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = ready?.title.orEmpty(), maxLines = 1) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
-                }
-            )
-        },
+        topBar = { RoomTopBar(header, ready?.title, onBack) },
         bottomBar = {
-            if (ready != null) Composer(composerState, composerActions)
+            if (ready != null) Composer(composerState, composerActions, enterToSend = settings?.enterToSend == true)
         },
         snackbarHost = { SnackbarHost(snackbar) }
     ) { padding ->
@@ -128,7 +118,9 @@ fun RoomScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                is RoomUiState.Ready -> TimelineList(current, padding, actions, viewModel::loadOlder)
+                is RoomUiState.Ready -> CompositionLocalProvider(LocalTimelinePrefs provides prefs) {
+                    TimelineList(current, padding, actions, viewModel::loadOlder)
+                }
             }
         }
     }

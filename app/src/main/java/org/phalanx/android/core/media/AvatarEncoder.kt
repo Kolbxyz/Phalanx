@@ -3,6 +3,7 @@ package org.phalanx.android.core.media
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
+import androidx.core.graphics.scale
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -23,7 +24,7 @@ class AvatarEncoder @Inject constructor(@ApplicationContext private val context:
         val side = min(decoded.width, decoded.height)
         val square = Bitmap.createBitmap(decoded, (decoded.width - side) / 2, (decoded.height - side) / 2, side, side)
         val target = min(side, MAX_SIDE)
-        val scaled = if (target == side) square else Bitmap.createScaledBitmap(square, target, target, true)
+        val scaled = if (target == side) square else square.scale(target, target)
         ByteArrayOutputStream().use { out ->
             scaled.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
             out.toByteArray()

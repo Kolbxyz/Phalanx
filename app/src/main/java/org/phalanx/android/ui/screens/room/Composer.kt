@@ -36,7 +36,12 @@ import org.phalanx.android.data.model.ReplyPreview
 
 /** Sits in the Scaffold's bottom bar, so it owns the keyboard and navigation-bar insets itself. */
 @Composable
-internal fun Composer(state: ComposerState, actions: ComposerActions, modifier: Modifier = Modifier) {
+internal fun Composer(
+    state: ComposerState,
+    actions: ComposerActions,
+    enterToSend: Boolean,
+    modifier: Modifier = Modifier
+) {
     val motion = MaterialTheme.motionScheme
     Surface(color = MaterialTheme.colorScheme.surfaceContainer, modifier = modifier) {
         val insets = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
@@ -57,7 +62,7 @@ internal fun Composer(state: ComposerState, actions: ComposerActions, modifier: 
                 if (recording) {
                     RecordingRow(state.recording.orEmpty(), actions.onCancelRecording, actions.onSendRecording)
                 } else {
-                    InputRow(state, actions)
+                    InputRow(state, actions, enterToSend)
                 }
             }
         }

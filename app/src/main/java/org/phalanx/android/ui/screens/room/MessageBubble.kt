@@ -1,7 +1,10 @@
 package org.phalanx.android.ui.screens.room
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,32 +18,29 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
-import org.phalanx.android.R
-import org.phalanx.android.data.model.MessageBody
-import org.phalanx.android.data.model.SendState
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.components.MatrixAvatar
-import org.phalanx.android.ui.navigation.sharedMedia
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
-private val BubbleRadius = 20.dp
-private val TightRadius = 6.dp
+private val LargeRadius = 24.dp
+private val SeamRadius = 6.dp
 private val AvatarSize = 32.dp
+private val MaxBubbleWidth = 320.dp
+private const val PRESSED_SCALE = 0.96f
 
 /**
- * One message. Consecutive messages from one sender form a run: only the first shows the name,
- * only the last the avatar, and the corners between them tighten so the run reads as one block.
+ * One message. Consecutive messages from one sender form a run, shaped like a segmented list: the
+ * run's outer corners are round and the seams on the sender's side tight. Only the first message
+ * of a run shows the sender's name, and only the last the avatar.
  */
 @Composable
 internal fun MessageBubble(
@@ -54,7 +54,7 @@ internal fun MessageBubble(
     val own = message.isOwn
     val showAvatar = isGroupChat && !own
     Row(
-        modifier = modifier.fillMaxWidth().padding(top = if (startsRun) 6.dp else 0.dp),
+        modifier = modifier.fillMaxWidth().padding(top = if (startsRun) 10.dp else 0.dp),
         horizontalArrangement = if (own) Arrangement.End else Arrangement.Start,
         verticalAlignment = Alignment.Bottom
     ) {
@@ -70,20 +70,20 @@ internal fun MessageBubble(
             if (showAvatar && startsRun) {
                 Text(
                     text = message.senderName,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = senderColor(message.senderId),
                     maxLines = 1,
-                    modifier = Modifier.padding(start = 12.dp, bottom = 2.dp)
+                    modifier = Modifier.padding(start = 14.dp, bottom = 4.dp)
                 )
             }
             SwipeToReply(enabled = message.canReply, onReply = { actions.onReply(message) }) {
-                Bubble(message, startsRun, actions)
+                Bubble(message, startsRun, endsRun, actions)
             }
             if (message.reactions.isNotEmpty()) {
                 ReactionRow(
                     reactions = message.reactions,
                     onToggle = { actions.onToggleReaction(message, it) },
-                    modifier = Modifier.padding(top = 2.dp)
+                    modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
                 )
             }
         }
@@ -92,89 +92,62 @@ internal fun MessageBubble(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun Bubble(message: TimelineEntry.Message, startsRun: Boolean, actions: MessageActions) {
+private fun Bubble(message: TimelineEntry.Message, startsRun: Boolean, endsRun: Boolean, actions: MessageActions) {
     val own = message.isOwn
-    val senderTop = if (startsRun) BubbleRadius else TightRadius
-    // The corners on the sender's side are tight: always at the bottom, and at the top inside a run.
+    val top = if (startsRun) LargeRadius else SeamRadius
+    val bottom = if (endsRun) LargeRadius else SeamRadius
     val shape = RoundedCornerShape(
-        topStart = if (own) BubbleRadius else senderTop,
-        topEnd = if (own) senderTop else BubbleRadius,
-        bottomEnd = if (own) TightRadius else BubbleRadius,
-        bottomStart = if (own) BubbleRadius else TightRadius
+        topStart = if (own) LargeRadius else top,
+        topEnd = if (own) top else LargeRadius,
+        bottomEnd = if (own) bottom else LargeRadius,
+        bottomStart = if (own) LargeRadius else bottom
     )
-    val body = message.body
-    val sticker = body is MessageBody.Image && body.isSticker
+    val layout = bubbleLayout(message)
+    val colors = MaterialTheme.colorScheme
+
+    // Pressing sinks the bubble a little, the Expressive cue that a long press will act on it.
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (pressed) PRESSED_SCALE else 1f, MaterialTheme.motionScheme.fastSpatialSpec())
+    val haptics = LocalHapticFeedback.current
+
     Surface(
         shape = shape,
         color = when {
-            sticker -> Color.Transparent
-            own -> MaterialTheme.colorScheme.primaryContainer
-            else -> MaterialTheme.colorScheme.surfaceContainerHigh
+            layout == BubbleLayout.Bare -> Color.Transparent
+            own -> colors.primary
+            else -> colors.surfaceContainerHigh
         },
-        contentColor = if (own) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+        contentColor = when {
+            layout == BubbleLayout.Bare -> colors.onSurface
+            own -> colors.onPrimary
+            else -> colors.onSurface
+        },
         modifier = Modifier
-            .widthIn(max = 320.dp)
+            .widthIn(max = MaxBubbleWidth)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .clip(shape)
-            .combinedClickable(onClick = {}, onLongClick = { actions.onLongPress(message) })
-    ) {
-        Column {
-            message.replyTo?.let { ReplyQuote(it, Modifier.padding(start = 6.dp, end = 6.dp, top = 6.dp)) }
-            Content(message, actions)
-            Footer(message, Modifier.align(Alignment.End).padding(start = 12.dp, end = 12.dp, bottom = 6.dp))
-        }
-    }
-}
-
-@Composable
-private fun Content(message: TimelineEntry.Message, actions: MessageActions) {
-    val textPadding = Modifier.padding(start = 14.dp, end = 14.dp, top = 8.dp)
-    when (val body = message.body) {
-        is MessageBody.Text -> MessageText(body, message.senderName, textPadding)
-        is MessageBody.Image -> {
-            ImageContent(
-                body = body,
-                onOpen = { actions.onOpenImage(message) },
-                modifier = Modifier.sharedMedia("media-${message.id}")
+            .combinedClickable(
+                interactionSource = interaction,
+                indication = null,
+                onClick = {},
+                onLongClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    actions.onLongPress(message)
+                }
             )
-            body.caption?.let { Text(it, style = MaterialTheme.typography.bodyLarge, modifier = textPadding) }
-        }
-        is MessageBody.Video -> {
-            VideoContent(body, onOpen = { actions.onOpenFile(body.media, body.filename, body.mimeType) })
-            body.caption?.let { Text(it, style = MaterialTheme.typography.bodyLarge, modifier = textPadding) }
-        }
-        is MessageBody.Audio -> AudioContent(body, actions.resolveAudio)
-        is MessageBody.File -> FileContent(body, actions.onOpenFile)
-        is MessageBody.Location -> LocationContent(body)
-        MessageBody.Redacted, MessageBody.Undecryptable, is MessageBody.Unsupported -> Text(
-            text = stringResource(kindLabel(body)),
-            style = MaterialTheme.typography.bodyMedium,
-            fontStyle = FontStyle.Italic,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = textPadding
-        )
+    ) {
+        BubbleContent(message, layout, actions)
     }
 }
 
+/** A stable colour per sender from the theme's accent roles, so names stay legible in any palette. */
 @Composable
-private fun Footer(message: TimelineEntry.Message, modifier: Modifier = Modifier) {
-    val time = remember(message.timestampMillis) { formatTime(message.timestampMillis) }
-    val status = when (message.sendState) {
-        SendState.Sent -> null
-        SendState.Sending -> R.string.timeline_sending
-        SendState.Failed -> R.string.timeline_failed
-    }
-    val muted = MaterialTheme.colorScheme.onSurfaceVariant
-    Row(modifier = modifier.padding(top = 2.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        val style = MaterialTheme.typography.labelSmall
-        if (message.isEdited) Text(stringResource(R.string.timeline_edited), style = style, color = muted)
-        status?.let {
-            val failed = message.sendState == SendState.Failed
-            Text(stringResource(it), style = style, color = if (failed) MaterialTheme.colorScheme.error else muted)
-        }
-        Text(text = time, style = MaterialTheme.typography.labelSmall, color = muted)
-    }
+private fun senderColor(senderId: String): Color {
+    val colors = MaterialTheme.colorScheme
+    val palette = listOf(colors.primary, colors.tertiary, colors.secondary)
+    return palette[Math.floorMod(senderId.hashCode(), palette.size)]
 }
-
-private fun formatTime(millis: Long): String =
-    DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
-        .format(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()))
