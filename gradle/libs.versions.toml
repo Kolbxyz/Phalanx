@@ -21,6 +21,8 @@ datastore = "1.2.1"
 coroutines = "1.11.0"
 serialization = "1.11.0"
 coil = "3.5.0"
+# Scheduled messages: survives reboots, waits for network, retries with backoff. AOSP, no Play Services.
+work = "2.11.2"
 
 junit = "4.13.2"
 
@@ -64,6 +66,7 @@ rustls-platform-verifier = { module = "org.rustls:rustls-platform-verifier", ver
 # Apache-2.0 image loader with memory and disk caches, the one Element X uses. Fed through an SDK fetcher
 # (core/media), so encrypted media is decrypted by the SDK and no network stack is added.
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
 
 junit = { module = "junit:junit", version.ref = "junit" }
 

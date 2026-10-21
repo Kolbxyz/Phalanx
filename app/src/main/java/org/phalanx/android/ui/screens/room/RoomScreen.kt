@@ -46,6 +46,8 @@ fun RoomScreen(
     val snackbar = remember { SnackbarHostState() }
     var selected by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     var attaching by remember { mutableStateOf(false) }
+    var scheduling by remember { mutableStateOf(false) }
+    val scheduled by viewModel.scheduled.collectAsStateWithLifecycle()
     val launchers = rememberAttachLaunchers(viewModel)
 
     val noticeText = notice?.let { stringResource(it) }
@@ -77,7 +79,10 @@ fun RoomScreen(
             onRemoveAttachment = composer::removeAttachment,
             onRecord = launchers.record,
             onCancelRecording = composer::cancelRecording,
-            onSendRecording = composer::sendRecording
+            onSendRecording = composer::sendRecording,
+            onSchedule = { scheduling = true },
+            onSendScheduledNow = viewModel::sendScheduledNow,
+            onCancelScheduled = viewModel::cancelScheduled
         )
     }
 
@@ -86,7 +91,7 @@ fun RoomScreen(
     Scaffold(
         topBar = { RoomTopBar(header, ready?.title, onBack, onOpenDetails = { onOpenDetails(viewModel.roomId) }) },
         bottomBar = {
-            if (ready != null) Composer(composerState, composerActions, enterToSend = settings?.enterToSend == true)
+            if (ready != null) Composer(composerState, composerActions, enterToSend = settings?.enterToSend == true, scheduled)
         },
         snackbarHost = { SnackbarHost(snackbar) }
     ) { padding ->
@@ -113,6 +118,16 @@ fun RoomScreen(
     }
 
     MessageMenu(selected, onDismiss = { selected = null }, viewModel)
+    if (scheduling) {
+        ScheduleSheet(
+            exact = viewModel.canScheduleExactly(),
+            onDismiss = { scheduling = false },
+            onPick = { at ->
+                scheduling = false
+                viewModel.scheduleDraft(at)
+            }
+        )
+    }
     if (attaching) {
         // Each choice leaves the app for a picker, so the sheet closes first.
         fun pick(launch: () -> Unit): () -> Unit = {

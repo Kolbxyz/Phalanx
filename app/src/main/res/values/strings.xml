@@ -209,4 +209,18 @@
         <item quantity="one">%d member</item>
         <item quantity="other">%d members</item>
     </plurals>
+    <string name="schedule_action">Schedule</string>
+    <string name="schedule_title">Send later</string>
+    <string name="schedule_in_hour">In one hour</string>
+    <string name="schedule_tonight">Tonight at 8 PM</string>
+    <string name="schedule_tomorrow_morning">Tomorrow at 9 AM</string>
+    <string name="schedule_pick">Pick a date and time</string>
+    <string name="schedule_next">Next</string>
+    <string name="schedule_exact">Send on the minute</string>
+    <string name="schedule_exact_summary">Android may delay scheduled messages by a few minutes unless you allow exact alarms</string>
+    <string name="schedule_done">Message scheduled. Your phone sends it, so keep it on.</string>
+    <string name="schedule_at">Sends %1$s</string>
+    <string name="schedule_failed">Couldn’t send</string>
+    <string name="schedule_send_now">Send now</string>
+    <string name="schedule_cancel">Cancel scheduled message</string>
 </resources>

@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
 import org.phalanx.android.data.model.ReplyPreview
+import org.phalanx.android.data.model.ScheduledMessage
 
 /** Sits in the Scaffold's bottom bar, so it owns the keyboard and navigation-bar insets itself. */
 @Composable
@@ -40,12 +41,20 @@ internal fun Composer(
     state: ComposerState,
     actions: ComposerActions,
     enterToSend: Boolean,
+    scheduled: List<ScheduledMessage>,
     modifier: Modifier = Modifier
 ) {
     val motion = MaterialTheme.motionScheme
     Surface(color = MaterialTheme.colorScheme.surfaceContainer, modifier = modifier) {
         val insets = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
         Column(Modifier.windowInsetsPadding(insets)) {
+            AnimatedVisibility(
+                visible = scheduled.isNotEmpty(),
+                enter = expandVertically(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
+                exit = shrinkVertically(motion.defaultSpatialSpec()) + fadeOut(motion.defaultEffectsSpec())
+            ) {
+                ScheduledStrip(scheduled, actions.onSendScheduledNow, actions.onCancelScheduled)
+            }
             ModeBanner(state.mode, actions.onCancelMode)
             AnimatedVisibility(
                 visible = state.attachments.isNotEmpty(),

@@ -211,4 +211,18 @@
         <item quantity="many">%d membres</item>
         <item quantity="other">%d membres</item>
     </plurals>
+    <string name="schedule_action">Programmer</string>
+    <string name="schedule_title">Envoyer plus tard</string>
+    <string name="schedule_in_hour">Dans une heure</string>
+    <string name="schedule_tonight">Ce soir à 20 h</string>
+    <string name="schedule_tomorrow_morning">Demain à 9 h</string>
+    <string name="schedule_pick">Choisir une date et une heure</string>
+    <string name="schedule_next">Suivant</string>
+    <string name="schedule_exact">Envoyer à la minute près</string>
+    <string name="schedule_exact_summary">Android peut retarder les messages programmés de quelques minutes si vous n’autorisez pas les alarmes exactes</string>
+    <string name="schedule_done">Message programmé. Votre téléphone l’enverra, gardez-le allumé.</string>
+    <string name="schedule_at">Envoi %1$s</string>
+    <string name="schedule_failed">Échec de l’envoi</string>
+    <string name="schedule_send_now">Envoyer maintenant</string>
+    <string name="schedule_cancel">Annuler le message programmé</string>
 </resources>

@@ -12,5 +12,9 @@ internal class ComposerActions(
     val onRemoveAttachment: (String) -> Unit,
     val onRecord: () -> Unit,
     val onCancelRecording: () -> Unit,
-    val onSendRecording: () -> Unit
+    val onSendRecording: () -> Unit,
+    /** Long press on send: pick a time instead of sending now. */
+    val onSchedule: () -> Unit,
+    val onSendScheduledNow: (String) -> Unit,
+    val onCancelScheduled: (String) -> Unit
 )

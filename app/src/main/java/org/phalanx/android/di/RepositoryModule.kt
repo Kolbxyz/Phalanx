@@ -4,6 +4,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import org.phalanx.android.core.schedule.MessageScheduler
 import org.phalanx.android.core.matrix.RustAccountRepository
 import org.phalanx.android.core.matrix.RustAuthRepository
 import org.phalanx.android.core.matrix.RustBlockedUsersRepository
@@ -19,6 +20,7 @@ import org.phalanx.android.data.repository.MediaRepository
 import org.phalanx.android.data.repository.RoomActionsRepository
 import org.phalanx.android.data.repository.RoomGalleryRepository
 import org.phalanx.android.data.repository.RoomListRepository
+import org.phalanx.android.data.repository.ScheduleRepository
 import org.phalanx.android.data.repository.TimelineRepository
 
 @Module
@@ -44,6 +46,9 @@ internal abstract class RepositoryModule {
 
     @Binds
     abstract fun roomGalleryRepository(impl: RustRoomGalleryRepository): RoomGalleryRepository
+
+    @Binds
+    abstract fun scheduleRepository(impl: MessageScheduler): ScheduleRepository
 
     @Binds
     abstract fun accountRepository(impl: RustAccountRepository): AccountRepository

@@ -6,7 +6,15 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Surface
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,7 +29,6 @@ import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Mic
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -101,17 +108,55 @@ private fun SendOrRecord(state: ComposerState, actions: ComposerActions) {
             }
         } else {
             val editing = state.mode is ComposerMode.Edit
-            FilledIconButton(onClick = actions.onSend, enabled = state.canSend, modifier = Modifier.size(ButtonSize)) {
-                Icon(
-                    if (editing) Icons.Rounded.Check else Icons.AutoMirrored.Rounded.Send,
-                    contentDescription = stringResource(
-                        if (editing) R.string.composer_save_edit else R.string.composer_send
-                    )
-                )
-            }
+            SendButton(
+                editing = editing,
+                enabled = state.canSend,
+                onSend = actions.onSend,
+                // Only text can wait: attachments and edits go now.
+                onLongPress = actions.onSchedule.takeIf { !editing && state.attachments.isEmpty() }
+            )
         }
     }
 }
+
+/** A filled round button; a long press, where offered, opens scheduling with a haptic tick. */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun SendButton(editing: Boolean, enabled: Boolean, onSend: () -> Unit, onLongPress: (() -> Unit)?) {
+    val colors = MaterialTheme.colorScheme
+    val haptics = LocalHapticFeedback.current
+    val scheduleLabel = stringResource(R.string.schedule_action)
+    Surface(
+        shape = CircleShape,
+        color = if (enabled) colors.primary else colors.onSurface.copy(alpha = DISABLED_ALPHA),
+        contentColor = if (enabled) colors.onPrimary else colors.onSurface.copy(alpha = DISABLED_CONTENT_ALPHA),
+        modifier = Modifier
+            .size(ButtonSize)
+            .clip(CircleShape)
+            .combinedClickable(
+                enabled = enabled,
+                role = Role.Button,
+                onClick = onSend,
+                onLongClickLabel = if (onLongPress != null) scheduleLabel else null,
+                onLongClick = onLongPress?.let { open ->
+                    {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        open()
+                    }
+                }
+            )
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                if (editing) Icons.Rounded.Check else Icons.AutoMirrored.Rounded.Send,
+                contentDescription = stringResource(if (editing) R.string.composer_save_edit else R.string.composer_send)
+            )
+        }
+    }
+}
+
+private const val DISABLED_ALPHA = 0.12f
+private const val DISABLED_CONTENT_ALPHA = 0.38f
 
 // TextField's minimum height in Material 3, so the side buttons line up with a one-line field.
 private val TextFieldHeight = 56.dp

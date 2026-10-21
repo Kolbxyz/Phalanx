@@ -24,8 +24,10 @@ import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.model.AppSettings
 import org.phalanx.android.data.model.MediaRef
 import org.phalanx.android.data.model.RoomSummary
+import org.phalanx.android.data.model.ScheduledMessage
 import org.phalanx.android.data.repository.BlockedUsersRepository
 import org.phalanx.android.data.repository.RoomListRepository
+import org.phalanx.android.data.repository.ScheduleRepository
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.MediaRepository
 import org.phalanx.android.data.repository.TimelineRepository
@@ -43,7 +45,8 @@ class RoomViewModel @Inject constructor(
     recorder: VoiceRecorder,
     roomList: RoomListRepository,
     private val blockedUsers: BlockedUsersRepository,
-    settingsStore: SettingsStore
+    settingsStore: SettingsStore,
+    private val schedules: ScheduleRepository
 ) : ViewModel() {
     val roomId: String = savedStateHandle.toRoute<RoomRoute>().roomId
 
@@ -67,7 +70,11 @@ class RoomViewModel @Inject constructor(
 
     private var session: TimelineSession? = null
 
-    internal val composer = ComposerController(viewModelScope, preparer, recorder, ::notify) {
+    /** This room's messages waiting on the phone to be sent. */
+    val scheduled: StateFlow<List<ScheduledMessage>> = schedules.scheduled(roomId)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    internal val composer = ComposerController(viewModelScope, preparer, recorder, schedules, ::notify) {
         settings.value?.sendTypingNotices == true
     }
 
@@ -90,6 +97,18 @@ class RoomViewModel @Inject constructor(
     fun toggleReaction(message: TimelineEntry.Message, key: String) = act { it.toggleReaction(message, key) }
 
     fun redact(message: TimelineEntry.Message) = act { it.redact(message) }
+
+    fun scheduleDraft(atMillis: Long) = composer.schedule(roomId, atMillis)
+
+    fun canScheduleExactly(): Boolean = schedules.canScheduleExactly()
+
+    fun sendScheduledNow(id: String) {
+        viewModelScope.launch { schedules.sendNow(id) }
+    }
+
+    fun cancelScheduled(id: String) {
+        viewModelScope.launch { schedules.cancel(id) }
+    }
 
     fun block(userId: String) {
         viewModelScope.launch { blockedUsers.block(userId).onFailure { notify(R.string.timeline_action_failed) } }

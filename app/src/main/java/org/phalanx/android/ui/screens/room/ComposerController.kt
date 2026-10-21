@@ -17,6 +17,7 @@ import org.phalanx.android.R
 import org.phalanx.android.core.media.AttachmentPreparer
 import org.phalanx.android.core.media.VoiceRecorder
 import org.phalanx.android.data.model.TimelineEntry
+import org.phalanx.android.data.repository.ScheduleRepository
 import org.phalanx.android.data.repository.TimelineSession
 import java.util.UUID
 
@@ -28,6 +29,7 @@ internal class ComposerController(
     private val scope: CoroutineScope,
     private val preparer: AttachmentPreparer,
     private val recorder: VoiceRecorder,
+    private val schedules: ScheduleRepository,
     private val notify: (Int) -> Unit,
     /** Whether the user allows sending typing notices, read at each keystroke. */
     private val shareTyping: () -> Boolean
@@ -159,6 +161,20 @@ internal class ComposerController(
                         .onFailure { notify(R.string.composer_send_failed) }
                 }
             }
+        }
+    }
+
+    /** Keeps the typed text for [atMillis] instead of sending it; the composer empties. */
+    fun schedule(roomId: String, atMillis: Long) {
+        val snapshot = mutableState.value
+        val text = snapshot.draft.trim()
+        if (text.isEmpty() || snapshot.attachments.isNotEmpty() || snapshot.mode is ComposerMode.Edit) return
+        val replyTo = (snapshot.mode as? ComposerMode.Reply)?.message?.eventId
+        session?.setTyping(false)
+        update { it.copy(draft = "", mode = ComposerMode.New) }
+        scope.launch {
+            schedules.schedule(roomId, text, replyTo, atMillis)
+            notify(R.string.schedule_done)
         }
     }
 
