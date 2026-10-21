@@ -14,11 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Hub
-import androidx.compose.material.icons.rounded.NotificationsActive
-import androidx.compose.material.icons.rounded.NotificationsOff
-import androidx.compose.material.icons.rounded.NotificationsPaused
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +41,7 @@ import org.phalanx.android.data.model.PushStatus
 import org.phalanx.android.ui.components.SegmentedRow
 import org.phalanx.android.ui.components.SegmentedSection
 import org.phalanx.android.ui.components.segmentedShape
+import org.phalanx.android.ui.theme.Symbols
 
 /** Whether pushes work, which distributor delivers them, and the gateway that relays them. */
 @Composable
@@ -94,7 +90,7 @@ internal fun NotificationSettings(viewModel: NotificationsViewModel = hiltViewMo
             headline = stringResource(R.string.push_gateway),
             supporting = gateway ?: stringResource(R.string.push_gateway_automatic),
             shape = segmentedShape(0, 1),
-            leading = { Icon(Icons.Rounded.Hub, contentDescription = null) },
+            leading = { Icon(Symbols.Hub, contentDescription = null) },
             interaction = Modifier.clickable(onClick = viewModel::editGateway)
         )
     }
@@ -132,9 +128,9 @@ private fun StatusCard(status: PushStatus, permitted: Boolean, onAllow: () -> Un
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     when {
-                        working -> Icons.Rounded.NotificationsActive
-                        broken -> Icons.Rounded.NotificationsOff
-                        else -> Icons.Rounded.NotificationsPaused
+                        working -> Symbols.NotificationsActive
+                        broken -> Symbols.NotificationsOff
+                        else -> Symbols.NotificationsPaused
                     },
                     contentDescription = null,
                     modifier = Modifier.size(32.dp)

@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -156,7 +157,7 @@ private fun CategoryIcon(category: SettingsCategory, index: Int) {
     }
     Surface(shape = shapes[index % shapes.size].toShape(), color = container, contentColor = content) {
         Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
-            Icon(category.icon, contentDescription = null, modifier = Modifier.size(22.dp))
+            Icon(painterResource(category.icon), contentDescription = null, modifier = Modifier.size(22.dp))
         }
     }
 }
