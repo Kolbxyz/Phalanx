@@ -128,4 +128,23 @@
     <string name="composer_replying_to">Réponse à %1$s</string>
     <string name="composer_reply_cancel">Annuler la réponse</string>
     <string name="media_viewer_close">Fermer</string>
+    <string name="composer_attach">Joindre</string>
+    <string name="composer_attach_camera">Photo</string>
+    <string name="composer_attach_video">Vidéo</string>
+    <string name="composer_attach_gallery">Galerie</string>
+    <string name="composer_attach_file">Fichier</string>
+    <string name="composer_attach_failed">Impossible de lire ce fichier.</string>
+    <string name="composer_camera_missing">Aucune application d’appareil photo disponible.</string>
+    <string name="composer_remove_attachment">Retirer la pièce jointe</string>
+    <string name="composer_record">Enregistrer un message vocal</string>
+    <string name="composer_recording">Enregistrement d’un message vocal</string>
+    <string name="composer_record_cancel">Supprimer l’enregistrement</string>
+    <string name="composer_record_send">Envoyer le message vocal</string>
+    <string name="composer_record_failed">Impossible de lancer l’enregistrement.</string>
+    <string name="composer_record_too_short">Trop court pour être envoyé.</string>
+    <string name="composer_mic_denied">Les messages vocaux nécessitent l’accès au micro.</string>
+    <string name="composer_editing">Modification du message</string>
+    <string name="composer_edit_cancel">Annuler la modification</string>
+    <string name="composer_save_edit">Enregistrer les modifications</string>
+    <string name="action_edit">Modifier</string>
 </resources>

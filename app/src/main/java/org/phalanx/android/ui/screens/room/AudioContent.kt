@@ -148,7 +148,7 @@ private fun prepare(
 }
 
 @Composable
-private fun Waveform(samples: List<Float>, progress: Float, modifier: Modifier = Modifier) {
+internal fun Waveform(samples: List<Float>, progress: Float, modifier: Modifier = Modifier) {
     val played = LocalContentColor.current
     val rest = played.copy(alpha = 0.35f)
     Canvas(modifier) {

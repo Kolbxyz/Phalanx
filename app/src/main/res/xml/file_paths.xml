@@ -3,4 +3,6 @@
 <paths>
     <!-- Decrypted media handed to a viewer or player app; wiped on every launch. -->
     <cache-path name="open" path="open/" />
+    <!-- Where the camera app writes a photo or video taken from the composer; wiped on every launch. -->
+    <cache-path name="capture" path="capture/" />
 </paths>

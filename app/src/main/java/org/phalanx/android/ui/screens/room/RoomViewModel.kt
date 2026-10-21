@@ -14,9 +14,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
+import org.phalanx.android.core.media.AttachmentPreparer
+import org.phalanx.android.core.media.VoiceRecorder
 import org.phalanx.android.data.model.MediaRef
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.MediaRepository
@@ -32,18 +33,14 @@ data class OpenRequest(val uri: Uri, val mimeType: String?)
 class RoomViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     timelines: TimelineRepository,
-    private val media: MediaRepository
+    private val media: MediaRepository,
+    private val preparer: AttachmentPreparer,
+    recorder: VoiceRecorder
 ) : ViewModel() {
     val roomId: String = savedStateHandle.toRoute<RoomRoute>().roomId
 
     private val mutableState = MutableStateFlow<RoomUiState>(RoomUiState.Loading)
     val state: StateFlow<RoomUiState> = mutableState.asStateFlow()
-
-    private val mutableDraft = MutableStateFlow("")
-    val draft: StateFlow<String> = mutableDraft.asStateFlow()
-
-    private val mutableReplyingTo = MutableStateFlow<TimelineEntry.Message?>(null)
-    val replyingTo: StateFlow<TimelineEntry.Message?> = mutableReplyingTo.asStateFlow()
 
     /** A one-off message for the snackbar; cleared by [dismissNotice]. */
     private val mutableNotice = MutableStateFlow<Int?>(null)
@@ -54,11 +51,14 @@ class RoomViewModel @Inject constructor(
 
     private var session: TimelineSession? = null
 
+    internal val composer = ComposerController(viewModelScope, preparer, recorder, ::notify)
+
     init {
         viewModelScope.launch {
             timelines.open(roomId).fold(
                 onSuccess = { opened ->
                     session = opened
+                    composer.attach(opened)
                     observe(opened)
                 },
                 onFailure = { mutableState.value = RoomUiState.Unavailable }
@@ -66,35 +66,8 @@ class RoomViewModel @Inject constructor(
         }
     }
 
-    fun onDraftChange(value: String) {
-        mutableDraft.value = value
-    }
-
-    fun send() {
-        val text = mutableDraft.value.trim()
-        val current = session
-        if (text.isEmpty() || current == null) return
-        val replyTo = mutableReplyingTo.value
-        viewModelScope.launch {
-            // The draft is only cleared once the SDK has accepted the message, so a failure
-            // never costs the user what they typed.
-            current.send(text, replyTo).fold(
-                onSuccess = {
-                    mutableDraft.update { if (it.trim() == text) "" else it }
-                    mutableReplyingTo.update { if (it == replyTo) null else it }
-                },
-                onFailure = { notify(R.string.composer_send_failed) }
-            )
-        }
-    }
-
-    fun startReply(message: TimelineEntry.Message) {
-        mutableReplyingTo.value = message
-    }
-
-    fun cancelReply() {
-        mutableReplyingTo.value = null
-    }
+    /** Where the camera app should write a new photo or video before it is attached. */
+    fun captureUri(video: Boolean): Uri = preparer.captureUri(video)
 
     fun toggleReaction(message: TimelineEntry.Message, key: String) = act { it.toggleReaction(message, key) }
 
@@ -128,6 +101,10 @@ class RoomViewModel @Inject constructor(
         val current = session ?: return
         // A failed page is transient; the list asks again the next time the user scrolls to the top.
         viewModelScope.launch { current.loadOlder() }
+    }
+
+    override fun onCleared() {
+        composer.release()
     }
 
     private fun act(block: suspend (TimelineSession) -> Result<Unit>) {

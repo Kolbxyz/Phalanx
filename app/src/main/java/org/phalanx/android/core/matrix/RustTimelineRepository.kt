@@ -7,6 +7,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.matrix.rustcomponents.sdk.ClientException
+import org.phalanx.android.core.media.AttachmentPreparer
 import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.repository.TimelineRepository
 import org.phalanx.android.data.repository.TimelineSession
@@ -23,6 +24,7 @@ import javax.inject.Singleton
 internal class RustTimelineRepository @Inject constructor(
     private val active: ActiveClient,
     private val settings: SettingsStore,
+    private val attachments: AttachmentPreparer,
     @ApplicationScope scope: CoroutineScope
 ) : TimelineRepository {
     private val lock = Mutex()
@@ -41,7 +43,7 @@ internal class RustTimelineRepository @Inject constructor(
         withContext(Dispatchers.IO) {
             try {
                 val room = active.room(roomId) ?: return@withContext Result.failure(TimelineUnavailableException())
-                val session = RustTimelineSession.open(room, settings)
+                val session = RustTimelineSession.open(room, settings, attachments)
                 open[roomId] = session
                 evictOverflow()
                 Result.success(session)

@@ -1,6 +1,6 @@
 package org.phalanx.android.ui.screens.room
 
-import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animate
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -12,8 +12,11 @@ import androidx.compose.material.icons.automirrored.rounded.Reply
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -23,7 +26,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import org.phalanx.android.ui.theme.LocalReducedMotion
 import kotlin.math.roundToInt
 
 private val Threshold = 64.dp
@@ -40,27 +45,38 @@ internal fun SwipeToReply(enabled: Boolean, onReply: () -> Unit, content: @Compo
         content()
         return
     }
-    val offset = remember { Animatable(0f) }
+    // Plain state written synchronously on every delta: queuing a coroutine per delta let the last
+    // ones land after the release animation had started, cancel it, and leave the bubble stranded.
+    var offset by remember { mutableFloatStateOf(0f) }
+    val settle = remember { arrayOfNulls<Job>(1) }
     val scope = rememberCoroutineScope()
     val haptics = LocalHapticFeedback.current
     val threshold = with(LocalDensity.current) { Threshold.toPx() }
     val spring = MaterialTheme.motionScheme.fastSpatialSpec<Float>()
-    val progress = (offset.value / threshold).coerceIn(0f, 1f)
+    val reducedMotion = LocalReducedMotion.current
+    val progress = (offset / threshold).coerceIn(0f, 1f)
 
     Box(
         modifier = Modifier.draggable(
             orientation = Orientation.Horizontal,
             state = rememberDraggableState { delta ->
-                val before = offset.value
-                val after = (before + delta * RESISTANCE).coerceIn(0f, threshold * 1.4f)
-                if (before < threshold && after >= threshold) {
+                val after = (offset + delta * RESISTANCE).coerceIn(0f, threshold * 1.4f)
+                if (offset < threshold && after >= threshold) {
                     haptics.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
                 }
-                scope.launch { offset.snapTo(after) }
+                offset = after
             },
+            onDragStarted = { settle[0]?.cancel() },
             onDragStopped = {
-                if (offset.value >= threshold) onReply()
-                offset.animateTo(0f, spring)
+                if (offset >= threshold) onReply()
+                // The composition's scope, not the gesture's, so nothing but a new drag stops the return.
+                settle[0] = scope.launch {
+                    if (reducedMotion) {
+                        offset = 0f
+                    } else {
+                        animate(offset, 0f, animationSpec = spring) { value, _ -> offset = value }
+                    }
+                }
             }
         )
     ) {
@@ -74,6 +90,6 @@ internal fun SwipeToReply(enabled: Boolean, onReply: () -> Unit, content: @Compo
                 .alpha(progress)
                 .scale(MIN_ICON_SCALE + (1f - MIN_ICON_SCALE) * progress)
         )
-        Box(Modifier.offset { IntOffset(offset.value.roundToInt(), 0) }) { content() }
+        Box(Modifier.offset { IntOffset(offset.roundToInt(), 0) }) { content() }
     }
 }

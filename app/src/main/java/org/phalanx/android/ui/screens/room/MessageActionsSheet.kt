@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Reply
 import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -46,6 +47,7 @@ internal fun MessageActionsSheet(
     onReact: (String) -> Unit,
     onReply: () -> Unit,
     onCopy: () -> Unit,
+    onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
@@ -73,6 +75,9 @@ internal fun MessageActionsSheet(
         }
         if (message.canReply) Action(Icons.AutoMirrored.Rounded.Reply, R.string.action_reply, onReply)
         if (message.body is MessageBody.Text) Action(Icons.Rounded.ContentCopy, R.string.action_copy, onCopy)
+        if (message.canEdit && message.body is MessageBody.Text) {
+            Action(Icons.Rounded.Edit, R.string.action_edit, onEdit)
+        }
         if (message.isOwn && live) Action(Icons.Rounded.Delete, R.string.action_delete, onDelete, destructive = true)
         Spacer(Modifier.height(8.dp))
     }

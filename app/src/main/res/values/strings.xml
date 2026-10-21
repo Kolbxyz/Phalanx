@@ -128,4 +128,23 @@
     <string name="composer_replying_to">Replying to %1$s</string>
     <string name="composer_reply_cancel">Cancel reply</string>
     <string name="media_viewer_close">Close</string>
+    <string name="composer_attach">Attach</string>
+    <string name="composer_attach_camera">Camera</string>
+    <string name="composer_attach_video">Video</string>
+    <string name="composer_attach_gallery">Gallery</string>
+    <string name="composer_attach_file">File</string>
+    <string name="composer_attach_failed">Couldn’t read that file.</string>
+    <string name="composer_camera_missing">No camera app is available.</string>
+    <string name="composer_remove_attachment">Remove attachment</string>
+    <string name="composer_record">Record a voice message</string>
+    <string name="composer_recording">Recording a voice message</string>
+    <string name="composer_record_cancel">Discard recording</string>
+    <string name="composer_record_send">Send voice message</string>
+    <string name="composer_record_failed">Couldn’t start recording.</string>
+    <string name="composer_record_too_short">Too short to send.</string>
+    <string name="composer_mic_denied">Voice messages need access to the microphone.</string>
+    <string name="composer_editing">Editing message</string>
+    <string name="composer_edit_cancel">Cancel editing</string>
+    <string name="composer_save_edit">Save changes</string>
+    <string name="action_edit">Edit</string>
 </resources>

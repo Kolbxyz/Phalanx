@@ -1,7 +1,6 @@
 package org.phalanx.android.ui.screens.room
 
 import android.content.ActivityNotFoundException
-import android.content.ClipData
 import android.content.Intent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -26,19 +25,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ClipEntry
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.launch
 import org.phalanx.android.R
-import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.components.TimelinePlaceholder
 
@@ -49,16 +43,14 @@ fun RoomScreen(
     viewModel: RoomViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val draft by viewModel.draft.collectAsStateWithLifecycle()
-    val replyingTo by viewModel.replyingTo.collectAsStateWithLifecycle()
+    val composerState by viewModel.composer.state.collectAsStateWithLifecycle()
     val notice by viewModel.notice.collectAsStateWithLifecycle()
     val openRequest by viewModel.openRequest.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val context = LocalContext.current
-    val clipboard = LocalClipboard.current
-    val scope = rememberCoroutineScope()
     var selected by remember { mutableStateOf<TimelineEntry.Message?>(null) }
-    var deleting by remember { mutableStateOf<TimelineEntry.Message?>(null) }
+    var attaching by remember { mutableStateOf(false) }
+    val launchers = rememberAttachLaunchers(viewModel)
 
     val noticeText = notice?.let { stringResource(it) }
     LaunchedEffect(noticeText) {
@@ -86,8 +78,21 @@ fun RoomScreen(
             onOpenFile = viewModel::openFile,
             resolveAudio = viewModel::audioUri,
             onToggleReaction = viewModel::toggleReaction,
-            onReply = viewModel::startReply,
+            onReply = viewModel.composer::reply,
             onLongPress = { selected = it }
+        )
+    }
+    val composerActions = remember(viewModel) {
+        val composer = viewModel.composer
+        ComposerActions(
+            onDraftChange = composer::onDraftChange,
+            onSend = composer::send,
+            onCancelMode = composer::cancelMode,
+            onAttach = { attaching = true },
+            onRemoveAttachment = composer::removeAttachment,
+            onRecord = launchers.record,
+            onCancelRecording = composer::cancelRecording,
+            onSendRecording = composer::sendRecording
         )
     }
 
@@ -104,9 +109,7 @@ fun RoomScreen(
             )
         },
         bottomBar = {
-            if (ready != null) {
-                Composer(draft, replyingTo, viewModel::onDraftChange, viewModel::send, viewModel::cancelReply)
-            }
+            if (ready != null) Composer(composerState, composerActions)
         },
         snackbarHost = { SnackbarHost(snackbar) }
     ) { padding ->
@@ -130,37 +133,19 @@ fun RoomScreen(
         }
     }
 
-    selected?.let { message ->
-        MessageActionsSheet(
-            message = message,
-            onDismiss = { selected = null },
-            onReact = { key ->
-                viewModel.toggleReaction(message, key)
-                selected = null
-            },
-            onReply = {
-                viewModel.startReply(message)
-                selected = null
-            },
-            onCopy = {
-                (message.body as? MessageBody.Text)?.let { body ->
-                    scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, body.text))) }
-                }
-                selected = null
-            },
-            onDelete = {
-                deleting = message
-                selected = null
-            }
-        )
-    }
-    deleting?.let { message ->
-        DeleteMessageDialog(
-            onConfirm = {
-                viewModel.redact(message)
-                deleting = null
-            },
-            onDismiss = { deleting = null }
+    MessageMenu(selected, onDismiss = { selected = null }, viewModel)
+    if (attaching) {
+        // Each choice leaves the app for a picker, so the sheet closes first.
+        fun pick(launch: () -> Unit): () -> Unit = {
+            attaching = false
+            launch()
+        }
+        AttachSheet(
+            onDismiss = { attaching = false },
+            onPhoto = pick(launchers.photo),
+            onVideo = pick(launchers.video),
+            onGallery = pick(launchers.gallery),
+            onFile = pick(launchers.file)
         )
     }
 }
