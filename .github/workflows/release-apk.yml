@@ -1,0 +1,79 @@
+name: Release APK
+
+# Builds the signed release APK and attaches it to a release: the one just published, or the
+# latest one when run by hand.
+on:
+  release:
+    types: [ published ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name || 'latest' }}
+  cancel-in-progress: true
+
+jobs:
+  attach:
+    name: Build & Attach Release APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Resolve Release Tag
+        id: tag
+        run: |
+          tag="${{ github.event.release.tag_name }}"
+          if [ -z "$tag" ]; then
+            tag=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)
+          fi
+          echo "name=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout Release Tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.name }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # An unsigned release APK cannot be installed, so a missing keystore fails the run.
+      - name: Write Signing Config
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          for v in KEYSTORE_BASE64 STORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!v}" ]; then echo "::error::Missing secret for $v"; exit 1; fi
+          done
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          {
+            echo "releaseStoreFile=$RUNNER_TEMP/release.jks"
+            echo "releaseStorePassword=$STORE_PASSWORD"
+            echo "releaseKeyAlias=$KEY_ALIAS"
+            echo "releaseKeyPassword=$KEY_PASSWORD"
+          } > local.properties
+
+      - name: Build Release APK
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleRelease
+
+      - name: Attach APK to Release
+        run: |
+          tag="${{ steps.tag.outputs.name }}"
+          apk=$(find app/build/outputs/apk/release -name '*.apk' | head -n 1)
+          if [ -z "$apk" ]; then echo "::error::No release APK produced"; exit 1; fi
+          cp "$apk" "phalanx-$tag.apk"
+          gh release upload "$tag" "phalanx-$tag.apk" --clobber --repo "$GITHUB_REPOSITORY"
