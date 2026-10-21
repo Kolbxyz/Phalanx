@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A heater shield: the formation the app is named for, drawn inside the 66dp adaptive safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="@color/phalanx_icon_foreground"
+        android:pathData="M54,28 L78,36 L78,56 C78,69 67,78 54,82 C41,78 30,69 30,56 L30,36 Z" />
+</vector>

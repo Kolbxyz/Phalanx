@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Phalanx</string>
+
+    <string name="login_title">Sign in</string>
+    <string name="login_server_label">Homeserver</string>
+    <string name="login_server_supporting">A server name like example.org, or its full address</string>
+    <string name="login_continue">Continue</string>
+    <string name="login_username">Username</string>
+    <string name="login_password">Password</string>
+    <string name="login_sign_in">Sign in</string>
+    <string name="login_back">Change server</string>
+    <string name="login_error_invalid_server">That doesn’t look like a Matrix server.</string>
+    <string name="login_error_unreachable">Couldn’t reach the server. Check the address and your connection.</string>
+    <string name="login_oidc_continue">Continue in browser</string>
+    <string name="login_oidc_waiting">Finish signing in on the page that opened in your browser.</string>
+    <string name="login_oidc_cancel">Cancel</string>
+    <string name="login_or_password">Or with a password</string>
+    <string name="login_error_no_supported_login">This server doesn’t offer a sign-in method Phalanx supports.</string>
+    <string name="login_error_no_browser">No browser is installed to open the server’s sign-in page.</string>
+    <string name="login_error_invalid_credentials">Wrong username or password.</string>
+    <string name="login_error_disabled">This account is disabled or locked.</string>
+    <string name="login_error_rate_limited">Too many attempts. Wait a moment and try again.</string>
+    <string name="login_error_unknown">Couldn’t sign in. Try again.</string>
+
+    <string name="roomlist_title">Chats</string>
+    <string name="roomlist_empty">No chats yet</string>
+    <string name="roomlist_account">Account</string>
+    <string name="roomlist_you_prefix">You: %1$s</string>
+    <plurals name="roomlist_unread">
+        <item quantity="one">%d unread message</item>
+        <item quantity="other">%d unread messages</item>
+    </plurals>
+
+    <string name="account_title">Account</string>
+    <string name="account_section_profile">Profile</string>
+    <string name="account_display_name">Display name</string>
+    <string name="account_display_name_unset">Not set</string>
+    <string name="account_name_failed">Couldn’t change your name. Try again.</string>
+    <string name="account_save">Save</string>
+    <string name="account_cancel">Cancel</string>
+    <string name="account_section_device">This device</string>
+    <string name="account_device_id">Device ID</string>
+    <string name="account_server">Server</string>
+    <string name="account_copy">Copy</string>
+    <string name="account_section_provider">Managed by your server</string>
+    <string name="account_manage">Manage account</string>
+    <string name="account_manage_summary">Password, email and more, on your server’s site</string>
+    <string name="account_devices">Devices</string>
+    <string name="account_devices_summary">See and sign out your other sessions</string>
+    <string name="account_section_app">App</string>
+    <string name="account_sign_out">Sign out</string>
+    <string name="account_sign_out_title">Sign out?</string>
+    <string name="account_sign_out_body">This device will forget your account and its messages. Encrypted messages can only be read again with your recovery key or another signed-in device.</string>
+
+    <string name="account_photo_change">Change photo</string>
+    <string name="account_photo_remove">Remove photo</string>
+    <string name="account_photo_failed">Couldn’t update your photo. Try again.</string>
+    <string name="account_wrong_password">Wrong password.</string>
+    <string name="account_section_danger">Danger zone</string>
+    <string name="account_deactivate">Deactivate account</string>
+    <string name="account_deactivate_summary">Permanently close this account. This can’t be undone</string>
+    <string name="account_deactivate_title">Deactivate your account?</string>
+    <string name="account_deactivate_body">Your account will be closed for good: no one can sign in to it again, its ID can’t be reused, and you’ll leave every chat. This can’t be undone.</string>
+    <string name="account_deactivate_erase">Also ask the server to forget my messages</string>
+    <string name="account_deactivate_confirm">Deactivate</string>
+    <string name="account_deactivate_failed">Couldn’t deactivate the account. Try again.</string>
+
+    <string name="devices_load_failed">Couldn’t load your devices.</string>
+    <string name="devices_retry">Retry</string>
+    <string name="devices_this_device">This device · %1$s</string>
+    <string name="devices_remove">Sign out</string>
+    <string name="devices_remove_title">Sign out %1$s?</string>
+    <string name="devices_remove_body">That device loses access to your account and its encryption keys. Enter your password to confirm.</string>
+    <string name="devices_remove_failed">Couldn’t sign out that device. Try again.</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_dynamic_color">Wallpaper colours</string>
+    <string name="settings_dynamic_color_summary">Take the app’s colours from your wallpaper</string>
+    <string name="settings_amoled">Black background</string>
+    <string name="settings_amoled_summary">In dark theme. Saves battery on OLED screens</string>
+    <string name="settings_reduce_motion">Reduce motion</string>
+    <string name="settings_reduce_motion_summary">Shorten animations. Always on when animations are off in system settings</string>
+    <string name="settings_privacy">Privacy</string>
+    <string name="settings_read_receipts">Send read receipts</string>
+    <string name="settings_read_receipts_summary">Let others see when you’ve read their messages</string>
+
+    <string name="back">Back</string>
+
+    <string name="loading">Loading</string>
+    <string name="composer_hint">Message</string>
+    <string name="composer_send">Send</string>
+    <string name="composer_send_failed">Couldn’t send your message. Your draft is still here.</string>
+    <string name="room_unavailable">This chat isn’t available.</string>
+    <string name="timeline_edited">edited</string>
+    <string name="timeline_sending">Sending…</string>
+    <string name="timeline_failed">Not sent</string>
+    <string name="timeline_redacted">Message deleted</string>
+    <string name="timeline_undecryptable">Can’t decrypt this message yet. The sender’s keys haven’t reached this device.</string>
+    <string name="timeline_unsupported_image">Image</string>
+    <string name="timeline_unsupported_video">Video</string>
+    <string name="timeline_unsupported_audio">Audio message</string>
+    <string name="timeline_unsupported_file">File</string>
+    <string name="timeline_unsupported_location">Location</string>
+    <string name="timeline_unsupported_sticker">Sticker</string>
+    <string name="timeline_unsupported_poll">Poll</string>
+    <string name="timeline_unsupported_gallery">Gallery</string>
+    <string name="timeline_unsupported_other">Message this version can’t show</string>
+</resources>

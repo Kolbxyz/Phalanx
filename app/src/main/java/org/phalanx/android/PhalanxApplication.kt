@@ -1,0 +1,29 @@
+package org.phalanx.android
+
+import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
+import org.matrix.rustcomponents.sdk.LogLevel
+import org.matrix.rustcomponents.sdk.TracingConfiguration
+import org.matrix.rustcomponents.sdk.initPlatform
+
+@HiltAndroidApp
+class PhalanxApplication : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        // Must run before any SDK call: without it every HTTPS request fails with "Expect
+        // rustls-platform-verifier to be initialized".
+        org.matrix.rustsdk.Android.init(this)
+        // SDK logs go to logcat in debug builds only, and never to files: they can name rooms and users.
+        initPlatform(
+            config = TracingConfiguration(
+                logLevel = if (BuildConfig.DEBUG) LogLevel.INFO else LogLevel.WARN,
+                traceLogPacks = emptyList(),
+                extraTargets = emptyList(),
+                writeToStdoutOrSystem = BuildConfig.DEBUG,
+                writeToFiles = null,
+                sentryConfig = null
+            ),
+            useLightweightTokioRuntime = false
+        )
+    }
+}

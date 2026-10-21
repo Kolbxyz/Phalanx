@@ -1,0 +1,64 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build, Test & Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Kotlin Style (ktlint)
+        run: |
+          curl -sSLo ktlint https://github.com/ktlint/ktlint/releases/download/1.8.0/ktlint
+          echo "a3fd620207d5c40da6ca789b95e7f823c54e854b7fade7f613e91096a3706d75  ktlint" | sha256sum -c -
+          chmod +x ktlint
+          ./ktlint --relative "app/src/**/*.kt"
+
+      - name: Static Analysis (detekt)
+        run: ./gradlew :app:detekt
+
+      - name: Run Unit Tests
+        run: ./gradlew :app:testDebugUnitTest
+
+      - name: Coverage Floor (Kover)
+        run: ./gradlew :app:koverVerifyDebug
+
+      - name: Run Android Lint
+        run: |
+          ./gradlew :app:lintDebug || {
+            for report in app/build/reports/lint-results-debug.txt; do
+              if [ -f "$report" ]; then
+                echo "=== $report ==="
+                cat "$report"
+              fi
+            done
+            exit 1
+          }
+
+      - name: Build Debug APK
+        run: ./gradlew :app:assembleDebug
