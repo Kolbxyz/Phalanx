@@ -122,12 +122,16 @@ private fun StatusCard(status: SecurityStatus?, onVerify: () -> Unit, onEnterKey
                 style = MaterialTheme.typography.bodyMedium
             )
             if (status != null && !verified) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp)) {
-                    Button(onClick = onVerify) {
+                // Stacked: side by side, the second label wraps over several lines on a phone.
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp)) {
+                    Button(onClick = onVerify, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Rounded.PhonelinkLock, contentDescription = null, modifier = Modifier.size(18.dp))
                         Text(stringResource(R.string.security_verify_device), modifier = Modifier.padding(start = 8.dp))
                     }
-                    OutlinedButton(onClick = onEnterKey) { Text(stringResource(R.string.security_use_key)) }
+                    OutlinedButton(onClick = onEnterKey, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Rounded.Key, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Text(stringResource(R.string.security_use_key), modifier = Modifier.padding(start = 8.dp))
+                    }
                 }
             }
         }

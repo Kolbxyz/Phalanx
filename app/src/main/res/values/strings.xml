@@ -258,4 +258,17 @@
     <string name="security_emoji_no_match">They don’t match</string>
     <string name="security_verify_done">This session is verified.</string>
     <string name="security_verify_failed">Verification was cancelled or failed. You can try again.</string>
+    <string name="timeline_reactors_show">See who reacted</string>
+    <plurals name="timeline_reactors_title">
+        <item quantity="one">%1$s · %2$d person</item>
+        <item quantity="other">%1$s · %2$d people</item>
+    </plurals>
+    <string name="action_forward">Forward</string>
+    <string name="action_mute">Mute notifications from them</string>
+    <string name="action_unmute">Unmute their notifications</string>
+    <string name="timeline_forwarded">Message forwarded</string>
+    <string name="timeline_muted">Muted. Their messages no longer notify you, except mentions.</string>
+    <string name="timeline_unmuted">Their messages notify you again</string>
+    <string name="forward_title">Forward to…</string>
+    <string name="forward_search">Search conversations</string>
 </resources>

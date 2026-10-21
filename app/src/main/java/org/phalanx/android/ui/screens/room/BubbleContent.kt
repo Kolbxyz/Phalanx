@@ -49,7 +49,8 @@ internal fun BubbleContent(message: TimelineEntry.Message, layout: BubbleLayout,
             message.replyTo?.let {
                 ReplyQuote(
                     reply = it,
-                    accent = LocalContentColor.current,
+                    // On this account's bubble the theme's accent is the bubble itself; elsewhere it stands out.
+                    accent = if (message.isOwn) LocalContentColor.current else MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = 6.dp, end = 6.dp, top = 6.dp)
                 )
             }

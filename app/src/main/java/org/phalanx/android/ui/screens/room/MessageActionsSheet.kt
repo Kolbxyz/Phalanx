@@ -11,11 +11,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Forward
 import androidx.compose.material.icons.automirrored.rounded.Reply
 import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.NotificationsActive
+import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -49,7 +52,10 @@ internal fun MessageActionsSheet(
     onReply: () -> Unit,
     onCopy: () -> Unit,
     onEdit: () -> Unit,
+    onForward: () -> Unit,
     onDelete: () -> Unit,
+    senderMuted: Boolean,
+    onToggleMute: () -> Unit,
     onBlock: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
@@ -77,8 +83,18 @@ internal fun MessageActionsSheet(
         }
         if (message.canReply) Action(Icons.AutoMirrored.Rounded.Reply, R.string.action_reply, onReply)
         if (message.body is MessageBody.Text) Action(Icons.Rounded.ContentCopy, R.string.action_copy, onCopy)
+        if (live && message.eventId != null && message.body.isForwardable()) {
+            Action(Icons.AutoMirrored.Rounded.Forward, R.string.action_forward, onForward)
+        }
         if (message.canEdit && message.body is MessageBody.Text) {
             Action(Icons.Rounded.Edit, R.string.action_edit, onEdit)
+        }
+        if (!message.isOwn) {
+            if (senderMuted) {
+                Action(Icons.Rounded.NotificationsActive, R.string.action_unmute, onToggleMute)
+            } else {
+                Action(Icons.Rounded.NotificationsOff, R.string.action_mute, onToggleMute)
+            }
         }
         if (!message.isOwn) Action(Icons.Rounded.Block, R.string.action_block, onBlock, destructive = true)
         if (message.isOwn && live) Action(Icons.Rounded.Delete, R.string.action_delete, onDelete, destructive = true)
@@ -119,4 +135,11 @@ internal fun BlockUserDialog(name: String, onConfirm: () -> Unit, onDismiss: () 
         confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.action_block)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } }
     )
+}
+
+/** Messages proper; a poll, a gallery or a message that can't be read has nothing to send on. */
+private fun MessageBody.isForwardable(): Boolean = when (this) {
+    is MessageBody.Text, is MessageBody.Image, is MessageBody.Video, is MessageBody.Audio,
+    is MessageBody.File, is MessageBody.Location -> true
+    is MessageBody.Unsupported, MessageBody.Redacted, MessageBody.Undecryptable -> false
 }

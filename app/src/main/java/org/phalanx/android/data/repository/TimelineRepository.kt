@@ -1,14 +1,21 @@
 package org.phalanx.android.data.repository
 
 import kotlinx.coroutines.flow.StateFlow
+import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.OutgoingMedia
 import org.phalanx.android.data.model.TimelineEntry
 
 /** The room is unknown to the signed-in account, or its timeline could not be opened. */
 class TimelineUnavailableException(cause: Throwable? = null) : Exception("Timeline unavailable", cause)
 
+/** The message is not one that can be sent again elsewhere (a poll, a state change, ...). */
+class NotForwardableException : Exception("Not forwardable")
+
 interface TimelineRepository {
     suspend fun open(roomId: String): Result<TimelineSession>
+
+    /** Sends a copy of [eventId] from [fromRoomId] to [toRoomId]; media is not uploaded again. */
+    suspend fun forward(fromRoomId: String, eventId: String, toRoomId: String): Result<Unit>
 }
 
 /** A live view of one room. The repository owns its lifetime; screens only read and act on it. */
@@ -53,6 +60,9 @@ interface TimelineSession {
 
     /** Loads one more page of history. A failure is transient; scrolling again retries. */
     suspend fun loadOlder(): Result<Unit>
+
+    /** Who [userIds] are in this room, in the same order. */
+    suspend fun members(userIds: List<String>): List<Member>
 
     suspend fun markRead(): Result<Unit>
 }

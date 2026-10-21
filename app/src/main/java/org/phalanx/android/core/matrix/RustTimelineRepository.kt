@@ -53,6 +53,12 @@ internal class RustTimelineRepository @Inject constructor(
         }
     }
 
+    override suspend fun forward(fromRoomId: String, eventId: String, toRoomId: String): Result<Unit> {
+        val source = open(fromRoomId).getOrElse { return Result.failure(it) } as RustTimelineSession
+        val target = open(toRoomId).getOrElse { return Result.failure(it) } as RustTimelineSession
+        return source.forward(eventId, target)
+    }
+
     private fun evictOverflow() {
         val iterator = open.values.iterator()
         while (open.size > CACHE_SIZE) {

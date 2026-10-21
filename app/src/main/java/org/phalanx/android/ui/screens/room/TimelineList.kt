@@ -44,6 +44,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.data.model.TimelineEntry
@@ -75,10 +76,13 @@ internal fun TimelineList(
     // gets close, and again each time the list grows and it is still close.
     LaunchedEffect(listState, state.canLoadOlder) {
         if (!state.canLoadOlder) return@LaunchedEffect
+        // Keyed on the item count too: a snapshot of just "near the top" would not change after a
+        // page that still leaves the list short, and no further page would be asked for.
         snapshotFlow {
             val info = listState.layoutInfo
-            (info.visibleItemsInfo.lastOrNull()?.index ?: 0) >= info.totalItemsCount - LOAD_AHEAD
-        }.collect { nearTop -> if (nearTop) onLoadOlder() }
+            val nearTop = (info.visibleItemsInfo.lastOrNull()?.index ?: 0) >= info.totalItemsCount - LOAD_AHEAD
+            if (nearTop) info.totalItemsCount else null
+        }.filterNotNull().collect { onLoadOlder() }
     }
 
     // A message arriving while the user reads the newest ones should come into view, not land

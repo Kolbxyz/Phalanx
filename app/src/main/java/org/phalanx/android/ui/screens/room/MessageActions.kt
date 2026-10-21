@@ -13,6 +13,7 @@ internal class MessageActions(
     /** A local URI the player can read, or null when the download failed. */
     val resolveAudio: suspend (media: MediaRef, filename: String, mimeType: String?) -> Uri?,
     val onToggleReaction: (TimelineEntry.Message, String) -> Unit,
+    val onShowReactors: (TimelineEntry.Message, String) -> Unit,
     val onReply: (TimelineEntry.Message) -> Unit,
     val onLongPress: (TimelineEntry.Message) -> Unit
 )

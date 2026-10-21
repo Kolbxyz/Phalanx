@@ -65,6 +65,7 @@ fun RoomScreen(
             onOpenFile = viewModel::openFile,
             resolveAudio = viewModel::audioUri,
             onToggleReaction = viewModel::toggleReaction,
+            onShowReactors = viewModel::showReactors,
             onReply = viewModel.composer::reply,
             onLongPress = { selected = it }
         )
@@ -120,6 +121,8 @@ fun RoomScreen(
     }
 
     MessageMenu(selected, onDismiss = { selected = null }, viewModel)
+    val reactors by viewModel.reactors.collectAsStateWithLifecycle()
+    reactors?.let { ReactorsSheet(it, onDismiss = viewModel::dismissReactors) }
     if (scheduling) {
         ScheduleSheet(
             exact = viewModel.canScheduleExactly(),

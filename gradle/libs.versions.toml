@@ -23,6 +23,9 @@ serialization = "1.11.0"
 coil = "3.5.0"
 # Scheduled messages: survives reboots, waits for network, retries with backoff. AOSP, no Play Services.
 work = "2.11.2"
+# UnifiedPush (no FCM): Apache-2.0, run by the UnifiedPush project, the connector Element X ships. Its
+# Tink dependency is a pure crypto library (WebPush decryption), not Play Services.
+unifiedpush = "3.3.5"
 
 junit = "4.13.2"
 
@@ -67,6 +70,7 @@ rustls-platform-verifier = { module = "org.rustls:rustls-platform-verifier", ver
 # (core/media), so encrypted media is decrypted by the SDK and no network stack is added.
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
+unifiedpush-connector = { module = "org.unifiedpush.android:connector", version.ref = "unifiedpush" }
 
 junit = { module = "junit:junit", version.ref = "junit" }
 

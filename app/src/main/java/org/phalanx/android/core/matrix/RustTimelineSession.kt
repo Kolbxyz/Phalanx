@@ -32,8 +32,10 @@ import org.matrix.rustcomponents.sdk.messageEventContentNew
 import org.matrix.rustcomponents.sdk.use
 import org.phalanx.android.core.media.AttachmentPreparer
 import org.phalanx.android.core.prefs.SettingsStore
+import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.OutgoingMedia
 import org.phalanx.android.data.model.TimelineEntry
+import org.phalanx.android.data.repository.NotForwardableException
 import org.phalanx.android.data.repository.TimelineSession
 import java.util.concurrent.ConcurrentHashMap
 
@@ -143,8 +145,13 @@ internal class RustTimelineSession private constructor(
         eventId?.let { EventOrTransactionId.EventId(it) }
             ?: transactionId?.let { EventOrTransactionId.TransactionId(it) }
 
-    private suspend fun io(block: suspend () -> Unit): Result<Unit> =
-        withContext(Dispatchers.IO) { runCatchingSdk(block) }
+    private suspend fun io(block: suspend () -> Unit): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            runCatchingSdk(block)
+        } catch (e: NotForwardableException) {
+            Result.failure(e)
+        }
+    }
 
     private suspend fun runCatchingSdk(block: suspend () -> Unit): Result<Unit> = try {
         block()
@@ -159,7 +166,17 @@ internal class RustTimelineSession private constructor(
         if (!mutableHasMore.value || !paginating.tryLock()) return Result.success(Unit)
         return try {
             withContext(Dispatchers.IO) {
-                if (timeline.paginateBackwards(PAGE_SIZE.toUShort())) mutableHasMore.value = false
+                // A page can be nothing but hidden events (a new room's creation and joins), which
+                // would leave the list unchanged and its spinner up; keep going until something shows.
+                val before = items.entries.value.size
+                var pages = 0
+                while (items.entries.value.size == before && pages < MAX_PAGES_PER_LOAD) {
+                    pages++
+                    if (timeline.paginateBackwards(PAGE_SIZE.toUShort())) {
+                        mutableHasMore.value = false
+                        break
+                    }
+                }
             }
             Result.success(Unit)
         } catch (e: ClientException) {
@@ -183,6 +200,24 @@ internal class RustTimelineSession private constructor(
 
     override fun setTyping(typing: Boolean) = typingState.notice(typing)
 
+    /** Sends [eventId]'s content again through [to]'s timeline, as Element X does. */
+    suspend fun forward(eventId: String, to: RustTimelineSession): Result<Unit> = io {
+        val content = timeline.forwardableContent(eventId) ?: throw NotForwardableException()
+        to.timeline.send(content).close()
+    }
+
+    override suspend fun members(userIds: List<String>): List<Member> = withContext(Dispatchers.IO) {
+        userIds.map { userId ->
+            try {
+                val member = room.member(userId)
+                Member(userId, member.displayName?.takeIf { it.isNotBlank() } ?: userId, mediaRefOf(member.avatarUrl))
+            } catch (_: ClientException) {
+                // Left the room or never loaded: the ID is still who they are.
+                Member(userId, userId, null)
+            }
+        }
+    }
+
     /** Called by the repository only, when the room leaves its cache. */
     fun close() {
         typingState.close()
@@ -201,10 +236,14 @@ internal class RustTimelineSession private constructor(
                 override fun onUpdate(diff: List<TimelineDiff>) = items.apply(diff)
             }
         )
+        // Rooms are synced with lazy-loaded members, so senders not yet seen have no profile and
+        // would show as their Matrix ID (a bridge's "@whatsapp_lid-…"); their items update once loaded.
+        scope.launch { runCatchingSdk { timeline.fetchMembers() } }
     }
 
     companion object {
         private const val PAGE_SIZE = 30
+        private const val MAX_PAGES_PER_LOAD = 5
         private const val EMOTE_PREFIX = "/me "
 
         /** Opens [room]'s live timeline; the session owns [room] from here and releases it in [close]. */

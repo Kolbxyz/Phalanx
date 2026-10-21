@@ -52,6 +52,7 @@ private val SeamRadius = 6.dp
 private val MediaRadius = 14.dp
 private val AvatarSize = 32.dp
 private val MaxBubbleWidth = 320.dp
+private val ReactionOverlap = 6.dp
 private const val PRESSED_SCALE = 0.96f
 private const val APPEAR_SCALE = 0.7f
 
@@ -75,6 +76,7 @@ internal fun MessageBubble(
     val time = remember(message.timestampMillis) { formatTime(message.timestampMillis) }
     MessageSwipe(
         time = time,
+        isOwn = own,
         canReply = message.canReply,
         onReply = { actions.onReply(message) },
         modifier = modifier.padding(top = if (startsRun) 10.dp else 0.dp)
@@ -108,7 +110,12 @@ internal fun MessageBubble(
                     ReactionRow(
                         reactions = message.reactions,
                         onToggle = { actions.onToggleReaction(message, it) },
-                        modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
+                        onShowReactors = { actions.onShowReactors(message, it) },
+                        // Tucked under the bubble's edge, so they read as part of it, not a row below.
+                        modifier = Modifier
+                            .overlapAbove(ReactionOverlap)
+                            .padding(horizontal = 8.dp)
+                            .padding(bottom = 2.dp)
                     )
                 }
             }

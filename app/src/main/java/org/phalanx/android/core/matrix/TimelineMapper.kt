@@ -91,4 +91,9 @@ private fun InReplyToDetails.toPreview(context: MappingContext): ReplyPreview =
     }
 
 private fun Reaction.toSummary(ownUserId: String) =
-    ReactionSummary(key = key, count = senders.size, byMe = senders.any { it.senderId == ownUserId })
+    ReactionSummary(
+        key = key,
+        count = senders.size,
+        byMe = senders.any { it.senderId == ownUserId },
+        senderIds = senders.sortedBy { it.timestamp }.map { it.senderId }
+    )

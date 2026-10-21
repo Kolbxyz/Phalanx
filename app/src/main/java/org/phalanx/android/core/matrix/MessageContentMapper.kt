@@ -29,7 +29,9 @@ internal fun MsgLikeKind.toBody(isReply: Boolean): MessageBody = when (this) {
     is MsgLikeKind.Other -> MessageBody.Unsupported(UnsupportedKind.Other)
 }
 
-private fun MessageContent.toBody(isReply: Boolean): MessageBody = when (val type = msgType) {
+private fun MessageContent.toBody(isReply: Boolean): MessageBody = msgType.toBody(isReply)
+
+internal fun MessageType.toBody(isReply: Boolean): MessageBody = when (val type = this) {
     is MessageType.Text -> text(type.content.body, type.content.formatted, MessageBody.TextStyle.Normal, isReply)
     is MessageType.Notice -> text(type.content.body, type.content.formatted, MessageBody.TextStyle.Notice, isReply)
     is MessageType.Emote -> text(type.content.body, type.content.formatted, MessageBody.TextStyle.Emote, isReply)
@@ -76,7 +78,7 @@ private fun MessageContent.toBody(isReply: Boolean): MessageBody = when (val typ
     }
     is MessageType.Location -> MessageBody.Location(type.content.geoUri, type.content.description)
     is MessageType.Gallery -> MessageBody.Unsupported(UnsupportedKind.Gallery)
-    is MessageType.Other -> MessageBody.Text(body, html = null, style = MessageBody.TextStyle.Normal)
+    is MessageType.Other -> MessageBody.Text(type.body, html = null, style = MessageBody.TextStyle.Normal)
 }
 
 private fun text(

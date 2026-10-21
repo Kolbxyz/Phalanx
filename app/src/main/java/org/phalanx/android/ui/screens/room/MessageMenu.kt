@@ -9,6 +9,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
@@ -20,6 +21,8 @@ internal fun MessageMenu(message: TimelineEntry.Message?, onDismiss: () -> Unit,
     val scope = rememberCoroutineScope()
     var deleting by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     var blocking by remember { mutableStateOf<TimelineEntry.Message?>(null) }
+    var forwarding by remember { mutableStateOf<TimelineEntry.Message?>(null) }
+    val muted by viewModel.muted.collectAsStateWithLifecycle()
     val text = (message?.body as? MessageBody.Text)?.text
 
     // Every choice closes the sheet once it has acted.
@@ -37,8 +40,22 @@ internal fun MessageMenu(message: TimelineEntry.Message?, onDismiss: () -> Unit,
             onCopy = then {
                 text?.let { scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, it))) } }
             },
+            onForward = then { forwarding = message },
             onDelete = then { deleting = message },
+            senderMuted = message.senderId in muted,
+            onToggleMute = then { viewModel.setMuted(message.senderId, message.senderId !in muted) },
             onBlock = then { blocking = message }
+        )
+    }
+    forwarding?.let { target ->
+        val rooms by viewModel.rooms.collectAsStateWithLifecycle()
+        ForwardSheet(
+            rooms = rooms?.filter { it.id != viewModel.roomId },
+            onPick = { roomId ->
+                viewModel.forward(target, roomId)
+                forwarding = null
+            },
+            onDismiss = { forwarding = null }
         )
     }
     deleting?.let { target ->

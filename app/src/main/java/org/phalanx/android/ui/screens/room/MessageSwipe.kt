@@ -50,12 +50,14 @@ internal val LocalTimestampReveal = staticCompositionLocalOf { TimestampReveal()
 
 /**
  * A message row's horizontal gestures, in one place so they never fight: dragging right replies
- * (past [ReplyThreshold], with a haptic tick), dragging left slides every row over to show its
- * [time], as in Google Messages. Both spring back on release with the theme's spatial motion.
+ * (past [ReplyThreshold], with a haptic tick) and springs back; dragging left shows every row's
+ * [time], as in Google Messages, and stays open once dragged past half way, until dragged back.
+ * Only this account's rows slide over; the others' are on the far side and leave the times room.
  */
 @Composable
 internal fun MessageSwipe(
     time: String,
+    isOwn: Boolean,
     canReply: Boolean,
     onReply: () -> Unit,
     modifier: Modifier = Modifier,
@@ -74,15 +76,16 @@ internal fun MessageSwipe(
     val spring = MaterialTheme.motionScheme.fastSpatialSpec<Float>()
     val reducedMotion = LocalReducedMotion.current
 
-    fun springBack() {
+    fun settle() {
+        val revealTarget = if (reveal.offset < -revealWidth / 2) -revealWidth else 0f
         settle[0] = scope.launch {
             if (reducedMotion) {
                 reply = 0f
-                reveal.offset = 0f
+                reveal.offset = revealTarget
                 return@launch
             }
             launch { animate(reply, 0f, animationSpec = spring) { value, _ -> reply = value } }
-            animate(reveal.offset, 0f, animationSpec = spring) { value, _ -> reveal.offset = value }
+            animate(reveal.offset, revealTarget, animationSpec = spring) { value, _ -> reveal.offset = value }
         }
     }
 
@@ -104,7 +107,7 @@ internal fun MessageSwipe(
             onDragStarted = { settle[0]?.cancel() },
             onDragStopped = {
                 if (reply >= threshold) onReply()
-                springBack()
+                settle()
             }
         )
     ) {
@@ -120,7 +123,7 @@ internal fun MessageSwipe(
                 .alpha(replyProgress)
                 .scale(MIN_ICON_SCALE + (1f - MIN_ICON_SCALE) * replyProgress)
         )
-        Box(Modifier.offset { IntOffset((reply + reveal.offset).roundToInt(), 0) }) { content() }
+        Box(Modifier.offset { IntOffset((reply + if (isOwn) reveal.offset else 0f).roundToInt(), 0) }) { content() }
         Text(
             text = time,
             style = MaterialTheme.typography.labelMedium,

@@ -260,4 +260,18 @@
     <string name="security_emoji_no_match">Ils ne correspondent pas</string>
     <string name="security_verify_done">Cette session est vérifiée.</string>
     <string name="security_verify_failed">La vérification a été annulée ou a échoué. Vous pouvez réessayer.</string>
+    <string name="timeline_reactors_show">Voir qui a réagi</string>
+    <plurals name="timeline_reactors_title">
+        <item quantity="one">%1$s · %2$d personne</item>
+        <item quantity="many">%1$s · %2$d personnes</item>
+        <item quantity="other">%1$s · %2$d personnes</item>
+    </plurals>
+    <string name="action_forward">Transférer</string>
+    <string name="action_mute">Ne plus être notifié par cette personne</string>
+    <string name="action_unmute">Réactiver ses notifications</string>
+    <string name="timeline_forwarded">Message transféré</string>
+    <string name="timeline_muted">Notifications coupées, sauf quand cette personne vous mentionne.</string>
+    <string name="timeline_unmuted">Ses messages vous notifient à nouveau</string>
+    <string name="forward_title">Transférer à…</string>
+    <string name="forward_search">Rechercher une conversation</string>
 </resources>

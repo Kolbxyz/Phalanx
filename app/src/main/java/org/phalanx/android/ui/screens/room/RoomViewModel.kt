@@ -2,6 +2,7 @@ package org.phalanx.android.ui.screens.room
 
 import android.net.Uri
 import androidx.annotation.StringRes
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.core.media.AttachmentPreparer
@@ -23,11 +25,13 @@ import org.phalanx.android.core.media.VoiceRecorder
 import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.model.AppSettings
 import org.phalanx.android.data.model.MediaRef
+import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.model.ScheduledMessage
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.BlockedUsersRepository
 import org.phalanx.android.data.repository.MediaRepository
+import org.phalanx.android.data.repository.MutedUsersRepository
 import org.phalanx.android.data.repository.RoomListRepository
 import org.phalanx.android.data.repository.ScheduleRepository
 import org.phalanx.android.data.repository.TimelineRepository
@@ -39,11 +43,12 @@ import javax.inject.Inject
 @HiltViewModel
 class RoomViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    timelines: TimelineRepository,
+    private val timelines: TimelineRepository,
     private val media: MediaRepository,
     private val preparer: AttachmentPreparer,
     recorder: VoiceRecorder,
     roomList: RoomListRepository,
+    private val mutedUsers: MutedUsersRepository,
     private val blockedUsers: BlockedUsersRepository,
     settingsStore: SettingsStore,
     private val schedules: ScheduleRepository
@@ -54,6 +59,11 @@ class RoomViewModel @Inject constructor(
     val header: StateFlow<RoomSummary?> = roomList.rooms
         .map { rooms -> rooms?.firstOrNull { it.id == roomId } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, roomList.rooms.value?.firstOrNull { it.id == roomId })
+
+    /** Every joined room, for picking where to forward a message. */
+    val rooms: StateFlow<List<RoomSummary>?> = roomList.rooms
+
+    val muted: StateFlow<Set<String>> = mutedUsers.muted
 
     val settings: StateFlow<AppSettings?> = settingsStore.settings
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -69,6 +79,10 @@ class RoomViewModel @Inject constructor(
     val openRequest: StateFlow<OpenRequest?> = mutableOpen.asStateFlow()
 
     private var session: TimelineSession? = null
+
+    /** Who reacted with one key to one message, while that list is open; members null while loading. */
+    private val mutableReactors = MutableStateFlow<Reactors?>(null)
+    val reactors: StateFlow<Reactors?> = mutableReactors.asStateFlow()
 
     /** This room's messages waiting on the phone to be sent. */
     val scheduled: StateFlow<List<ScheduledMessage>> = schedules.scheduled(roomId)
@@ -97,6 +111,41 @@ class RoomViewModel @Inject constructor(
     fun toggleReaction(message: TimelineEntry.Message, key: String) = act { it.toggleReaction(message, key) }
 
     fun redact(message: TimelineEntry.Message) = act { it.redact(message) }
+
+    fun forward(message: TimelineEntry.Message, toRoomId: String) {
+        val eventId = message.eventId ?: return
+        viewModelScope.launch {
+            timelines.forward(roomId, eventId, toRoomId).fold(
+                onSuccess = { notify(R.string.timeline_forwarded) },
+                onFailure = { notify(R.string.timeline_action_failed) }
+            )
+        }
+    }
+
+    fun setMuted(userId: String, muted: Boolean) {
+        viewModelScope.launch {
+            val result = if (muted) mutedUsers.mute(userId) else mutedUsers.unmute(userId)
+            result.fold(
+                onSuccess = { notify(if (muted) R.string.timeline_muted else R.string.timeline_unmuted) },
+                onFailure = { notify(R.string.timeline_action_failed) }
+            )
+        }
+    }
+
+    fun showReactors(message: TimelineEntry.Message, key: String) {
+        val current = session ?: return
+        val reaction = message.reactions.firstOrNull { it.key == key } ?: return
+        mutableReactors.value = Reactors(key, members = null)
+        viewModelScope.launch {
+            val members = current.members(reaction.senderIds)
+            // Unless the user closed it, or opened another, while the names loaded.
+            mutableReactors.update { if (it?.key == key && it.members == null) Reactors(key, members) else it }
+        }
+    }
+
+    fun dismissReactors() {
+        mutableReactors.value = null
+    }
 
     fun scheduleDraft(atMillis: Long) = composer.schedule(roomId, atMillis)
 
@@ -168,3 +217,6 @@ class RoomViewModel @Inject constructor(
         }
     }
 }
+
+@Immutable
+data class Reactors(val key: String, val members: List<Member>?)

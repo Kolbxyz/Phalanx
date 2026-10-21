@@ -38,6 +38,7 @@ sealed interface TimelineEntry {
 data class ReplyPreview(val senderName: String?, val body: MessageBody?, val isUnavailable: Boolean = false)
 
 @Immutable
-data class ReactionSummary(val key: String, val count: Int, val byMe: Boolean)
+/** [senderIds] in the order they reacted. */
+data class ReactionSummary(val key: String, val count: Int, val byMe: Boolean, val senderIds: List<String>)
 
 enum class SendState { Sent, Sending, Failed }
