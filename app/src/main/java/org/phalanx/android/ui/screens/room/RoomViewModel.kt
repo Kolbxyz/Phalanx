@@ -32,10 +32,13 @@ import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.BlockedUsersRepository
 import org.phalanx.android.data.repository.MediaRepository
 import org.phalanx.android.data.repository.MutedUsersRepository
+import org.phalanx.android.data.repository.PushRepository
 import org.phalanx.android.data.repository.RoomListRepository
 import org.phalanx.android.data.repository.ScheduleRepository
 import org.phalanx.android.data.repository.TimelineRepository
 import org.phalanx.android.data.repository.TimelineSession
+import org.phalanx.android.ui.components.Notice
+import org.phalanx.android.ui.components.NoticeKind
 import org.phalanx.android.ui.components.OpenRequest
 import org.phalanx.android.ui.navigation.RoomRoute
 import javax.inject.Inject
@@ -49,6 +52,7 @@ class RoomViewModel @Inject constructor(
     recorder: VoiceRecorder,
     roomList: RoomListRepository,
     private val mutedUsers: MutedUsersRepository,
+    push: PushRepository,
     private val blockedUsers: BlockedUsersRepository,
     settingsStore: SettingsStore,
     private val schedules: ScheduleRepository
@@ -72,8 +76,8 @@ class RoomViewModel @Inject constructor(
     val state: StateFlow<RoomUiState> = mutableState.asStateFlow()
 
     /** A one-off message for the snackbar; cleared by [dismissNotice]. */
-    private val mutableNotice = MutableStateFlow<Int?>(null)
-    val notice: StateFlow<Int?> = mutableNotice.asStateFlow()
+    private val mutableNotice = MutableStateFlow<Notice?>(null)
+    val notice: StateFlow<Notice?> = mutableNotice.asStateFlow()
 
     private val mutableOpen = MutableStateFlow<OpenRequest?>(null)
     val openRequest: StateFlow<OpenRequest?> = mutableOpen.asStateFlow()
@@ -88,11 +92,13 @@ class RoomViewModel @Inject constructor(
     val scheduled: StateFlow<List<ScheduledMessage>> = schedules.scheduled(roomId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    internal val composer = ComposerController(viewModelScope, preparer, recorder, schedules, ::notify) {
+    internal val composer = ComposerController(viewModelScope, preparer, recorder, schedules, { notify(it) }) {
         settings.value?.sendTypingNotices == true
     }
 
     init {
+        // Reading the room makes its notifications stale.
+        push.dismiss(roomId)
         viewModelScope.launch {
             timelines.open(roomId).fold(
                 onSuccess = { opened ->
@@ -116,7 +122,7 @@ class RoomViewModel @Inject constructor(
         val eventId = message.eventId ?: return
         viewModelScope.launch {
             timelines.forward(roomId, eventId, toRoomId).fold(
-                onSuccess = { notify(R.string.timeline_forwarded) },
+                onSuccess = { notify(R.string.timeline_forwarded, NoticeKind.Done) },
                 onFailure = { notify(R.string.timeline_action_failed) }
             )
         }
@@ -126,7 +132,7 @@ class RoomViewModel @Inject constructor(
         viewModelScope.launch {
             val result = if (muted) mutedUsers.mute(userId) else mutedUsers.unmute(userId)
             result.fold(
-                onSuccess = { notify(if (muted) R.string.timeline_muted else R.string.timeline_unmuted) },
+                onSuccess = { notify(if (muted) R.string.timeline_muted else R.string.timeline_unmuted, NoticeKind.Done) },
                 onFailure = { notify(R.string.timeline_action_failed) }
             )
         }
@@ -179,8 +185,12 @@ class RoomViewModel @Inject constructor(
     suspend fun audioUri(ref: MediaRef, filename: String, mimeType: String?): Uri? =
         media.openable(ref, filename, mimeType).onFailure { notify(R.string.timeline_open_failed) }.getOrNull()
 
-    fun notify(@StringRes message: Int) {
-        mutableNotice.value = message
+    fun notify(@StringRes message: Int, kind: NoticeKind = NoticeKind.Error) {
+        mutableNotice.value = Notice(message, kind)
+    }
+
+    private fun notify(notice: Notice) {
+        mutableNotice.value = notice
     }
 
     fun dismissNotice() {

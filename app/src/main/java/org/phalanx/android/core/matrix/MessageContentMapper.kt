@@ -20,7 +20,9 @@ internal fun MsgLikeKind.toBody(isReply: Boolean): MessageBody = when (this) {
         width = info.width?.toInt(),
         height = info.height?.toInt(),
         caption = null,
-        isSticker = true
+        isSticker = true,
+        filename = body,
+        mimeType = info.mimetype
     )
     is MsgLikeKind.Redacted -> MessageBody.Redacted
     is MsgLikeKind.UnableToDecrypt -> MessageBody.Undecryptable
@@ -42,7 +44,9 @@ internal fun MessageType.toBody(isReply: Boolean): MessageBody = when (val type 
             width = info?.width?.toInt(),
             height = info?.height?.toInt(),
             caption = caption,
-            isSticker = false
+            isSticker = false,
+            filename = filename,
+            mimeType = info?.mimetype
         )
     }
     is MessageType.Video -> with(type.content) {

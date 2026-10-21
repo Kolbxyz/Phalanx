@@ -8,4 +8,7 @@ interface RoomActionsRepository {
     suspend fun setUnread(roomId: String, unread: Boolean): Result<Unit>
 
     suspend fun leave(roomId: String): Result<Unit>
+
+    /** Archives or restores the room, through the low-priority tag every Matrix client shares. */
+    suspend fun setArchived(roomId: String, archived: Boolean): Result<Unit>
 }

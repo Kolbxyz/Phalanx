@@ -54,6 +54,11 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
 
     suspend fun setPublicReadReceipts(enabled: Boolean) = store.edit { it[PUBLIC_READ_RECEIPTS] = enabled }
 
+    /** Null goes back to finding the gateway automatically. */
+    suspend fun setPushGateway(url: String?) = store.edit {
+        if (url == null) it.remove(PUSH_GATEWAY) else it[PUSH_GATEWAY] = url
+    }
+
     private fun Preferences.toSettings(): AppSettings {
         val defaults = AppSettings()
         return AppSettings(
@@ -68,7 +73,8 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
             fullQualityImages = this[FULL_QUALITY_IMAGES] ?: defaults.fullQualityImages,
             autoLoadMedia = this[AUTO_LOAD_MEDIA] ?: defaults.autoLoadMedia,
             sendTypingNotices = this[SEND_TYPING] ?: defaults.sendTypingNotices,
-            publicReadReceipts = this[PUBLIC_READ_RECEIPTS] ?: defaults.publicReadReceipts
+            publicReadReceipts = this[PUBLIC_READ_RECEIPTS] ?: defaults.publicReadReceipts,
+            pushGateway = this[PUSH_GATEWAY]
         )
     }
 
@@ -85,5 +91,6 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
         val FULL_QUALITY_IMAGES = booleanPreferencesKey("full_quality_images")
         val AUTO_LOAD_MEDIA = booleanPreferencesKey("auto_load_media")
         val SEND_TYPING = booleanPreferencesKey("send_typing_notices")
+        val PUSH_GATEWAY = stringPreferencesKey("push_gateway")
     }
 }

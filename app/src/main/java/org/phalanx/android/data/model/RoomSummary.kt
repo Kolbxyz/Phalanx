@@ -25,7 +25,9 @@ data class RoomSummary(
     val dmUserId: String? = null,
     val topic: String? = null,
     val memberCount: Long = 0,
-    val isEncrypted: Boolean = false
+    val isEncrypted: Boolean = false,
+    /** Archived by hand (Matrix's low-priority tag), so other clients file it away too. */
+    val isLowPriority: Boolean = false
 ) {
     val hasUnread: Boolean
         get() = unreadCount > 0 || isMarkedUnread

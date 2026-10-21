@@ -14,12 +14,14 @@ import org.phalanx.android.core.matrix.RustRoomGalleryRepository
 import org.phalanx.android.core.matrix.RustRoomListRepository
 import org.phalanx.android.core.matrix.RustSecurityRepository
 import org.phalanx.android.core.matrix.RustTimelineRepository
+import org.phalanx.android.core.push.PushRegistrar
 import org.phalanx.android.core.schedule.MessageScheduler
 import org.phalanx.android.data.repository.AccountRepository
 import org.phalanx.android.data.repository.AuthRepository
 import org.phalanx.android.data.repository.BlockedUsersRepository
 import org.phalanx.android.data.repository.MutedUsersRepository
 import org.phalanx.android.data.repository.MediaRepository
+import org.phalanx.android.data.repository.PushRepository
 import org.phalanx.android.data.repository.RoomActionsRepository
 import org.phalanx.android.data.repository.RoomGalleryRepository
 import org.phalanx.android.data.repository.RoomListRepository
@@ -59,6 +61,9 @@ internal abstract class RepositoryModule {
 
     @Binds
     abstract fun accountRepository(impl: RustAccountRepository): AccountRepository
+
+    @Binds
+    abstract fun pushRepository(impl: PushRegistrar): PushRepository
 
     @Binds
     abstract fun mutedUsersRepository(impl: PushRulesMutedUsersRepository): MutedUsersRepository

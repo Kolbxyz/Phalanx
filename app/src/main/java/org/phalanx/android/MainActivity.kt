@@ -15,10 +15,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.phalanx.android.core.matrix.OidcCallbacks
 import org.phalanx.android.core.matrix.SyncController
 import org.phalanx.android.core.prefs.SettingsStore
+import org.phalanx.android.core.push.Notifier
 import org.phalanx.android.data.model.ThemeMode
 import org.phalanx.android.ui.PhalanxApp
 import org.phalanx.android.ui.theme.PhalanxTheme
@@ -35,11 +37,14 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var settingsStore: SettingsStore
 
+    /** The room a tapped notification asked for, until the navigation opens it. */
+    private val pendingRoom = MutableStateFlow<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         // Only a fresh launch: after a configuration change the intent is the one already handled.
-        if (savedInstanceState == null) handleRedirect(intent)
+        if (savedInstanceState == null) handleIntent(intent)
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) { syncController.syncWhileActive() }
         }
@@ -65,17 +70,19 @@ class MainActivity : ComponentActivity() {
                 darkTheme = darkTheme,
                 reduceMotion = current.reduceMotion
             ) {
-                PhalanxApp()
+                val room by pendingRoom.collectAsStateWithLifecycle()
+                PhalanxApp(openRoom = room, onRoomOpened = { pendingRoom.value = null })
             }
         }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        handleRedirect(intent)
+        handleIntent(intent)
     }
 
-    private fun handleRedirect(intent: Intent) {
+    private fun handleIntent(intent: Intent) {
+        intent.getStringExtra(Notifier.EXTRA_ROOM_ID)?.let { pendingRoom.value = it }
         val uri = intent.data ?: return
         if (intent.action == Intent.ACTION_VIEW && uri.scheme == BuildConfig.OAUTH_REDIRECT_SCHEME) {
             oidcCallbacks.deliver(uri.toString())

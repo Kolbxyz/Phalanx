@@ -33,6 +33,9 @@ internal class RustRoomActionsRepository @Inject constructor(
 
     override suspend fun leave(roomId: String) = withRoom(roomId) { it.leave() }
 
+    override suspend fun setArchived(roomId: String, archived: Boolean) =
+        withRoom(roomId) { it.setIsLowPriority(archived, tagOrder = null) }
+
     private suspend fun withRoom(roomId: String, block: suspend (Room) -> Unit): Result<Unit> =
         withContext(Dispatchers.IO) {
             val room = active.room(roomId) ?: return@withContext Result.failure(TimelineUnavailableException())

@@ -2,20 +2,23 @@ package org.phalanx.android.ui.screens.room
 
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalResources
 import org.phalanx.android.R
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.UnsupportedKind
 
 /** One line standing in for a message: its text, its caption, or what kind of message it is. */
 @Composable
-internal fun summaryOf(body: MessageBody): String = when (body) {
+internal fun summaryOf(body: MessageBody): String = summaryOf(body, LocalResources.current::getString)
+
+/** [summaryOf] outside composition, such as in a notification; [label] resolves a string resource. */
+internal fun summaryOf(body: MessageBody, label: (Int) -> String): String = when (body) {
     is MessageBody.Text -> body.text
-    is MessageBody.Image -> body.caption ?: stringResource(kindLabel(body))
-    is MessageBody.Video -> body.caption ?: stringResource(kindLabel(body))
+    is MessageBody.Image -> body.caption ?: label(kindLabel(body))
+    is MessageBody.Video -> body.caption ?: label(kindLabel(body))
     is MessageBody.File -> body.caption ?: body.filename
-    is MessageBody.Location -> body.description ?: stringResource(kindLabel(body))
-    else -> stringResource(kindLabel(body))
+    is MessageBody.Location -> body.description ?: label(kindLabel(body))
+    else -> label(kindLabel(body))
 }
 
 @StringRes

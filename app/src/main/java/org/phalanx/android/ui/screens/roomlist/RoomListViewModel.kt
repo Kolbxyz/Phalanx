@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -29,9 +30,15 @@ class RoomListViewModel @Inject constructor(
 ) : ViewModel() {
     // Starts from the repository's current list, so coming back to this screen never flashes a
     // loading state.
-    val state: StateFlow<RoomListUiState> = roomList.rooms
-        .map(::toUiState)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), toUiState(roomList.rooms.value))
+    private val filter = MutableStateFlow(RoomFilter.All)
+
+    val state: StateFlow<RoomListUiState> = combine(roomList.rooms, filter, ::toUiState)
+        .flowOn(Dispatchers.Default)
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
+            toUiState(roomList.rooms.value, filter.value)
+        )
 
     /** For the account button in the top bar. */
     val profile: StateFlow<AccountProfile?> = account.profile
@@ -51,6 +58,12 @@ class RoomListViewModel @Inject constructor(
 
     fun leave(room: RoomSummary) = act { actions.leave(room.id) }
 
+    fun setArchived(room: RoomSummary, archived: Boolean) = act { actions.setArchived(room.id, archived) }
+
+    fun setFilter(value: RoomFilter) {
+        filter.value = value
+    }
+
     fun dismissFailure() {
         mutableFailed.value = false
     }
@@ -59,8 +72,15 @@ class RoomListViewModel @Inject constructor(
         viewModelScope.launch { block().onFailure { mutableFailed.value = true } }
     }
 
-    private fun toUiState(rooms: List<RoomSummary>?): RoomListUiState =
-        rooms?.let { RoomListUiState.Loaded(it) } ?: RoomListUiState.Loading
+    private fun toUiState(rooms: List<RoomSummary>?, filter: RoomFilter): RoomListUiState {
+        rooms ?: return RoomListUiState.Loading
+        val now = System.currentTimeMillis()
+        return RoomListUiState.Loaded(
+            rooms = rooms.filter { filter.matches(it, now) },
+            filter = filter,
+            archivedCount = rooms.count { it.isArchived(now) }
+        )
+    }
 
     private companion object {
         const val STOP_TIMEOUT_MILLIS = 5_000L

@@ -20,6 +20,7 @@ Android Matrix client built on the Matrix Rust SDK. Strict Material 3 Expressive
 | **No dead code & no fake fallbacks** | Surface explicit errors; no blanket `catch (e: Exception)`. |
 | **Research before adding a dependency** | Follow `docs/dev/process/research-workflow.md`. Sovereign French, then European, solutions first; ask approval before adding either. |
 | **Never push to `main`** | Feature branch and PR. |
+| **No AI attribution** | No `Co-Authored-By` trailer for any AI and no "Generated with Claude Code" (or similar) line in commits or PR descriptions. |
 
 ## 2. Documentation Directory Map
 

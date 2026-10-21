@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -29,6 +27,7 @@ import org.phalanx.android.R
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.components.OpenFileEffect
 import org.phalanx.android.ui.components.TimelinePlaceholder
+import org.phalanx.android.ui.components.TopNoticeHost
 
 @Composable
 fun RoomScreen(
@@ -43,20 +42,12 @@ fun RoomScreen(
     val openRequest by viewModel.openRequest.collectAsStateWithLifecycle()
     val header by viewModel.header.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
-    val snackbar = remember { SnackbarHostState() }
     var selected by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     var attaching by remember { mutableStateOf(false) }
     var scheduling by remember { mutableStateOf(false) }
     val scheduled by viewModel.scheduled.collectAsStateWithLifecycle()
     val launchers = rememberAttachLaunchers(viewModel)
 
-    val noticeText = notice?.let { stringResource(it) }
-    LaunchedEffect(noticeText) {
-        if (noticeText != null) {
-            snackbar.showSnackbar(noticeText)
-            viewModel.dismissNotice()
-        }
-    }
     OpenFileEffect(openRequest, viewModel::onOpened) { viewModel.notify(R.string.timeline_open_failed) }
 
     val actions = remember(viewModel) {
@@ -95,8 +86,7 @@ fun RoomScreen(
             if (ready != null) {
                 Composer(composerState, composerActions, enterToSend = settings?.enterToSend == true, scheduled)
             }
-        },
-        snackbarHost = { SnackbarHost(snackbar) }
+        }
     ) { padding ->
         val fade = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
         AnimatedContent(
@@ -119,6 +109,7 @@ fun RoomScreen(
             }
         }
     }
+    TopNoticeHost(notice, onDismiss = viewModel::dismissNotice)
 
     MessageMenu(selected, onDismiss = { selected = null }, viewModel)
     val reactors by viewModel.reactors.collectAsStateWithLifecycle()

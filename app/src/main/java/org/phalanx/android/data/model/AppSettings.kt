@@ -27,5 +27,7 @@ data class AppSettings(
     /** Off: others never see the typing dots for this account. Their own still show here. */
     val sendTypingNotices: Boolean = false,
     /** Off: read receipts stay private, so others never see when this account read their messages. */
-    val publicReadReceipts: Boolean = false
+    val publicReadReceipts: Boolean = false,
+    /** The Matrix push gateway the user chose. Null: the distributor's own, else the public one. */
+    val pushGateway: String? = null
 )

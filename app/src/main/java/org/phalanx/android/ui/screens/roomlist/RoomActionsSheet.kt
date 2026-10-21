@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
+import androidx.compose.material.icons.rounded.Archive
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.MarkChatRead
 import androidx.compose.material.icons.rounded.MarkChatUnread
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.StarOutline
+import androidx.compose.material.icons.rounded.Unarchive
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -41,6 +43,7 @@ internal fun RoomActionsSheet(
     onDismiss: () -> Unit,
     onToggleRead: () -> Unit,
     onToggleFavourite: () -> Unit,
+    onToggleArchived: () -> Unit,
     onDetails: () -> Unit,
     onLeave: () -> Unit
 ) {
@@ -63,6 +66,11 @@ internal fun RoomActionsSheet(
             Action(Icons.Rounded.StarOutline, R.string.room_action_unfavourite, onToggleFavourite)
         } else {
             Action(Icons.Rounded.Star, R.string.room_action_favourite, onToggleFavourite)
+        }
+        if (room.isLowPriority) {
+            Action(Icons.Rounded.Unarchive, R.string.room_action_unarchive, onToggleArchived)
+        } else {
+            Action(Icons.Rounded.Archive, R.string.room_action_archive, onToggleArchived)
         }
         Action(Icons.Rounded.Info, R.string.room_action_details, onDetails)
         Action(Icons.AutoMirrored.Rounded.Logout, R.string.room_action_leave, onLeave, destructive = true)

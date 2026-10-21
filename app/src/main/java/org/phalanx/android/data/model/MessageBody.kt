@@ -13,7 +13,9 @@ sealed interface MessageBody {
         val width: Int?,
         val height: Int?,
         val caption: String?,
-        val isSticker: Boolean
+        val isSticker: Boolean,
+        val filename: String,
+        val mimeType: String?
     ) : MessageBody
 
     data class Video(

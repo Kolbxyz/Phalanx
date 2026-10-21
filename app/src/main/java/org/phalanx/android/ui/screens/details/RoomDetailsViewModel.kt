@@ -57,6 +57,10 @@ class RoomDetailsViewModel @Inject constructor(
         .flatMapLatest { it?.media ?: flowOf(null) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    val hasMoreMedia: StateFlow<Boolean> = gallery
+        .flatMapLatest { it?.hasMoreMedia ?: flowOf(true) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
     private val mutableNotice = MutableStateFlow<Int?>(null)
     val notice: StateFlow<Int?> = mutableNotice.asStateFlow()
 

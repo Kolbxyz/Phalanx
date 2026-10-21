@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
+import org.phalanx.android.ui.components.Notice
+import org.phalanx.android.ui.components.NoticeKind
 import org.phalanx.android.core.media.AttachmentPreparer
 import org.phalanx.android.core.media.VoiceRecorder
 import org.phalanx.android.data.model.TimelineEntry
@@ -30,7 +32,7 @@ internal class ComposerController(
     private val preparer: AttachmentPreparer,
     private val recorder: VoiceRecorder,
     private val schedules: ScheduleRepository,
-    private val notify: (Int) -> Unit,
+    private val notify: (Notice) -> Unit,
     /** Whether the user allows sending typing notices, read at each keystroke. */
     private val shareTyping: () -> Boolean
 ) {
@@ -98,7 +100,7 @@ internal class ComposerController(
                     },
                     onFailure = {
                         update { state -> state.copy(attachments = state.attachments.filterNot { it.id == id }) }
-                        notify(R.string.composer_attach_failed)
+                        notify(Notice(R.string.composer_attach_failed, NoticeKind.Error))
                     }
                 )
             }
@@ -121,7 +123,7 @@ internal class ComposerController(
             is ComposerMode.Edit -> scope.launch {
                 current.edit(mode.message, text).fold(
                     onSuccess = { update { if (it.mode == mode) ComposerState() else it } },
-                    onFailure = { notify(R.string.composer_send_failed) }
+                    onFailure = { notify(Notice(R.string.composer_send_failed, NoticeKind.Error)) }
                 )
             }
             else -> sendNew(current, snapshot, text, (mode as? ComposerMode.Reply)?.message)
@@ -142,7 +144,7 @@ internal class ComposerController(
                     onSuccess = {
                         update { if (it.draft.trim() == text) it.copy(draft = "", mode = ComposerMode.New) else it }
                     },
-                    onFailure = { notify(R.string.composer_send_failed) }
+                    onFailure = { notify(Notice(R.string.composer_send_failed, NoticeKind.Error)) }
                 )
             }
             return
@@ -153,12 +155,12 @@ internal class ComposerController(
         val caption = text.takeIf { it.isNotEmpty() && media.size == 1 }
         scope.launch {
             if (caption == null && text.isNotEmpty()) {
-                current.send(text, replyTo).onFailure { notify(R.string.composer_send_failed) }
+                current.send(text, replyTo).onFailure { notify(Notice(R.string.composer_send_failed, NoticeKind.Error)) }
             }
             media.forEachIndexed { index, item ->
                 launch {
                     current.sendMedia(item, caption, replyTo.takeIf { index == 0 && caption != null })
-                        .onFailure { notify(R.string.composer_send_failed) }
+                        .onFailure { notify(Notice(R.string.composer_send_failed, NoticeKind.Error)) }
                 }
             }
         }
@@ -174,14 +176,14 @@ internal class ComposerController(
         update { it.copy(draft = "", mode = ComposerMode.New) }
         scope.launch {
             schedules.schedule(roomId, text, replyTo, atMillis)
-            notify(R.string.schedule_done)
+            notify(Notice(R.string.schedule_done, NoticeKind.Scheduled, atMillis))
         }
     }
 
     fun startRecording() {
         recorder.start(scope).fold(
             onSuccess = { update { it.copy(recording = emptyList()) } },
-            onFailure = { notify(R.string.composer_record_failed) }
+            onFailure = { notify(Notice(R.string.composer_record_failed, NoticeKind.Error)) }
         )
     }
 
@@ -195,12 +197,12 @@ internal class ComposerController(
         val replyTo = (mutableState.value.mode as? ComposerMode.Reply)?.message
         update { it.copy(recording = null) }
         if (voice == null) {
-            notify(R.string.composer_record_too_short)
+            notify(Notice(R.string.composer_record_too_short, NoticeKind.Error))
             return
         }
         val current = session ?: return preparer.discard(voice)
         if (replyTo != null) update { it.copy(mode = ComposerMode.New) }
-        scope.launch { current.sendMedia(voice, null, replyTo).onFailure { notify(R.string.composer_send_failed) } }
+        scope.launch { current.sendMedia(voice, null, replyTo).onFailure { notify(Notice(R.string.composer_send_failed, NoticeKind.Error)) } }
     }
 
     /** Keeps the draft and drops everything that was only in memory. */

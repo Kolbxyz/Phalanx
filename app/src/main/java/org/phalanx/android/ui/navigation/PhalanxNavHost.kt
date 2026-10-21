@@ -9,6 +9,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -24,10 +25,21 @@ import org.phalanx.android.ui.screens.settings.SettingsCategory
 import org.phalanx.android.ui.screens.settings.SettingsCategoryScreen
 import org.phalanx.android.ui.screens.settings.SettingsScreen
 
-/** Shared-axis transitions on the theme's motion scheme, so reduced motion shortens them too. */
+/**
+ * Shared-axis transitions on the theme's motion scheme, so reduced motion shortens them too.
+ * [openRoom] is a room a tapped notification asked for; it opens over the room list.
+ */
 @Composable
-fun PhalanxNavHost() {
+fun PhalanxNavHost(openRoom: String?, onRoomOpened: () -> Unit) {
     val navController = rememberNavController()
+    LaunchedEffect(openRoom) {
+        if (openRoom == null) return@LaunchedEffect
+        navController.navigate(RoomRoute(openRoom)) {
+            popUpTo(RoomListRoute)
+            launchSingleTop = true
+        }
+        onRoomOpened()
+    }
     val spatial: FiniteAnimationSpec<IntOffset> = MaterialTheme.motionScheme.defaultSpatialSpec()
     val effects: FiniteAnimationSpec<Float> = MaterialTheme.motionScheme.defaultEffectsSpec()
     SharedTransitionLayout {

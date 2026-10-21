@@ -66,6 +66,10 @@ fun SettingsCategoryScreen(
                 SecuritySettings(onOpenDevices)
                 return@Column
             }
+            if (category == SettingsCategory.Notifications) {
+                NotificationSettings()
+                return@Column
+            }
             val current = settings ?: return@Column
             when (category) {
                 SettingsCategory.Appearance -> AppearanceSettings(current, viewModel)
@@ -76,7 +80,7 @@ fun SettingsCategoryScreen(
                     BlockedUsersSection(blocked, viewModel::unblock)
                 }
                 SettingsCategory.About -> AboutSettings()
-                SettingsCategory.Security -> Unit
+                SettingsCategory.Security, SettingsCategory.Notifications -> Unit
             }
         }
     }

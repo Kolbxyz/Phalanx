@@ -44,7 +44,8 @@ internal suspend fun Room.toSummary(): RoomSummary = use { room ->
         dmUserId = dmHero?.userId,
         topic = info.topic?.takeIf { it.isNotBlank() },
         memberCount = info.joinedMembersCount.toLong(),
-        isEncrypted = info.encryptionState == EncryptionState.ENCRYPTED
+        isEncrypted = info.encryptionState == EncryptionState.ENCRYPTED,
+        isLowPriority = info.isLowPriority
     )
 }
 

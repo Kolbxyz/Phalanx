@@ -23,11 +23,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -45,8 +46,6 @@ import org.phalanx.android.ui.components.SegmentedSection
 import org.phalanx.android.ui.components.segmentedShape
 import org.phalanx.android.ui.screens.room.BlockUserDialog
 import org.phalanx.android.ui.screens.roomlist.LeaveRoomDialog
-
-private const val COLUMNS = 3
 
 /** Everything about one conversation: who and what it is, pinned messages, shared media and files. */
 @Composable
@@ -84,10 +83,18 @@ fun RoomDetailsScreen(
             else -> Unit
         }
     }
+    val hasMore by viewModel.hasMoreMedia.collectAsStateWithLifecycle()
+    var showAllMedia by rememberSaveable { mutableStateOf(false) }
+    var showAllFiles by rememberSaveable { mutableStateOf(false) }
     val listState = rememberLazyListState()
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo.any { it.key == MEDIA_END } }
-            .collect { atEnd -> if (atEnd) viewModel.loadMoreMedia() }
+    val atEnd by remember { derivedStateOf { listState.layoutInfo.visibleItemsInfo.any { it.key == MEDIA_END } } }
+    // Pages in older media only while the end is in view and a section is short of what it shows;
+    // keyed on the count too, so a page that still leaves it short asks for the next.
+    LaunchedEffect(atEnd, media?.size, showAllMedia, showAllFiles, hasMore) {
+        val shared = sharedMediaOf(media)
+        val wantsMore = showAllMedia || showAllFiles ||
+            shared.visual.size < SECTION_CAP || shared.files.size < SECTION_CAP
+        if (atEnd && hasMore && media != null && wantsMore) viewModel.loadMoreMedia()
     }
 
     Scaffold(
@@ -109,7 +116,15 @@ fun RoomDetailsScreen(
                 DetailsHeader(current, onFavourite = viewModel::setFavourite, onUnread = viewModel::setUnread)
             }
             pinnedSection(pinned, onOpen = onBack)
-            mediaSections(media, open)
+            mediaSections(
+                media = media,
+                hasMore = hasMore,
+                showAllMedia = showAllMedia,
+                showAllFiles = showAllFiles,
+                onShowAllMedia = { showAllMedia = true },
+                onShowAllFiles = { showAllFiles = true },
+                onOpen = open
+            )
             item {
                 SegmentedSection(stringResource(R.string.details_manage)) {
                     val dmUser = current.dmUserId
@@ -142,10 +157,8 @@ fun RoomDetailsScreen(
     }
 }
 
-private const val MEDIA_END = "media-end"
-
 private fun LazyListScope.pinnedSection(pinned: List<TimelineEntry.Message>?, onOpen: () -> Unit) {
-    item { SectionTitle(R.string.details_pinned) }
+    item { DetailsSectionTitle(R.string.details_pinned) }
     if (pinned.isNullOrEmpty()) {
         item { EmptyNote(stringResource(if (pinned == null) R.string.loading else R.string.details_pinned_none)) }
         return
@@ -156,34 +169,8 @@ private fun LazyListScope.pinnedSection(pinned: List<TimelineEntry.Message>?, on
     }
 }
 
-private fun LazyListScope.mediaSections(
-    media: List<TimelineEntry.Message>?,
-    onOpen: (TimelineEntry.Message) -> Unit
-) {
-    val visual = media.orEmpty().filter { it.body is MessageBody.Image || it.body is MessageBody.Video }
-    val files = media.orEmpty().filter { it.body is MessageBody.File || it.body is MessageBody.Audio }
-    item { SectionTitle(R.string.details_media) }
-    if (visual.isEmpty()) {
-        item { EmptyNote(stringResource(if (media == null) R.string.loading else R.string.details_media_none)) }
-    }
-    itemsIndexed(visual.chunked(COLUMNS), key = { _, row -> "row-${row.first().id}" }) { _, row ->
-        MediaGridRow(row, COLUMNS, onOpen)
-        Spacer(Modifier.height(4.dp))
-    }
-    item { SectionTitle(R.string.details_files) }
-    if (files.isEmpty()) {
-        item { EmptyNote(stringResource(if (media == null) R.string.loading else R.string.details_files_none)) }
-    }
-    itemsIndexed(files, key = { _, message -> "file-${message.id}" }) { index, message ->
-        FileRow(message, segmentedShape(index, files.size)) { onOpen(message) }
-        Spacer(Modifier.height(2.dp))
-    }
-    // Reaching this asks for older media; the gallery pages backwards through the room.
-    item(key = MEDIA_END) { Spacer(Modifier.height(1.dp)) }
-}
-
 @Composable
-private fun SectionTitle(@StringRes title: Int) {
+internal fun DetailsSectionTitle(@StringRes title: Int) {
     Text(
         text = stringResource(title),
         style = MaterialTheme.typography.labelLarge,

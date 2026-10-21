@@ -1,0 +1,49 @@
+package org.phalanx.android.ui.screens.roomlist
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import org.phalanx.android.R
+
+/** One chip per [RoomFilter]; Archived says how many rooms it holds. */
+@Composable
+internal fun RoomFilterRow(selected: RoomFilter, archivedCount: Int, onSelect: (RoomFilter) -> Unit) {
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(horizontal = 4.dp)
+    ) {
+        items(RoomFilter.entries, key = { it.name }) { filter ->
+            val isSelected = filter == selected
+            FilterChip(
+                selected = isSelected,
+                onClick = { onSelect(if (isSelected) RoomFilter.All else filter) },
+                label = {
+                    Text(
+                        if (filter == RoomFilter.Archived && archivedCount > 0) {
+                            stringResource(R.string.roomlist_filter_archived_count, archivedCount)
+                        } else {
+                            stringResource(filter.label)
+                        }
+                    )
+                },
+                leadingIcon = if (isSelected) {
+                    { Icon(Icons.Rounded.Check, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
+                } else {
+                    null
+                }
+            )
+        }
+    }
+}

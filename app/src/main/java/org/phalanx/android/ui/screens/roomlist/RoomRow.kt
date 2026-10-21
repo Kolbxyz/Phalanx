@@ -1,8 +1,19 @@
 package org.phalanx.android.ui.screens.roomlist
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,8 +29,10 @@ import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,14 +66,19 @@ internal fun RoomRow(
 ) {
     val colors = MaterialTheme.colorScheme
     val unread = room.hasUnread
+    val interaction = remember { MutableInteractionSource() }
+    val container by animateColorAsState(
+        if (unread) colors.surfaceContainerHighest else colors.surfaceContainer,
+        MaterialTheme.motionScheme.defaultEffectsSpec()
+    )
     Surface(
-        modifier = modifier,
+        modifier = modifier.pressSink(interaction),
         shape = shape,
-        color = if (unread) colors.surfaceContainerHighest else colors.surfaceContainer
+        color = container
     ) {
         Row(
             modifier = Modifier
-                .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+                .combinedClickable(interactionSource = interaction, indication = ripple(), onClick = onClick, onLongClick = onLongClick)
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -116,9 +134,17 @@ internal fun RoomRow(
                         color = if (unread) colors.primary else colors.onSurfaceVariant
                     )
                 }
-                when {
-                    room.unreadCount > 0 -> UnreadBadge(room.unreadCount, mention = room.highlightCount > 0)
-                    room.isMarkedUnread -> UnreadDot()
+                val motion = MaterialTheme.motionScheme
+                AnimatedVisibility(
+                    visible = room.unreadCount > 0 || room.isMarkedUnread,
+                    enter = scaleIn(motion.fastSpatialSpec()) + fadeIn(motion.fastEffectsSpec()),
+                    exit = scaleOut(motion.fastSpatialSpec()) + fadeOut(motion.fastEffectsSpec())
+                ) {
+                    if (room.unreadCount > 0) {
+                        UnreadBadge(room.unreadCount, mention = room.highlightCount > 0)
+                    } else {
+                        UnreadDot()
+                    }
                 }
             }
         }
@@ -167,10 +193,20 @@ private fun UnreadBadge(count: Long, mention: Boolean) {
             .semantics { contentDescription = description }
     ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 7.dp)) {
-            Text(
-                text = if (count > MAX_BADGE) "$MAX_BADGE+" else count.toString(),
-                style = MaterialTheme.typography.labelSmall
-            )
+            // A new message rolls the count up, like an odometer.
+            val motion = MaterialTheme.motionScheme
+            AnimatedContent(
+                targetState = count,
+                transitionSpec = {
+                    (slideInVertically(motion.fastSpatialSpec()) { it } + fadeIn(motion.fastEffectsSpec())) togetherWith
+                        (slideOutVertically(motion.fastSpatialSpec()) { -it } + fadeOut(motion.fastEffectsSpec()))
+                }
+            ) { shown ->
+                Text(
+                    text = if (shown > MAX_BADGE) "$MAX_BADGE+" else shown.toString(),
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
         }
     }
 }
