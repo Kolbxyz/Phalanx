@@ -16,7 +16,6 @@ import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -48,8 +47,9 @@ import java.io.IOException
 private const val PROGRESS_TICK_MILLIS = 100L
 private const val MIN_BAR = 0.08f
 private const val BARS = 40
+private const val FLAT_LEVEL = 0.25f
 
-/** Play/pause with a waveform for voice messages, or a wavy progress line for other audio. */
+/** Play/pause, the waveform filling up as it plays, and the duration. */
 @Composable
 internal fun AudioContent(
     body: MessageBody.Audio,
@@ -103,13 +103,12 @@ internal fun AudioContent(
                 else -> Icon(Icons.Rounded.PlayArrow, contentDescription = stringResource(R.string.timeline_play))
             }
         }
-        val waveform = body.waveform
-        if (waveform.isNullOrEmpty()) {
-            LinearWavyProgressIndicator(progress = { progress }, modifier = Modifier.width(140.dp))
-        } else {
-            val bars = remember(waveform) { downsample(waveform, BARS) }
-            Waveform(bars, progress, Modifier.width(140.dp).height(32.dp))
+        // Every audio message gets the same bars; senders that include no waveform get a flat one,
+        // so a message looks the same whichever client sent it.
+        val bars = remember(body.waveform) {
+            body.waveform?.takeIf { it.isNotEmpty() }?.let { downsample(it, BARS) } ?: List(BARS) { FLAT_LEVEL }
         }
+        Waveform(bars, progress, Modifier.width(140.dp).height(32.dp))
         Text(
             text = body.durationMillis?.let(::formatDuration) ?: stringResource(kindLabel(body)),
             style = MaterialTheme.typography.labelMedium

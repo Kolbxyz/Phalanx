@@ -61,7 +61,11 @@ internal fun ReplyQuote(
                 )
             }
             Text(
-                text = reply.body?.let { summaryOf(it) } ?: stringResource(R.string.timeline_reply_loading),
+                text = when {
+                    reply.body != null -> summaryOf(reply.body)
+                    reply.isUnavailable -> stringResource(R.string.timeline_reply_unavailable)
+                    else -> stringResource(R.string.timeline_reply_loading)
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = LocalContentColor.current.copy(alpha = 0.8f),
                 maxLines = 2,

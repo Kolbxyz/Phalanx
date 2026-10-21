@@ -10,7 +10,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.flow.filter
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.res.stringResource
@@ -77,62 +81,77 @@ internal fun TimelineList(
     }
 
     // A message arriving while the user reads the newest ones should come into view, not land
-    // below the fold because the list kept its anchor on the previous item.
+    // below the fold because the list kept its anchor on the previous item. Whether the user is
+    // following the newest messages is only decided when a scroll ends, so a burst of arrivals
+    // can't push the list out of following by itself. A message this account sends always shows.
     val reducedMotion = LocalReducedMotion.current
-    val newestId = state.entries.firstOrNull()?.id
-    LaunchedEffect(newestId) {
-        if (listState.firstVisibleItemIndex <= 1) {
+    var following by remember { mutableStateOf(true) }
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.isScrollInProgress }
+            .filter { scrolling -> !scrolling }
+            .collect { following = listState.firstVisibleItemIndex <= 1 }
+    }
+    val newest = state.entries.firstOrNull()
+    LaunchedEffect(newest?.id) {
+        if (following || (newest as? TimelineEntry.Message)?.isOwn == true) {
             if (reducedMotion) listState.scrollToItem(0) else listState.animateScrollToItem(0)
         }
     }
+    // Rows present when the conversation opened (and older pages) just appear; later ones animate in.
+    val initialIds = remember { state.entries.mapTo(HashSet()) { it.id } }
+    val reveal = remember { TimestampReveal() }
 
     val scope = rememberCoroutineScope()
     val showJump by remember { derivedStateOf { listState.firstVisibleItemIndex > JUMP_AFTER_ITEMS } }
     Box(Modifier.fillMaxSize()) {
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxSize(),
-            reverseLayout = true,
-            contentPadding = PaddingValues(
-                start = 12.dp,
-                end = 12.dp,
-                top = padding.calculateTopPadding() + 8.dp,
-                bottom = padding.calculateBottomPadding() + 8.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            itemsIndexed(
-                items = state.entries,
-                key = { _, entry -> entry.id },
-                contentType = { _, entry -> entry::class }
-            ) { index, entry ->
-                val animated = Modifier.animateItem(
-                    fadeInSpec = motion.defaultEffectsSpec(),
-                    placementSpec = motion.defaultSpatialSpec(),
-                    fadeOutSpec = motion.defaultEffectsSpec()
-                )
-                when (entry) {
-                    is TimelineEntry.Message -> {
-                        // Newest first: the item after this one is older, the one before is newer.
-                        val older = state.entries.getOrNull(index + 1)
-                        val newer = state.entries.getOrNull(index - 1)
-                        MessageBubble(
-                            message = entry,
-                            isGroupChat = !state.isDirect,
-                            startsRun = !sameRun(older, entry),
-                            endsRun = !sameRun(entry, newer),
-                            actions = actions,
-                            modifier = animated
-                        )
+        CompositionLocalProvider(LocalTimestampReveal provides reveal) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                reverseLayout = true,
+                contentPadding = PaddingValues(
+                    start = 12.dp,
+                    end = 12.dp,
+                    top = padding.calculateTopPadding() + 8.dp,
+                    bottom = padding.calculateBottomPadding() + 8.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                itemsIndexed(
+                    items = state.entries,
+                    key = { _, entry -> entry.id },
+                    contentType = { _, entry -> entry::class }
+                ) { index, entry ->
+                    val isNew = index == 0 && entry.id !in initialIds
+                    val animated = Modifier.animateItem(
+                        fadeInSpec = if (isNew) null else motion.defaultEffectsSpec(),
+                        placementSpec = motion.defaultSpatialSpec(),
+                        fadeOutSpec = motion.defaultEffectsSpec()
+                    )
+                    when (entry) {
+                        is TimelineEntry.Message -> {
+                            // Newest first: the item after this one is older, the one before is newer.
+                            val older = state.entries.getOrNull(index + 1)
+                            val newer = state.entries.getOrNull(index - 1)
+                            MessageBubble(
+                                message = entry,
+                                isGroupChat = !state.isDirect,
+                                startsRun = !sameRun(older, entry),
+                                endsRun = !sameRun(entry, newer),
+                                isNew = isNew,
+                                actions = actions,
+                                modifier = animated
+                            )
+                        }
+                        is TimelineEntry.DayDivider -> DayDivider(entry.millis, animated)
                     }
-                    is TimelineEntry.DayDivider -> DayDivider(entry.millis, animated)
                 }
-            }
-            // Last in a reversed list, so it sits above the oldest message while history loads.
-            if (state.canLoadOlder) {
-                item(key = OLDER_KEY, contentType = OLDER_KEY) {
-                    Box(Modifier.fillMaxWidth().padding(vertical = 8.dp), Alignment.Center) {
-                        LoadingIndicator(Modifier.size(32.dp))
+                // Last in a reversed list, so it sits above the oldest message while history loads.
+                if (state.canLoadOlder) {
+                    item(key = OLDER_KEY, contentType = OLDER_KEY) {
+                        Box(Modifier.fillMaxWidth().padding(vertical = 8.dp), Alignment.Center) {
+                            LoadingIndicator(Modifier.size(32.dp))
+                        }
                     }
                 }
             }

@@ -7,6 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
@@ -15,22 +16,32 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.fromHtml
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextDecoration
+import org.phalanx.android.R
 import org.phalanx.android.data.model.MessageBody
 
 /** Rich text when the sender sent HTML (most clients and bridges do), linkified plain text otherwise. */
 @Composable
-internal fun MessageText(body: MessageBody.Text, senderName: String, modifier: Modifier = Modifier) {
+internal fun MessageText(
+    body: MessageBody.Text,
+    senderName: String,
+    edited: Boolean,
+    modifier: Modifier = Modifier
+) {
     val links = TextLinkStyles(SpanStyle(textDecoration = TextDecoration.Underline))
-    val text = remember(body, senderName) {
+    // "(edited)" trails the last line, small and faint, instead of taking a line of its own.
+    val editedLabel = stringResource(R.string.timeline_edited)
+    val editedStyle = SpanStyle(
+        fontSize = MaterialTheme.typography.labelSmall.fontSize,
+        color = LocalContentColor.current.copy(alpha = EDITED_ALPHA)
+    )
+    val text = remember(body, senderName, edited, editedStyle) {
         val content = body.html?.let { AnnotatedString.fromHtml(it, links).trimEnd() } ?: linkify(body.text, links)
-        if (body.style == MessageBody.TextStyle.Emote) {
-            buildAnnotatedString {
-                append("* $senderName ")
-                append(content)
-            }
-        } else {
-            content
+        buildAnnotatedString {
+            if (body.style == MessageBody.TextStyle.Emote) append("* $senderName ")
+            append(content)
+            if (edited) withStyle(editedStyle) { append("  ($editedLabel)") }
         }
     }
     val notice = body.style == MessageBody.TextStyle.Notice
@@ -53,6 +64,7 @@ internal fun messageTextStyle(): TextStyle {
 }
 
 private const val NOTICE_ALPHA = 0.72f
+private const val EDITED_ALPHA = 0.6f
 
 private fun linkify(text: String, styles: TextLinkStyles): AnnotatedString = buildAnnotatedString {
     append(text)

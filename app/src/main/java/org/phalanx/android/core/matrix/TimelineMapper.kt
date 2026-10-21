@@ -13,10 +13,12 @@ import org.matrix.rustcomponents.sdk.TimelineItem
 import org.matrix.rustcomponents.sdk.TimelineItemContent
 import org.matrix.rustcomponents.sdk.VirtualTimelineItem
 import org.matrix.rustcomponents.sdk.use
+import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.ReactionSummary
 import org.phalanx.android.data.model.ReplyPreview
 import org.phalanx.android.data.model.SendState
 import org.phalanx.android.data.model.TimelineEntry
+import org.phalanx.android.data.model.UnsupportedKind
 
 /** What mapping needs from the session beyond the item itself. */
 internal class MappingContext(
@@ -74,7 +76,9 @@ internal fun nameOf(userId: String, profile: ProfileDetails?): String {
 private fun InReplyToDetails.toPreview(context: MappingContext): ReplyPreview =
     when (val details = event()) {
         is EmbeddedEventDetails.Ready -> {
+            // Anything but a message (a poll, a state change) still gets a label, never "loading".
             val body = ((details.content as? TimelineItemContent.MsgLike)?.content?.kind)?.toBody(isReply = true)
+                ?: MessageBody.Unsupported(UnsupportedKind.Other)
             details.content.destroy()
             ReplyPreview(nameOf(details.sender, details.senderProfile), body)
         }
@@ -82,7 +86,8 @@ private fun InReplyToDetails.toPreview(context: MappingContext): ReplyPreview =
             context.onMissingReply(eventId())
             ReplyPreview(senderName = null, body = null)
         }
-        EmbeddedEventDetails.Pending, is EmbeddedEventDetails.Error -> ReplyPreview(senderName = null, body = null)
+        EmbeddedEventDetails.Pending -> ReplyPreview(senderName = null, body = null)
+        is EmbeddedEventDetails.Error -> ReplyPreview(senderName = null, body = null, isUnavailable = true)
     }
 
 private fun Reaction.toSummary(ownUserId: String) =

@@ -175,4 +175,5 @@
     <string name="timeline_yesterday">Yesterday</string>
     <string name="timeline_jump_latest">Jump to latest message</string>
     <string name="timeline_load_media">Load %1$s</string>
+    <string name="timeline_reply_unavailable">Original message unavailable</string>
 </resources>

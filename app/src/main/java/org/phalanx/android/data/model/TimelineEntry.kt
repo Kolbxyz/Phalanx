@@ -30,9 +30,12 @@ sealed interface TimelineEntry {
     ) : TimelineEntry
 }
 
-/** The message being answered. [senderName] and [body] are null until the SDK has fetched it. */
+/**
+ * The message being answered. [senderName] and [body] are null until the SDK has fetched it, and
+ * stay null with [isUnavailable] when it could not (deleted, or from before this account joined).
+ */
 @Immutable
-data class ReplyPreview(val senderName: String?, val body: MessageBody?)
+data class ReplyPreview(val senderName: String?, val body: MessageBody?, val isUnavailable: Boolean = false)
 
 @Immutable
 data class ReactionSummary(val key: String, val count: Int, val byMe: Boolean)

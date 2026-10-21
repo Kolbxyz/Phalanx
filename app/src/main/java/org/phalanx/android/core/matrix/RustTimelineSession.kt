@@ -35,6 +35,7 @@ import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.model.OutgoingMedia
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.TimelineSession
+import java.util.concurrent.ConcurrentHashMap
 
 internal class RustTimelineSession private constructor(
     private val room: Room,
@@ -60,9 +61,14 @@ internal class RustTimelineSession private constructor(
     override val hasMoreHistory: StateFlow<Boolean> = mutableHasMore
 
     // Replies whose original the SDK had not loaded; asked for once each, the item updates itself.
-    private val requestedReplies = HashSet<String>()
+    private val requestedReplies: MutableSet<String> = ConcurrentHashMap.newKeySet()
     private val context = MappingContext(room.ownUserId()) { eventId ->
-        if (requestedReplies.add(eventId)) scope.launch { runCatchingSdk { timeline.fetchDetailsForEvent(eventId) } }
+        if (requestedReplies.add(eventId)) {
+            scope.launch {
+                // Forgotten on failure (offline, say), so the next update of the reply asks again.
+                runCatchingSdk { timeline.fetchDetailsForEvent(eventId) }.onFailure { requestedReplies.remove(eventId) }
+            }
+        }
     }
 
     override suspend fun send(text: String, replyTo: TimelineEntry.Message?): Result<Unit> = io {

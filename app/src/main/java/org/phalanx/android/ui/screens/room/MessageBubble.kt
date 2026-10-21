@@ -1,6 +1,22 @@
 package org.phalanx.android.ui.screens.room
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.res.stringResource
+import org.phalanx.android.R
+import org.phalanx.android.data.model.SendState
+import org.phalanx.android.ui.theme.LocalReducedMotion
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -33,9 +49,11 @@ import org.phalanx.android.ui.components.MatrixAvatar
 
 private val LargeRadius = 24.dp
 private val SeamRadius = 6.dp
+private val MediaRadius = 14.dp
 private val AvatarSize = 32.dp
 private val MaxBubbleWidth = 320.dp
 private const val PRESSED_SCALE = 0.96f
+private const val APPEAR_SCALE = 0.7f
 
 /**
  * One message. Consecutive messages from one sender form a run, shaped like a segmented list: the
@@ -48,61 +66,114 @@ internal fun MessageBubble(
     isGroupChat: Boolean,
     startsRun: Boolean,
     endsRun: Boolean,
+    isNew: Boolean,
     actions: MessageActions,
     modifier: Modifier = Modifier
 ) {
     val own = message.isOwn
     val showAvatar = isGroupChat && !own
-    Row(
-        modifier = modifier.fillMaxWidth().padding(top = if (startsRun) 10.dp else 0.dp),
-        horizontalArrangement = if (own) Arrangement.End else Arrangement.Start,
-        verticalAlignment = Alignment.Bottom
+    val time = remember(message.timestampMillis) { formatTime(message.timestampMillis) }
+    MessageSwipe(
+        time = time,
+        canReply = message.canReply,
+        onReply = { actions.onReply(message) },
+        modifier = modifier.padding(top = if (startsRun) 10.dp else 0.dp)
     ) {
-        if (showAvatar) {
-            if (endsRun) {
-                MatrixAvatar(message.senderName, message.senderAvatar, AvatarSize)
-            } else {
-                Spacer(Modifier.width(AvatarSize))
+        Row(
+            modifier = Modifier.fillMaxWidth().appear(isNew, own),
+            horizontalArrangement = if (own) Arrangement.End else Arrangement.Start,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            if (showAvatar) {
+                if (endsRun) {
+                    MatrixAvatar(message.senderName, message.senderAvatar, AvatarSize)
+                } else {
+                    Spacer(Modifier.width(AvatarSize))
+                }
+                Spacer(Modifier.width(8.dp))
             }
-            Spacer(Modifier.width(8.dp))
-        }
-        Column(horizontalAlignment = if (own) Alignment.End else Alignment.Start) {
-            if (showAvatar && startsRun) {
-                Text(
-                    text = message.senderName,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = senderColor(message.senderId),
-                    maxLines = 1,
-                    modifier = Modifier.padding(start = 14.dp, bottom = 4.dp)
-                )
-            }
-            SwipeToReply(enabled = message.canReply, onReply = { actions.onReply(message) }) {
+            if (own) SendStatus(message.sendState, Modifier.padding(end = 6.dp, bottom = 6.dp))
+            Column(horizontalAlignment = if (own) Alignment.End else Alignment.Start) {
+                if (showAvatar && startsRun) {
+                    Text(
+                        text = message.senderName,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = senderColor(message.senderId),
+                        maxLines = 1,
+                        modifier = Modifier.padding(start = 14.dp, bottom = 4.dp)
+                    )
+                }
                 Bubble(message, startsRun, endsRun, actions)
-            }
-            if (message.reactions.isNotEmpty()) {
-                ReactionRow(
-                    reactions = message.reactions,
-                    onToggle = { actions.onToggleReaction(message, it) },
-                    modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
-                )
+                if (message.reactions.isNotEmpty()) {
+                    ReactionRow(
+                        reactions = message.reactions,
+                        onToggle = { actions.onToggleReaction(message, it) },
+                        modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
+                    )
+                }
             }
         }
     }
 }
 
+/**
+ * A message that arrives while the conversation is open grows out of its sender's side, the way a
+ * bubble would; messages already there when it opened, and older pages, just appear.
+ */
+@Composable
+private fun Modifier.appear(isNew: Boolean, own: Boolean): Modifier {
+    val reducedMotion = LocalReducedMotion.current
+    val progress = remember { Animatable(if (isNew && !reducedMotion) 0f else 1f) }
+    val spring = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
+    LaunchedEffect(Unit) { if (progress.value < 1f) progress.animateTo(1f, spring) }
+    return graphicsLayer {
+        val value = progress.value
+        transformOrigin = TransformOrigin(if (own) 1f else 0f, 1f)
+        scaleX = APPEAR_SCALE + (1f - APPEAR_SCALE) * value
+        scaleY = APPEAR_SCALE + (1f - APPEAR_SCALE) * value
+        alpha = value.coerceIn(0f, 1f)
+    }
+}
+
+/** Only shown while something is pending or wrong; a sent message needs no badge. */
+@Composable
+private fun SendStatus(state: SendState, modifier: Modifier = Modifier) {
+    when (state) {
+        SendState.Sent -> Unit
+        SendState.Sending -> Icon(
+            Icons.Rounded.Schedule,
+            contentDescription = stringResource(R.string.timeline_sending),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = modifier.size(14.dp)
+        )
+        SendState.Failed -> Icon(
+            Icons.Rounded.ErrorOutline,
+            contentDescription = stringResource(R.string.timeline_failed),
+            tint = MaterialTheme.colorScheme.error,
+            modifier = modifier.size(16.dp)
+        )
+    }
+}
+
+private fun formatTime(millis: Long): String =
+    DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
+        .format(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()))
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun Bubble(message: TimelineEntry.Message, startsRun: Boolean, endsRun: Boolean, actions: MessageActions) {
     val own = message.isOwn
-    val top = if (startsRun) LargeRadius else SeamRadius
-    val bottom = if (endsRun) LargeRadius else SeamRadius
-    val shape = RoundedCornerShape(
-        topStart = if (own) LargeRadius else top,
-        topEnd = if (own) top else LargeRadius,
-        bottomEnd = if (own) bottom else LargeRadius,
-        bottomStart = if (own) LargeRadius else bottom
-    )
     val layout = bubbleLayout(message)
+    // Pictures keep a gentler curve than text, so their corners aren't cut away.
+    val outer = if (layout == BubbleLayout.Media) MediaRadius else LargeRadius
+    val top = if (startsRun) outer else SeamRadius
+    val bottom = if (endsRun) outer else SeamRadius
+    val shape = RoundedCornerShape(
+        topStart = if (own) outer else top,
+        topEnd = if (own) top else outer,
+        bottomEnd = if (own) bottom else outer,
+        bottomStart = if (own) outer else bottom
+    )
     val colors = MaterialTheme.colorScheme
 
     // Pressing sinks the bubble a little, the Expressive cue that a long press will act on it.

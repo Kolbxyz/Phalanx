@@ -16,6 +16,7 @@ import org.phalanx.android.data.model.OutgoingMedia
 import java.io.File
 import java.io.IOException
 import javax.inject.Inject
+import kotlin.math.sqrt
 
 /**
  * Records one voice message at a time: Ogg/Opus where the platform has it (what other Matrix
@@ -106,7 +107,8 @@ class VoiceRecorder @Inject constructor(
     private suspend fun CoroutineScope.sample(active: MediaRecorder) {
         while (isActive) {
             delay(SAMPLE_MILLIS)
-            val level = (active.maxAmplitude.toFloat() / MAX_AMPLITUDE).coerceIn(0f, 1f)
+            // Square root, because loudness is heard roughly that way: quiet speech still shows.
+            val level = sqrt((active.maxAmplitude.toFloat() / MAX_AMPLITUDE).coerceIn(0f, 1f))
             mutableLevels.value = mutableLevels.value + level
         }
     }
