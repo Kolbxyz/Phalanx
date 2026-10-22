@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -20,10 +22,18 @@ import org.phalanx.android.R
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.ui.components.BackButton
 import org.phalanx.android.ui.components.MatrixAvatar
+import org.phalanx.android.ui.theme.Symbols
 
 /** The room's avatar and name; both come from the room list, so they show before the timeline. */
 @Composable
-internal fun RoomTopBar(header: RoomSummary?, fallbackTitle: String?, onBack: () -> Unit, onOpenDetails: () -> Unit) {
+internal fun RoomTopBar(
+    header: RoomSummary?,
+    fallbackTitle: String?,
+    onBack: () -> Unit,
+    onOpenDetails: () -> Unit,
+    /** Null hides the button: summaries are off in settings. */
+    onSummarize: (() -> Unit)?
+) {
     val title = header?.name ?: fallbackTitle.orEmpty()
     TopAppBar(
         title = {
@@ -46,6 +56,13 @@ internal fun RoomTopBar(header: RoomSummary?, fallbackTitle: String?, onBack: ()
             }
         },
         navigationIcon = { BackButton(onBack) },
+        actions = {
+            if (onSummarize != null) {
+                IconButton(onClick = onSummarize) {
+                    Icon(Symbols.Summarize, contentDescription = stringResource(R.string.summary_action))
+                }
+            }
+        },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surface,
             scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer

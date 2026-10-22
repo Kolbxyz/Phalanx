@@ -75,6 +75,8 @@ class SettingsViewModel @Inject constructor(
 
     fun setKeepDeletedMessages(enabled: Boolean) = edit { store.setKeepDeletedMessages(enabled) }
 
+    fun setAiSummaries(enabled: Boolean) = edit { store.setAiSummaries(enabled) }
+
     fun unblock(userId: String) = edit {
         blockedUsers.unblock(userId).onFailure { mutableFailed.value = true }
     }
