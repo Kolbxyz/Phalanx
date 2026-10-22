@@ -78,5 +78,10 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+        <provider
+            android:name=".core.push.NotificationPictureProvider"
+            android:authorities="${applicationId}.notificationpictures"
+            android:exported="false"
+            android:grantUriPermissions="true" />
     </application>
 </manifest>

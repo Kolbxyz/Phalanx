@@ -13,6 +13,8 @@ data class IncomingMessage(
     val senderAvatar: Bitmap? = null,
     /** Null for an invitation to the room. */
     val body: MessageBody?,
+    /** The photo (or a video's still) the message carries, when media loads automatically. */
+    val picture: NotificationPicture? = null,
     val timestampMillis: Long,
     /** The account's push rules ask for a sound. */
     val isNoisy: Boolean

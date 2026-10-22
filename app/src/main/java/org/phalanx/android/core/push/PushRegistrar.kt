@@ -79,7 +79,9 @@ internal class PushRegistrar @Inject constructor(
         return true
     }
 
-    override fun dismiss(roomId: String) = notifier.dismiss(roomId)
+    override fun startViewing(roomId: String) = notifier.startViewing(roomId)
+
+    override fun stopViewing(roomId: String) = notifier.stopViewing(roomId)
 
     fun onNewEndpoint(endpoint: String) {
         scope.launch {
