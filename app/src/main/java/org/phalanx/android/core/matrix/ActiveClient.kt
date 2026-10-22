@@ -9,7 +9,9 @@ import org.matrix.rustcomponents.sdk.ClientBuildException
 import org.matrix.rustcomponents.sdk.ClientException
 import org.matrix.rustcomponents.sdk.Room
 import org.matrix.rustcomponents.sdk.SyncService
+import org.matrix.rustcomponents.sdk.TaskHandle
 import org.phalanx.android.data.model.SessionState
+import uniffi.matrix_sdk.SearchBackfillStrategy
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -26,6 +28,7 @@ internal class ActiveClient @Inject constructor(
     @Volatile
     private var client: Client? = null
     private var sync: SyncService? = null
+    private var backfill: TaskHandle? = null
 
     private val mutableState = MutableStateFlow<SessionState>(SessionState.Restoring)
     val state: StateFlow<SessionState> = mutableState
@@ -62,11 +65,27 @@ internal class ActiveClient @Inject constructor(
     fun client(): Client? = client
 
     suspend fun startSync() {
-        lock.withLock { sync?.start() }
+        lock.withLock {
+            sync?.start()
+            // The search index only sees messages as they sync; this pages in older history,
+            // throttled to leave room for the user's own traffic, and only while the app is open.
+            if (backfill == null) backfill = client?.runSearchBackfill(SearchBackfillStrategy.FOREGROUND)
+        }
     }
 
     suspend fun stopSync() {
-        lock.withLock { sync?.stop() }
+        lock.withLock {
+            sync?.stop()
+            stopBackfillLocked()
+        }
+    }
+
+    private fun stopBackfillLocked() {
+        backfill?.let {
+            it.cancel()
+            it.destroy()
+        }
+        backfill = null
     }
 
     suspend fun signOut() {
@@ -110,6 +129,7 @@ internal class ActiveClient @Inject constructor(
     }
 
     private suspend fun closeLocked() {
+        stopBackfillLocked()
         mutableSyncService.value = null
         sync?.let {
             it.stop()

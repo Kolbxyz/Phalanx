@@ -34,7 +34,8 @@ internal fun DetailsHeader(
     room: RoomSummary,
     trust: UserTrust?,
     onFavourite: (Boolean) -> Unit,
-    onUnread: (Boolean) -> Unit
+    onUnread: (Boolean) -> Unit,
+    onMuted: (Boolean) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
     Column(
@@ -97,6 +98,12 @@ internal fun DetailsHeader(
                 icon = if (room.hasUnread) Symbols.MarkChatUnread else Symbols.MarkChatRead,
                 label = R.string.details_unread,
                 onToggle = onUnread
+            )
+            QuickToggle(
+                checked = room.isMuted,
+                icon = if (room.isMuted) Symbols.NotificationsOff else Symbols.Notifications,
+                label = R.string.details_muted,
+                onToggle = onMuted
             )
         }
     }

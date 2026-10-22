@@ -33,7 +33,7 @@ internal object HtmlMarks {
         }
         .replace(code) { "<tt><annotation ${TextMarks.CODE}=\"inline\">${it.groupValues[1]}</annotation></tt>" }
         .replace(userPill) { match ->
-            val userId = URLDecoder.decode(match.groupValues[1], Charsets.UTF_8).replace("\"", "&quot;")
+            val userId = URLDecoder.decode(match.groupValues[1], "UTF-8").replace("\"", "&quot;")
             val label = match.groupValues[2].let { if (it.startsWith("@")) it else "@$it" }
             "<annotation ${TextMarks.MENTION}=\"$userId\">$label</annotation>"
         }

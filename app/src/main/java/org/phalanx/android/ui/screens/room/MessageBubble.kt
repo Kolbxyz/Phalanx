@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -200,13 +201,14 @@ private fun Bubble(message: TimelineEntry.Message, startsRun: Boolean, endsRun: 
         actions.onLongPress(message)
     }
 
+    val container = when {
+        layout == BubbleLayout.Bare || layout == BubbleLayout.Media -> Color.Transparent
+        own -> colors.primary
+        else -> colors.surfaceContainerHigh
+    }
     Surface(
         shape = shape,
-        color = when {
-            layout == BubbleLayout.Bare -> Color.Transparent
-            own -> colors.primary
-            else -> colors.surfaceContainerHigh
-        },
+        color = container,
         contentColor = when {
             layout == BubbleLayout.Bare -> colors.onSurface
             own -> colors.onPrimary
@@ -226,7 +228,11 @@ private fun Bubble(message: TimelineEntry.Message, startsRun: Boolean, endsRun: 
                 onLongClick = onLongPress
             )
     ) {
-        BubbleContent(message, layout, actions, onLongPress)
+        // A bare bubble shows the timeline through it.
+        val ground = if (container == Color.Transparent) colors.surface else container
+        CompositionLocalProvider(LocalBubbleColor provides ground) {
+            BubbleContent(message, layout, actions, onLongPress)
+        }
     }
 }
 

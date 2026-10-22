@@ -35,7 +35,13 @@ sealed interface TimelineEntry {
  * stay null with [isUnavailable] when it could not (deleted, or from before this account joined).
  */
 @Immutable
-data class ReplyPreview(val senderName: String?, val body: MessageBody?, val isUnavailable: Boolean = false)
+data class ReplyPreview(
+    val senderName: String?,
+    val body: MessageBody?,
+    val isUnavailable: Boolean = false,
+    /** The quoted event, to jump to; null for the composer's own preview. */
+    val eventId: String? = null
+)
 
 @Immutable
 /** [senderIds] in the order they reacted. [image] when the key is a custom emote (an `mxc://` URL). */

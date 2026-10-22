@@ -41,6 +41,8 @@ internal class ClientFactory @Inject constructor(
         // Messages are indexed on the device as they arrive, so encrypted rooms can be searched
         // without sending the query anywhere. The index is encrypted with the store's key.
         .withSearchIndexStore(File(paths.data, SEARCH_INDEX).absolutePath, Base64.getEncoder().encodeToString(storeKey))
+        // Lets the search backfill page older history into that index; see ActiveClient.startSync.
+        .enableAutomaticBackPagination(true)
         .setSessionDelegate(sessionDelegate)
         .userAgent(USER_AGENT)
         .autoEnableBackups(true)

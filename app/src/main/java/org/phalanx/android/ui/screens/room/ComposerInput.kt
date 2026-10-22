@@ -27,6 +27,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +51,11 @@ private val ButtonSize = 48.dp
 /** Attach, the text, then send, which is a microphone while there is nothing to send. */
 @Composable
 internal fun InputRow(state: ComposerState, actions: ComposerActions, enterToSend: Boolean) {
+    // Replying to or editing a message means typing next: focusing the field brings the keyboard up.
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(state.mode) {
+        if (state.mode != ComposerMode.New) focus.requestFocus()
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -67,7 +76,7 @@ internal fun InputRow(state: ComposerState, actions: ComposerActions, enterToSen
         TextField(
             value = state.input,
             onValueChange = actions.onDraftChange,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).focusRequester(focus),
             placeholder = { Text(stringResource(R.string.composer_hint)) },
             shape = RoundedCornerShape(24.dp),
             maxLines = MAX_LINES,

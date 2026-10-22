@@ -8,12 +8,10 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,11 +27,13 @@ import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.components.segmentedShape
 
-internal const val MEDIA_END = "media-end"
 private const val COLUMNS = 3
 
-/** How many of each kind show before "Show all": three rows of the grid. */
-internal const val SECTION_CAP = 9
+/** How many photos and videos show here: three rows of the grid. The rest open in the gallery. */
+private const val MEDIA_CAP = 9
+
+/** How many files show here, newest first. */
+private const val FILES_CAP = 5
 
 /** The room's media split for the two sections, newest first. */
 internal class SharedMedia(val visual: List<TimelineEntry.Message>, val files: List<TimelineEntry.Message>)
@@ -43,55 +43,48 @@ internal fun sharedMediaOf(media: List<TimelineEntry.Message>?) = SharedMedia(
     files = media.orEmpty().filter { it.body is MessageBody.File || it.body is MessageBody.Audio }
 )
 
-/** [media] null while the gallery opens; each section is capped at [SECTION_CAP] until expanded. */
-@Suppress("LongParameterList")
+/**
+ * The newest of what the gallery has loaded, [media] null while it opens. Nothing pages from here:
+ * "Show all" opens the gallery screen, which loads older pages as it is scrolled.
+ */
 internal fun LazyListScope.mediaSections(
     media: List<TimelineEntry.Message>?,
     hasMore: Boolean,
-    showAllMedia: Boolean,
-    showAllFiles: Boolean,
-    onShowAllMedia: () -> Unit,
-    onShowAllFiles: () -> Unit,
+    onShowAll: (files: Boolean) -> Unit,
     onOpen: (TimelineEntry.Message) -> Unit
 ) {
     val shared = sharedMediaOf(media)
     item { DetailsSectionTitle(R.string.details_media) }
     when {
         media == null -> item(key = "media-placeholder") { GridPlaceholder() }
-        shared.visual.isEmpty() && !hasMore -> item { EmptyNote(stringResource(R.string.details_media_none)) }
+        shared.visual.isEmpty() -> item { EmptyNote(stringResource(noneNote(R.string.details_media_none, hasMore))) }
     }
-    val visual = if (showAllMedia) shared.visual else shared.visual.take(SECTION_CAP)
-    itemsIndexed(visual.chunked(COLUMNS), key = { _, row -> "row-${row.first().id}" }) { _, row ->
+    val rows = shared.visual.take(MEDIA_CAP).chunked(COLUMNS)
+    itemsIndexed(rows, key = { _, row -> "row-${row.first().id}" }) { _, row ->
         MediaGridRow(row, COLUMNS, onOpen)
         Spacer(Modifier.height(4.dp))
     }
-    if (!showAllMedia && (shared.visual.size > SECTION_CAP || (hasMore && shared.visual.size == SECTION_CAP))) {
-        item(key = "media-all") { ShowAllButton(onShowAllMedia) }
+    if (media != null && (shared.visual.size > MEDIA_CAP || hasMore)) {
+        item(key = "media-all") { ShowAllButton { onShowAll(false) } }
     }
 
     item { DetailsSectionTitle(R.string.details_files) }
     when {
         media == null -> item(key = "files-placeholder") { RowsPlaceholder() }
-        shared.files.isEmpty() && !hasMore -> item { EmptyNote(stringResource(R.string.details_files_none)) }
+        shared.files.isEmpty() -> item { EmptyNote(stringResource(noneNote(R.string.details_files_none, hasMore))) }
     }
-    val files = if (showAllFiles) shared.files else shared.files.take(SECTION_CAP)
+    val files = shared.files.take(FILES_CAP)
     itemsIndexed(files, key = { _, message -> "file-${message.id}" }) { index, message ->
         FileRow(message, segmentedShape(index, files.size)) { onOpen(message) }
         Spacer(Modifier.height(2.dp))
     }
-    if (!showAllFiles && (shared.files.size > SECTION_CAP || (hasMore && shared.files.size == SECTION_CAP))) {
-        item(key = "files-all") { ShowAllButton(onShowAllFiles) }
-    }
-    // Reaching this asks for older media while a section still wants more; the gallery pages
-    // backwards through the room, so the indicator says it is still looking.
-    item(key = MEDIA_END) {
-        if (media != null && hasMore) {
-            Box(Modifier.fillMaxWidth().padding(16.dp), Alignment.Center) { LoadingIndicator(Modifier.size(40.dp)) }
-        } else {
-            Spacer(Modifier.height(1.dp))
-        }
+    if (media != null && (shared.files.size > FILES_CAP || hasMore)) {
+        item(key = "files-all") { ShowAllButton { onShowAll(true) } }
     }
 }
+
+/** With older history still unread, "none" only holds for the recent messages. */
+private fun noneNote(none: Int, hasMore: Boolean) = if (hasMore) R.string.details_none_recent else none
 
 @Composable
 private fun ShowAllButton(onClick: () -> Unit) {

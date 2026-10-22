@@ -36,7 +36,9 @@ sealed interface MessageBody {
         val filename: String,
         val mimeType: String?,
         val caption: Text?,
-        val sizeBytes: Long? = null
+        val sizeBytes: Long? = null,
+        /** A bridged GIF sent as video: played inline, silent and looping, without controls. */
+        val isGif: Boolean = false
     ) : MessageBody
 
     data class Audio(

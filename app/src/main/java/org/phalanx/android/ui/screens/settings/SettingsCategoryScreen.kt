@@ -81,6 +81,7 @@ fun SettingsCategoryScreen(
                     MessageHistorySection(current, viewModel, onOpenDeletedMessages)
                     BlockedUsersSection(blocked, viewModel::unblock)
                 }
+                SettingsCategory.Ai -> AiSettings(current, viewModel)
                 SettingsCategory.About -> AboutSettings()
                 SettingsCategory.Security, SettingsCategory.Notifications -> Unit
             }

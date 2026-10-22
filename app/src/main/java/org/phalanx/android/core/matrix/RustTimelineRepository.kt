@@ -25,6 +25,7 @@ internal class RustTimelineRepository @Inject constructor(
     private val active: ActiveClient,
     private val settings: SettingsStore,
     private val attachments: AttachmentPreparer,
+    private val drafts: RustDraftsRepository,
     @ApplicationScope scope: CoroutineScope
 ) : TimelineRepository {
     private val lock = Mutex()
@@ -43,7 +44,7 @@ internal class RustTimelineRepository @Inject constructor(
         withContext(Dispatchers.IO) {
             try {
                 val room = active.room(roomId) ?: return@withContext Result.failure(TimelineUnavailableException())
-                val session = RustTimelineSession.open(room, settings, attachments)
+                val session = RustTimelineSession.open(room, settings, attachments, drafts)
                 open[roomId] = session
                 evictOverflow()
                 Result.success(session)

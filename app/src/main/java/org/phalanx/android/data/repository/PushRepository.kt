@@ -20,6 +20,8 @@ interface PushRepository {
     /** [url] must be HTTPS; null goes back to finding one automatically. False if [url] is not valid. */
     suspend fun setCustomGateway(url: String?): Boolean
 
-    /** Removes the notifications of [roomId], once its conversation is open. */
-    fun dismiss(roomId: String)
+    /** [roomId]'s conversation is on screen: removes its notifications and shows none until [stopViewing]. */
+    fun startViewing(roomId: String)
+
+    fun stopViewing(roomId: String)
 }

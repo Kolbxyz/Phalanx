@@ -65,6 +65,19 @@ class AttachmentPreparer @Inject constructor(
         }
     }
 
+    /** [image] with the user's [edits] applied to the file as sent; the original file is left for the caller to discard. */
+    suspend fun edit(image: OutgoingMedia.Image, edits: ImageEdits): Result<OutgoingMedia.Image> =
+        withContext(Dispatchers.IO) {
+            try {
+                val edited = decodeImageFile(image.file, FULL_IMAGE_SIDE).edited(edits)
+                Result.success(writeImage(edited, image.file.nameWithoutExtension, quality = FULL_QUALITY))
+            } catch (e: IOException) {
+                Result.failure(e)
+            } catch (e: OutOfMemoryError) {
+                Result.failure(IOException("Image too large to edit", e))
+            }
+        }
+
     /** Scaled down and re-encoded; PNG when the picture has transparency, so it isn't lost. */
     private fun encodeImage(uri: Uri, name: String, full: Boolean): OutgoingMedia.Image {
         val bitmap = context.contentResolver.decodeScaled(uri, if (full) FULL_IMAGE_SIDE else MAX_IMAGE_SIDE)

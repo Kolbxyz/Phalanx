@@ -67,7 +67,7 @@ internal fun Composer(
                 enter = expandVertically(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
                 exit = shrinkVertically(motion.defaultSpatialSpec()) + fadeOut(motion.defaultEffectsSpec())
             ) {
-                AttachmentStrip(state.attachments, actions.onRemoveAttachment)
+                AttachmentStrip(state.attachments, actions.onRemoveAttachment, actions.onEditAttachment)
             }
             val fade = motion.defaultEffectsSpec<Float>()
             AnimatedContent(

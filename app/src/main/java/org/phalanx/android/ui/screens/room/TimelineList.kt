@@ -1,7 +1,5 @@
 package org.phalanx.android.ui.screens.room
 
-import android.content.Context
-import android.text.format.DateFormat
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -17,13 +15,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -32,14 +27,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
@@ -48,10 +42,6 @@ import org.phalanx.android.R
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.theme.LocalReducedMotion
 import org.phalanx.android.ui.theme.Symbols
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 private const val LOAD_AHEAD = 5
 private const val OLDER_KEY = "older"
@@ -74,8 +64,9 @@ internal fun TimelineList(
     val listState = rememberLazyListState()
     val motion = MaterialTheme.motionScheme
     val reducedMotion = LocalReducedMotion.current
-    // Whether the list sticks to the newest message as they arrive; see below.
-    var following by remember { mutableStateOf(true) }
+    // Whether the list sticks to the newest message as they arrive; see below. Saved, like the
+    // scroll position, for when the conversation comes back from the media viewer.
+    var following by rememberSaveable { mutableStateOf(true) }
 
     // A message asked for from elsewhere (a pinned message, a photo, a search hit): brought a little
     // above the middle and highlighted, so the eye finds it.
@@ -117,7 +108,12 @@ internal fun TimelineList(
             .collect { following = listState.firstVisibleItemIndex <= 1 }
     }
     val newest = state.entries.firstOrNull()
+    // Only a message that arrived since the list was last shown scrolls it: coming back to the
+    // conversation must not drop the reader at the bottom.
+    var shownNewest by rememberSaveable { mutableStateOf(newest?.id) }
     LaunchedEffect(newest?.id) {
+        if (newest?.id == shownNewest) return@LaunchedEffect
+        shownNewest = newest?.id
         if (following || (newest as? TimelineEntry.Message)?.isOwn == true) {
             if (reducedMotion) listState.scrollToItem(0) else listState.animateScrollToItem(0)
         }
@@ -126,10 +122,14 @@ internal fun TimelineList(
     val initialIds = remember { state.entries.mapTo(HashSet()) { it.id } }
     val reveal = remember { TimestampReveal() }
 
+    val entries by rememberUpdatedState(state.entries)
+    val voiceChain = remember { VoiceChain { id -> nextVoiceAfter(entries, id) } }
+    VoiceChainScroll(voiceChain, listState, entries, state.typing.isNotEmpty(), reducedMotion)
+
     val scope = rememberCoroutineScope()
     val showJump by remember { derivedStateOf { listState.firstVisibleItemIndex > JUMP_AFTER_ITEMS } }
     Box(Modifier.fillMaxSize()) {
-        CompositionLocalProvider(LocalTimestampReveal provides reveal) {
+        CompositionLocalProvider(LocalTimestampReveal provides reveal, LocalVoiceChain provides voiceChain) {
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
@@ -195,6 +195,12 @@ internal fun TimelineList(
                 }
             }
         }
+        FloatingDate(
+            listState = listState,
+            entries = state.entries,
+            hasTyping = state.typing.isNotEmpty(),
+            modifier = Modifier.align(Alignment.TopCenter).padding(top = padding.calculateTopPadding() + 8.dp)
+        )
         JumpToLatest(
             visible = showJump,
             onClick = {
@@ -211,45 +217,6 @@ private fun sameRun(earlier: TimelineEntry?, later: TimelineEntry?): Boolean {
     if (earlier !is TimelineEntry.Message || later !is TimelineEntry.Message) return false
     return earlier.senderId == later.senderId && later.timestampMillis - earlier.timestampMillis < RUN_GAP_MILLIS
 }
-
-/** A centred date chip: "Today", "Yesterday", the weekday within a week, otherwise the date. */
-@Composable
-private fun DayDivider(millis: Long, modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-    val label = remember(millis) { dayLabel(context, millis) }
-    Box(modifier.fillMaxWidth().padding(vertical = 12.dp), contentAlignment = Alignment.Center) {
-        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHigh) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .padding(horizontal = 14.dp, vertical = 6.dp)
-                    .semantics { heading() }
-            )
-        }
-    }
-}
-
-private fun dayLabel(context: Context, millis: Long): String {
-    val zone = ZoneId.systemDefault()
-    val day = Instant.ofEpochMilli(millis).atZone(zone).toLocalDate()
-    val today = LocalDate.now(zone)
-    val locale = context.resources.configuration.locales[0]
-    val skeleton = when {
-        day == today || day == today.minusDays(1) -> null
-        day.isAfter(today.minusDays(WEEK_DAYS)) -> "EEEE"
-        day.year == today.year -> "EEEdMMMM"
-        else -> "EEEdMMMMyyyy"
-    }
-    return when (skeleton) {
-        null -> context.getString(if (day == today) R.string.timeline_today else R.string.timeline_yesterday)
-        else -> DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, skeleton), locale).format(day)
-            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
-    }
-}
-
-private const val WEEK_DAYS = 6L
 
 /** Back to the newest message, shown once the user has scrolled up a little. */
 @Composable

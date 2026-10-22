@@ -18,11 +18,12 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import org.phalanx.android.ui.screens.account.AccountScreen
 import org.phalanx.android.ui.screens.deleted.DeletedMessagesScreen
+import org.phalanx.android.ui.screens.details.GalleryScreen
 import org.phalanx.android.ui.screens.details.RoomDetailsScreen
 import org.phalanx.android.ui.screens.devices.DevicesScreen
 import org.phalanx.android.ui.screens.media.MediaViewerScreen
@@ -50,7 +51,10 @@ fun PhalanxNavHost(openRoom: String?, onRoomOpened: () -> Unit) {
     val spatial: FiniteAnimationSpec<IntOffset> = MaterialTheme.motionScheme.defaultSpatialSpec()
     val effects: FiniteAnimationSpec<Float> = MaterialTheme.motionScheme.defaultEffectsSpec()
     SharedTransitionLayout {
-        CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+        CompositionLocalProvider(
+            LocalSharedTransitionScope provides this,
+            LocalTopEntry provides navController.currentBackStackEntryAsState().value
+        ) {
             NavHost(
                 navController = navController,
                 startDestination = RoomListRoute,
@@ -59,7 +63,7 @@ fun PhalanxNavHost(openRoom: String?, onRoomOpened: () -> Unit) {
                 popEnterTransition = { slideInHorizontally(spatial) { -it / SHIFT_DIVISOR } + fadeIn(effects) },
                 popExitTransition = { slideOutHorizontally(spatial) { it / SHIFT_DIVISOR } + fadeOut(effects) }
             ) {
-                composable<RoomListRoute> { entry ->
+                screen<RoomListRoute> { entry ->
                     RoomListScreen(
                         onOpenRoom = { navController.from(entry) { navigate(RoomRoute(it)) } },
                         onOpenMessage = { roomId, eventId -> navController.from(entry) { jumpTo(roomId, eventId) } },
@@ -67,69 +71,83 @@ fun PhalanxNavHost(openRoom: String?, onRoomOpened: () -> Unit) {
                         onOpenAccount = { navController.from(entry) { navigate(SettingsRoute) } }
                     )
                 }
-                composable<RoomRoute>(
+                screen<RoomRoute>(
                     exitTransition = { if (toMedia()) ExitTransition.KeepUntilTransitionsFinished else null },
                     popEnterTransition = { if (fromMedia()) EnterTransition.None else null }
                 ) { entry ->
-                    CompositionLocalProvider(LocalNavAnimatedScope provides this) {
-                        RoomScreen(
-                            onBack = { navController.from(entry) { popBackStack() } },
-                            onOpenDetails = { navController.from(entry) { navigate(RoomDetailsRoute(it)) } },
-                            onOpenMedia = { roomId, entryId ->
-                                navController.from(entry) { navigate(MediaViewerRoute(roomId, entryId)) }
-                            }
-                        )
-                    }
+                    RoomScreen(
+                        onBack = { navController.from(entry) { popBackStack() } },
+                        onOpenDetails = { navController.from(entry) { navigate(RoomDetailsRoute(it)) } },
+                        onOpenMedia = { roomId, entryId ->
+                            navController.from(entry) { navigate(MediaViewerRoute(roomId, entryId)) }
+                        },
+                        // A direct chat opened from a profile replaces this room, so back returns to the list.
+                        onOpenRoom = { roomId ->
+                            navController.from(entry) { navigate(RoomRoute(roomId)) { popUpTo(RoomListRoute) } }
+                        }
+                    )
                 }
                 // Fades over the room, which holds still, so the image growing out of its bubble is the
                 // only motion that reads.
-                composable<MediaViewerRoute>(
+                screen<MediaViewerRoute>(
                     enterTransition = { fadeIn(effects) },
                     exitTransition = { fadeOut(effects) },
                     popEnterTransition = { fadeIn(effects) },
                     popExitTransition = { fadeOut(effects) }
                 ) { entry ->
-                    CompositionLocalProvider(LocalNavAnimatedScope provides this) {
-                        MediaViewerScreen(
-                            onClose = { navController.from(entry) { popBackStack() } },
-                            onJumpTo = { roomId, eventId -> navController.from(entry) { jumpTo(roomId, eventId) } }
-                        )
-                    }
+                    MediaViewerScreen(
+                        onClose = { navController.from(entry) { popBackStack() } },
+                        onJumpTo = { roomId, eventId -> navController.from(entry) { jumpTo(roomId, eventId) } }
+                    )
                 }
-                composable<RoomDetailsRoute>(
+                screen<RoomDetailsRoute>(
                     exitTransition = { if (toMedia()) ExitTransition.KeepUntilTransitionsFinished else null },
                     popEnterTransition = { if (fromMedia()) EnterTransition.None else null }
                 ) { entry ->
-                    CompositionLocalProvider(LocalNavAnimatedScope provides this) {
-                        RoomDetailsScreen(
-                            onBack = { navController.from(entry) { popBackStack() } },
-                            onLeft = { navController.from(entry) { popBackStack(RoomListRoute, inclusive = false) } },
-                            onJumpTo = { roomId, eventId -> navController.from(entry) { jumpTo(roomId, eventId) } },
-                            onOpenMedia = { roomId, entryId ->
-                                navController.from(entry) {
-                                    navigate(MediaViewerRoute(roomId, entryId, fromGallery = true))
-                                }
+                    RoomDetailsScreen(
+                        onBack = { navController.from(entry) { popBackStack() } },
+                        onLeft = { navController.from(entry) { popBackStack(RoomListRoute, inclusive = false) } },
+                        onJumpTo = { roomId, eventId -> navController.from(entry) { jumpTo(roomId, eventId) } },
+                        onOpenMedia = { roomId, entryId ->
+                            navController.from(entry) {
+                                navigate(MediaViewerRoute(roomId, entryId, fromGallery = true))
                             }
-                        )
-                    }
+                        },
+                        onShowAll = { roomId, files ->
+                            navController.from(entry) { navigate(RoomGalleryRoute(roomId, files)) }
+                        }
+                    )
                 }
-                composable<AccountRoute> { entry ->
+                screen<RoomGalleryRoute>(
+                    exitTransition = { if (toMedia()) ExitTransition.KeepUntilTransitionsFinished else null },
+                    popEnterTransition = { if (fromMedia()) EnterTransition.None else null }
+                ) { entry ->
+                    GalleryScreen(
+                        onBack = { navController.from(entry) { popBackStack() } },
+                        onOpenMedia = { roomId, entryId ->
+                            navController.from(entry) {
+                                navigate(MediaViewerRoute(roomId, entryId, fromGallery = true))
+                            }
+                        }
+                    )
+                }
+                screen<AccountRoute> { entry ->
                     AccountScreen(
                         onBack = { navController.from(entry) { popBackStack() } },
                         onOpenDevices = { navController.from(entry) { navigate(DevicesRoute) } }
                     )
                 }
-                composable<DevicesRoute> { entry ->
+                screen<DevicesRoute> { entry ->
                     DevicesScreen(onBack = { navController.from(entry) { popBackStack() } })
                 }
-                composable<SettingsRoute> { entry ->
+                screen<SettingsRoute> { entry ->
                     SettingsScreen(
                         onBack = { navController.from(entry) { popBackStack() } },
                         onOpenAccount = { navController.from(entry) { navigate(AccountRoute) } },
                         onOpenCategory = { navController.from(entry) { navigate(SettingsCategoryRoute(it.name)) } }
                     )
                 }
-                composable<SettingsCategoryRoute> { entry ->
+                screen<SettingsCategoryRoute> { entry ->
                     val name = entry.toRoute<SettingsCategoryRoute>().category
                     val category = SettingsCategory.entries.firstOrNull { it.name == name }
                         ?: SettingsCategory.Appearance
@@ -140,7 +158,7 @@ fun PhalanxNavHost(openRoom: String?, onRoomOpened: () -> Unit) {
                         onOpenDeletedMessages = { navController.from(entry) { navigate(DeletedMessagesRoute) } }
                     )
                 }
-                composable<DeletedMessagesRoute> { entry ->
+                screen<DeletedMessagesRoute> { entry ->
                     DeletedMessagesScreen(onBack = { navController.from(entry) { popBackStack() } })
                 }
             }

@@ -1,6 +1,8 @@
 package org.phalanx.android.ui.screens.room
 
 import android.util.Patterns
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -10,6 +12,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.takeOrElse
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
@@ -31,6 +36,7 @@ internal fun MessageText(
     senderName: String,
     edited: Boolean,
     onMention: (userId: String) -> Unit,
+    onLongPress: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val links = TextLinkStyles(SpanStyle(textDecoration = TextDecoration.Underline))
@@ -41,11 +47,12 @@ internal fun MessageText(
         color = LocalContentColor.current.copy(alpha = EDITED_ALPHA)
     )
     val contentColor = LocalContentColor.current
+    val background = LocalBubbleColor.current.takeOrElse { MaterialTheme.colorScheme.surface }
     var revealed by remember(body) { mutableStateOf(false) }
-    val text = remember(body, senderName, edited, editedStyle, contentColor, revealed, onMention) {
+    val text = remember(body, senderName, edited, editedStyle, contentColor, background, revealed, onMention) {
         val content = body.html
             ?.let { AnnotatedString.fromHtml(it, links).trimEnd().withInlineEmotes(body.emotes) }
-            ?.withMarks(contentColor, revealed, onMention) { revealed = true }
+            ?.withMarks(contentColor, background, revealed, onMention) { revealed = true }
             ?: linkify(body.text, links)
         buildAnnotatedString {
             if (body.style == MessageBody.TextStyle.Emote) append("* $senderName ")
@@ -57,7 +64,7 @@ internal fun MessageText(
     val emotes = remember(body.emotes) { emoteContent(body.emotes) }
     Text(
         text = text,
-        modifier = modifier,
+        modifier = modifier.longPressOnLinks(onLongPress),
         inlineContent = emotes,
         style = messageTextStyle(),
         // Notices are what bots and bridges send about themselves; quieter than people's messages.
@@ -86,6 +93,33 @@ private fun linkify(text: String, styles: TextLinkStyles): AnnotatedString = bui
         if (target.startsWith("https://") || target.startsWith("http://")) {
             addLink(LinkAnnotation.Url(target, styles), match.range.first, match.range.last + 1)
         }
+    }
+}
+
+/**
+ * A link takes the press it lands on, so the bubble never sees it held. This watches for presses a
+ * link took and, once one is held, hands it to [onLongPress] and keeps the link from opening too.
+ */
+private fun Modifier.longPressOnLinks(onLongPress: () -> Unit) = pointerInput(onLongPress) {
+    awaitEachGesture {
+        // Links sit inside the text, so by now one has consumed the press if it took it.
+        val down = awaitFirstDown(requireUnconsumed = false)
+        if (!down.isConsumed) return@awaitEachGesture
+        // Null once the timeout passes: the finger stayed down and in place.
+        val released = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
+            while (true) {
+                val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id } ?: break
+                val moved = (change.position - down.position).getDistance() > viewConfiguration.touchSlop
+                if (!change.pressed || moved) break
+            }
+        }
+        if (released != null) return@awaitEachGesture
+        onLongPress()
+        // Consumed ahead of the link, so lifting the finger doesn't open it.
+        do {
+            val event = awaitPointerEvent(PointerEventPass.Initial)
+            event.changes.forEach { it.consume() }
+        } while (event.changes.any { it.pressed })
     }
 }
 

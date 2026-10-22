@@ -11,6 +11,18 @@ import org.phalanx.android.R
  * Named as the old Material Icons were; a few are the filled style where state calls for it.
  */
 internal object Symbols {
+    val Crop: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_crop)
+    val Flip: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_flip)
+    val RotateRight: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_rotate_right)
+    val Brush: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_brush)
+    val BlurOn: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_blur_on)
+    val Undo: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_undo)
     val PlayArrow: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_play_arrow_filled)
     val Key: ImageVector
@@ -85,6 +97,10 @@ internal object Symbols {
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_open_in_new)
     val PushPin: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_keep)
+    val Summarize: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_sparkle)
+    val Sticker: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_sticker)
     val PhotoLibrary: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_photo_library)
     val PermMedia: ImageVector

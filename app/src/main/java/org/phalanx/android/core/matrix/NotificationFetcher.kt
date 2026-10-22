@@ -11,15 +11,20 @@ import org.matrix.rustcomponents.sdk.NotificationProcessSetup
 import org.matrix.rustcomponents.sdk.NotificationStatus
 import org.matrix.rustcomponents.sdk.TimelineEventContent
 import org.matrix.rustcomponents.sdk.use
+import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.model.IncomingMessage
 import org.phalanx.android.data.model.MessageBody
+import org.phalanx.android.data.model.NotificationPicture
 import org.phalanx.android.data.model.UnsupportedKind
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /** Turns a push's event ID into a message, through the SDK's short notification sync and local decryption. */
 @Singleton
-internal class NotificationFetcher @Inject constructor(private val active: ActiveClient) {
+internal class NotificationFetcher @Inject constructor(
+    private val active: ActiveClient,
+    private val settings: SettingsStore
+) {
     /**
      * Null when there is nothing to show: the account signed out, the push rules filter the event,
      * or it was redacted or is a kind that never notifies. A failure is worth retrying.
@@ -29,13 +34,19 @@ internal class NotificationFetcher @Inject constructor(private val active: Activ
         active.restore()
         val client = active.client() ?: return Result.success(null)
         val sync = active.syncService.value ?: return Result.success(null)
+        val pictures = settings.current().autoLoadMedia
         return try {
             // Not destroyed: SingleProcess borrows the sync service, which the active client owns.
             val setup = NotificationProcessSetup.SingleProcess(sync)
             val message = client.notificationClient(setup).use { notifications ->
                 when (val status = notifications.getNotification(roomId, eventId)) {
                     is NotificationStatus.Event -> status.item.toIncoming(roomId, eventId)
-                        ?.let { it.copy(senderAvatar = client.avatarBitmap(status.item.senderInfo.avatarUrl)) }
+                        ?.let {
+                            it.copy(
+                                senderAvatar = client.avatarBitmap(status.item.senderInfo.avatarUrl),
+                                picture = if (pictures) it.body?.let { body -> client.pictureOf(body) } else null
+                            )
+                        }
                         .also { status.destroy() }
                     NotificationStatus.EventNotFound,
                     NotificationStatus.EventFilteredOut,
@@ -95,6 +106,30 @@ private suspend fun Client.avatarBitmap(url: String?) = url?.let {
         null
     }
 }
+
+/**
+ * A photo's (or a video's) server thumbnail, for the notification to show; best effort. A GIF's
+ * is a still frame: notifications draw no animation.
+ */
+private suspend fun Client.pictureOf(body: MessageBody): NotificationPicture? {
+    val (ref, mimeType) = when (body) {
+        is MessageBody.Image -> (body.thumbnail ?: body.media) to (body.mimeType ?: JPEG)
+        is MessageBody.Video -> body.thumbnail to JPEG
+        else -> null to JPEG
+    }
+    if (ref == null) return null
+    return try {
+        val bytes = ref.toSource().use { getMediaThumbnail(it, PICTURE_PX.toULong(), PICTURE_PX.toULong()) }
+        // The server picks the thumbnail's format; the system reads the bytes, not this label.
+        NotificationPicture(bytes, mimeType.takeIf { it.startsWith("image/") } ?: JPEG)
+    } catch (_: ClientException) {
+        null
+    }
+}
+
+// Wide enough for an expanded notification on any phone, small enough to fetch on every push.
+private const val PICTURE_PX = 640
+private const val JPEG = "image/jpeg"
 
 // The 48 dp conversation avatar at up to 3x density.
 private const val AVATAR_PX = 144

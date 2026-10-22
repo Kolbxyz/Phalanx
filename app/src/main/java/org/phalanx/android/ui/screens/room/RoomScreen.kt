@@ -22,8 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.phalanx.android.R
+import org.phalanx.android.data.model.OutgoingMedia
+import org.phalanx.android.ui.screens.imageedit.ImageEditor
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.components.OpenFileEffect
 import org.phalanx.android.ui.components.TimelinePlaceholder
@@ -34,7 +37,9 @@ fun RoomScreen(
     onBack: () -> Unit,
     onOpenDetails: (roomId: String) -> Unit,
     onOpenMedia: (roomId: String, entryId: String) -> Unit,
-    viewModel: RoomViewModel = hiltViewModel()
+    onOpenRoom: (roomId: String) -> Unit,
+    viewModel: RoomViewModel = hiltViewModel(),
+    summary: SummaryViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val composerState by viewModel.composer.state.collectAsStateWithLifecycle()
@@ -46,9 +51,17 @@ fun RoomScreen(
     var selected by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     var profileOf by remember { mutableStateOf<String?>(null) }
     var attaching by remember { mutableStateOf(false) }
+    var stickering by remember { mutableStateOf(false) }
+    var editingImage by remember { mutableStateOf<String?>(null) }
     var scheduling by remember { mutableStateOf(false) }
     val scheduled by viewModel.scheduled.collectAsStateWithLifecycle()
+    val summaryState by summary.state.collectAsStateWithLifecycle()
     val launchers = rememberAttachLaunchers(viewModel)
+
+    LifecycleResumeEffect(viewModel) {
+        viewModel.onShown()
+        onPauseOrDispose { viewModel.onHidden() }
+    }
 
     OpenFileEffect(openRequest, viewModel::onOpened) { viewModel.notify(R.string.timeline_open_failed) }
 
@@ -56,12 +69,13 @@ fun RoomScreen(
         MessageActions(
             onOpenMedia = { onOpenMedia(viewModel.roomId, it.id) },
             onOpenFile = viewModel::openFile,
-            resolveAudio = viewModel::audioUri,
+            resolveFile = viewModel::fileUri,
             onToggleReaction = viewModel::toggleReaction,
             onShowReactors = viewModel::showReactors,
             onReply = viewModel.composer::reply,
             onLongPress = { selected = it },
-            onOpenProfile = { profileOf = it }
+            onOpenProfile = { profileOf = it },
+            onJumpTo = viewModel::jumpTo
         )
     }
     val composerActions = remember(viewModel) {
@@ -73,6 +87,7 @@ fun RoomScreen(
             onCancelMode = composer::cancelMode,
             onAttach = { attaching = true },
             onRemoveAttachment = composer::removeAttachment,
+            onEditAttachment = { editingImage = it },
             onRecord = launchers.record,
             onCancelRecording = composer::cancelRecording,
             onSendRecording = composer::sendRecording,
@@ -85,7 +100,13 @@ fun RoomScreen(
     val ready = state as? RoomUiState.Ready
     val prefs = settings?.timelinePrefs() ?: TimelinePrefs()
     Scaffold(
-        topBar = { RoomTopBar(header, ready?.title, onBack, onOpenDetails = { onOpenDetails(viewModel.roomId) }) },
+        topBar = {
+            RoomTopBar(
+                header, ready?.title, onBack,
+                onOpenDetails = { onOpenDetails(viewModel.roomId) },
+                onSummarize = if (settings?.aiSummaries == true) summary::start else null
+            )
+        },
         bottomBar = {
             if (ready != null) {
                 Composer(composerState, composerActions, enterToSend = settings?.enterToSend == true, scheduled)
@@ -116,9 +137,28 @@ fun RoomScreen(
     TopNoticeHost(notice, onDismiss = viewModel::dismissNotice)
 
     MessageMenu(selected, onDismiss = { selected = null }, viewModel)
-    ProfileMenu(profileOf, onDismiss = { profileOf = null }, viewModel)
+    ProfileMenu(profileOf, onDismiss = { profileOf = null }, onOpenRoom, viewModel)
     val reactors by viewModel.reactors.collectAsStateWithLifecycle()
     reactors?.let { ReactorsSheet(it, onDismiss = viewModel::dismissReactors) }
+    editingImage?.let { id ->
+        val image = composerState.attachments.firstOrNull { it.id == id }?.media as? OutgoingMedia.Image
+        if (image == null) {
+            editingImage = null
+        } else {
+            ImageEditor(
+                file = image.file,
+                onDone = {
+                    viewModel.composer.editAttachment(id, it)
+                    editingImage = null
+                },
+                onFailed = {
+                    editingImage = null
+                    viewModel.notify(R.string.editor_failed)
+                },
+                onDismiss = { editingImage = null }
+            )
+        }
+    }
     if (scheduling) {
         ScheduleSheet(
             exact = viewModel.canScheduleExactly(),
@@ -140,7 +180,22 @@ fun RoomScreen(
             onPhoto = pick(launchers.photo),
             onVideo = pick(launchers.video),
             onGallery = pick(launchers.gallery),
-            onFile = pick(launchers.file)
+            onFile = pick(launchers.file),
+            onSticker = {
+                attaching = false
+                stickering = true
+            }
+        )
+    }
+    SummarySheet(summaryState, onDismiss = summary::dismiss)
+    if (stickering) {
+        StickerSheet(
+            loadPacks = viewModel::stickerPacks,
+            onDismiss = { stickering = false },
+            onPick = {
+                stickering = false
+                viewModel.sendSticker(it)
+            }
         )
     }
 }

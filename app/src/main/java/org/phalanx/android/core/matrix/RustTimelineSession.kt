@@ -47,6 +47,7 @@ internal class RustTimelineSession private constructor(
     private val timeline: Timeline,
     private val settings: SettingsStore,
     private val attachments: AttachmentPreparer,
+    private val drafts: RustDraftsRepository,
     override val title: String,
     override val isDirect: Boolean
 ) : TimelineSession {
@@ -120,6 +121,7 @@ internal class RustTimelineSession private constructor(
     }
 
     override fun saveDraft(text: String) {
+        drafts.saved(room.id(), text)
         scope.launch {
             runCatchingSdk {
                 if (text.isBlank()) {
@@ -267,10 +269,15 @@ internal class RustTimelineSession private constructor(
         private const val MAX_PAGES_PER_LOAD = 5
 
         /** Opens [room]'s live timeline; the session owns [room] from here and releases it in [close]. */
-        suspend fun open(room: Room, settings: SettingsStore, attachments: AttachmentPreparer): RustTimelineSession {
+        suspend fun open(
+            room: Room,
+            settings: SettingsStore,
+            attachments: AttachmentPreparer,
+            drafts: RustDraftsRepository
+        ): RustTimelineSession {
             val timeline = room.timeline()
             val title = room.displayName() ?: room.id()
-            val session = RustTimelineSession(room, timeline, settings, attachments, title, room.isDirect())
+            val session = RustTimelineSession(room, timeline, settings, attachments, drafts, title, room.isDirect())
             session.start()
             return session
         }

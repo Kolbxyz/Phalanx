@@ -50,6 +50,7 @@ private const val FLAT_LEVEL = 0.25f
 /** Play/pause, the waveform filling up as it plays, and the duration. */
 @Composable
 internal fun AudioContent(
+    entryId: String,
     body: MessageBody.Audio,
     resolve: suspend (MediaRef, String, String?) -> Uri?,
     modifier: Modifier = Modifier
@@ -60,6 +61,7 @@ internal fun AudioContent(
     var playing by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
     var progress by remember { mutableFloatStateOf(0f) }
+    val chain = LocalVoiceChain.current
 
     DisposableEffect(Unit) { onDispose { player?.release() } }
     // Only ticks while sound is actually playing.
@@ -82,10 +84,19 @@ internal fun AudioContent(
                     prepare(context, it, body.isVoice, onReady = { playing = true }, onDone = {
                         playing = false
                         progress = 0f
+                        if (body.isVoice) chain?.ended(entryId)
                     })
                 }
                 loading = false
             }
+        }
+    }
+
+    // The previous voice message ended: this one's turn.
+    if (chain?.pending == entryId) {
+        LaunchedEffect(Unit) {
+            chain.pending = null
+            if (!playing) toggle()
         }
     }
 

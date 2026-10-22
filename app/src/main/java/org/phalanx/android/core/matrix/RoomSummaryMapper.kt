@@ -2,6 +2,7 @@ package org.phalanx.android.core.matrix
 
 import org.matrix.rustcomponents.sdk.LatestEventValue
 import org.matrix.rustcomponents.sdk.Room
+import org.matrix.rustcomponents.sdk.RoomNotificationMode
 import org.matrix.rustcomponents.sdk.TimelineItemContent
 import org.matrix.rustcomponents.sdk.use
 import org.phalanx.android.data.model.MessageBody
@@ -37,8 +38,10 @@ internal suspend fun Room.toSummary(): RoomSummary = use { room ->
         previewIsOwn = latest.isOwn,
         previewSender = latest.sender,
         lastActivityMillis = latest.timestampMillis,
-        unreadCount = info.notificationCount.toLong(),
-        highlightCount = info.highlightCount.toLong(),
+        // The server's counts miss encrypted rooms (it can't read them) and rooms not set to notify
+        // on every message; the SDK's own counts cover both.
+        unreadCount = maxOf(info.numUnreadMessages, info.notificationCount).toLong(),
+        highlightCount = maxOf(info.numUnreadMentions, info.highlightCount).toLong(),
         isFavourite = info.isFavourite,
         isMarkedUnread = info.isMarkedUnread,
         dmUserId = dmHero?.userId,
@@ -47,8 +50,8 @@ internal suspend fun Room.toSummary(): RoomSummary = use { room ->
         isEncrypted = info.encryptionState == EncryptionState.ENCRYPTED,
         isLowPriority = info.isLowPriority,
         pinnedEventIds = info.pinnedEventIds.toSet(),
-        // The heroes are the few members a room is summed up by; bridged rooms list puppets there.
-        bridge = bridgeOf(info.heroes.map { it.userId } + info.serviceMembers)
+        bridge = info.bridge(),
+        isMuted = info.cachedUserDefinedNotificationMode == RoomNotificationMode.MUTE
     )
 }
 

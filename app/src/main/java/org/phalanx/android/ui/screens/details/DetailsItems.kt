@@ -28,6 +28,7 @@ import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.components.SegmentedRow
 import org.phalanx.android.ui.screens.room.summaryOf
+import org.phalanx.android.ui.screens.room.videoPreview
 import org.phalanx.android.ui.theme.Symbols
 
 private const val TILE_PX = 360
@@ -54,12 +55,13 @@ internal fun MediaGridRow(items: List<TimelineEntry.Message>, columns: Int, onOp
     }
 }
 
+/** A square thumbnail; a video's carries a play mark. */
 @Composable
-private fun MediaTile(message: TimelineEntry.Message, modifier: Modifier, onOpen: (TimelineEntry.Message) -> Unit) {
+internal fun MediaTile(message: TimelineEntry.Message, modifier: Modifier, onOpen: (TimelineEntry.Message) -> Unit) {
     val body = message.body
     val thumbnail = when (body) {
-        is MessageBody.Image -> body.thumbnail ?: body.media
-        is MessageBody.Video -> body.thumbnail
+        is MessageBody.Image -> MediaRequest(body.thumbnail ?: body.media, TILE_PX)
+        is MessageBody.Video -> videoPreview(body, TILE_PX)
         else -> null
     }
     Surface(
@@ -70,7 +72,7 @@ private fun MediaTile(message: TimelineEntry.Message, modifier: Modifier, onOpen
         Box(contentAlignment = Alignment.Center) {
             thumbnail?.let {
                 AsyncImage(
-                    model = MediaRequest(it, TILE_PX),
+                    model = it,
                     contentDescription = summaryOf(body),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()

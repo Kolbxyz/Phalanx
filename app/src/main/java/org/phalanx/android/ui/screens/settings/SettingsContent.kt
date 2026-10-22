@@ -73,8 +73,14 @@ internal fun AboutSettings() {
         SegmentedRow(
             headline = stringResource(R.string.app_name),
             supporting = stringResource(R.string.settings_version, BuildConfig.VERSION_NAME),
-            shape = segmentedShape(0, 1),
+            shape = segmentedShape(0, 2),
             leading = { Icon(Symbols.Info, contentDescription = null) }
+        )
+        SegmentedRow(
+            headline = stringResource(R.string.settings_stickers_credit),
+            supporting = stringResource(R.string.settings_stickers_credit_summary),
+            shape = segmentedShape(1, 2),
+            leading = { Icon(Symbols.Sticker, contentDescription = null) }
         )
     }
 }

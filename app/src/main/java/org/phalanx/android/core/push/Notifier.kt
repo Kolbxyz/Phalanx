@@ -25,6 +25,7 @@ import org.phalanx.android.MainActivity
 import org.phalanx.android.R
 import org.phalanx.android.data.model.IncomingMessage
 import org.phalanx.android.ui.screens.room.summaryOf
+import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -38,6 +39,9 @@ internal class Notifier @Inject constructor(@ApplicationContext private val cont
 
     /** MessagingStyle needs a "me"; this account's own messages are never notified, so it rarely shows. */
     private val self = Person.Builder().setName(context.getString(R.string.notification_self)).build()
+
+    /** The room whose conversation is on screen; its messages are already in front of the user. */
+    private val viewing = AtomicReference<String?>(null)
 
     init {
         manager.createNotificationChannels(
@@ -63,7 +67,7 @@ internal class Notifier @Inject constructor(@ApplicationContext private val cont
 
     @SuppressLint("MissingPermission") // Checked by allowed().
     fun show(message: IncomingMessage) {
-        if (!allowed()) return
+        if (!allowed() || message.roomId == viewing.get()) return
         val text = message.body?.let { summaryOf(it, context::getString) }
             ?: context.getString(R.string.notification_invite, message.senderName)
         val style: NotificationCompat.MessagingStyle =
@@ -74,7 +78,9 @@ internal class Notifier @Inject constructor(@ApplicationContext private val cont
             .setName(message.senderName)
             .setIcon(message.senderAvatar?.let(IconCompat::createWithBitmap))
             .build()
-        style.addMessage(text, message.timestampMillis, sender)
+        val line = NotificationCompat.MessagingStyle.Message(text, message.timestampMillis, sender)
+        message.picture?.let { line.setData(it.mimeType, NotificationPictureProvider.publish(context, it)) }
+        style.addMessage(line)
         publishShortcut(message, sender)
         val notification = NotificationCompat.Builder(context, if (message.isNoisy) CHANNEL_MESSAGES else CHANNEL_QUIET)
             .setSmallIcon(R.drawable.ic_notification)
@@ -139,6 +145,17 @@ internal class Notifier @Inject constructor(@ApplicationContext private val cont
     }
 
     fun dismiss(roomId: String) = manager.cancel(roomId, MESSAGE_ID)
+
+    /** [roomId]'s conversation came on screen: its notification is stale and new ones are held back. */
+    fun startViewing(roomId: String) {
+        viewing.set(roomId)
+        dismiss(roomId)
+    }
+
+    // Only if no other room came on screen in between, as when one room opens another.
+    fun stopViewing(roomId: String) {
+        viewing.compareAndSet(roomId, null)
+    }
 
     fun dismissAll() = manager.cancelAll()
 

@@ -19,6 +19,10 @@ data class MediaViewerRoute(val roomId: String, val entryId: String, val fromGal
 @Serializable
 data class RoomDetailsRoute(val roomId: String)
 
+/** All of [roomId]'s photos and videos, or with [files] all its files and audio. */
+@Serializable
+data class RoomGalleryRoute(val roomId: String, val files: Boolean)
+
 @Serializable
 data object AccountRoute
 

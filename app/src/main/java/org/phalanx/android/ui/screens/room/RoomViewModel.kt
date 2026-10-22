@@ -27,6 +27,8 @@ import org.phalanx.android.data.model.MediaRef
 import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.model.ScheduledMessage
+import org.phalanx.android.data.model.Sticker
+import org.phalanx.android.data.model.StickerPack
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.model.UserTrust
 import org.phalanx.android.data.repository.BlockedUsersRepository
@@ -36,6 +38,7 @@ import org.phalanx.android.data.repository.PushRepository
 import org.phalanx.android.data.repository.RoomListRepository
 import org.phalanx.android.data.repository.ScheduleRepository
 import org.phalanx.android.data.repository.SecurityRepository
+import org.phalanx.android.data.repository.StickerRepository
 import org.phalanx.android.data.repository.TimelineRepository
 import org.phalanx.android.data.repository.TimelineSession
 import org.phalanx.android.ui.components.Notice
@@ -53,11 +56,12 @@ class RoomViewModel @Inject constructor(
     recorder: VoiceRecorder,
     roomList: RoomListRepository,
     private val mutedUsers: MutedUsersRepository,
-    push: PushRepository,
+    private val push: PushRepository,
     private val blockedUsers: BlockedUsersRepository,
     settingsStore: SettingsStore,
     private val schedules: ScheduleRepository,
-    private val security: SecurityRepository
+    private val security: SecurityRepository,
+    private val stickers: StickerRepository
 ) : ViewModel() {
     private val route = savedStateHandle.toRoute<RoomRoute>()
     val roomId: String = route.roomId
@@ -104,8 +108,6 @@ class RoomViewModel @Inject constructor(
     }
 
     init {
-        // Reading the room makes its notifications stale.
-        push.dismiss(roomId)
         viewModelScope.launch {
             timelines.open(roomId).fold(
                 onSuccess = { opened ->
@@ -127,6 +129,11 @@ class RoomViewModel @Inject constructor(
     }
 
     /** Where the camera app should write a new photo or video before it is attached. */
+    /** While the conversation is on screen, its messages need no notification. */
+    fun onShown() = push.startViewing(roomId)
+
+    fun onHidden() = push.stopViewing(roomId)
+
     fun captureUri(video: Boolean): Uri = preparer.captureUri(video)
 
     fun toggleReaction(message: TimelineEntry.Message, key: String) = act { it.toggleReaction(message, key) }
@@ -142,6 +149,14 @@ class RoomViewModel @Inject constructor(
                 onSuccess = { notify(R.string.timeline_forwarded, NoticeKind.Done) },
                 onFailure = { notify(R.string.timeline_action_failed) }
             )
+        }
+    }
+
+    suspend fun stickerPacks(): List<StickerPack> = stickers.packs()
+
+    fun sendSticker(sticker: Sticker) {
+        viewModelScope.launch {
+            stickers.send(roomId, sticker).onFailure { notify(R.string.composer_send_failed) }
         }
     }
 
@@ -209,7 +224,7 @@ class RoomViewModel @Inject constructor(
         mutableOpen.value = null
     }
 
-    suspend fun audioUri(ref: MediaRef, filename: String, mimeType: String?): Uri? =
+    suspend fun fileUri(ref: MediaRef, filename: String, mimeType: String?): Uri? =
         media.openable(ref, filename, mimeType).onFailure { notify(R.string.timeline_open_failed) }.getOrNull()
 
     fun notify(@StringRes message: Int, kind: NoticeKind = NoticeKind.Error) {
@@ -222,6 +237,14 @@ class RoomViewModel @Inject constructor(
 
     fun dismissNotice() {
         mutableNotice.value = null
+    }
+
+    fun jumpTo(eventId: String) {
+        val current = session ?: return
+        viewModelScope.launch {
+            val found = current.seek(eventId)
+            if (found != null) mutableFocus.value = found else notify(R.string.timeline_focus_not_found)
+        }
     }
 
     fun onFocused() {

@@ -19,3 +19,7 @@
 -keepclassmembers class org.phalanx.android.** { *** Companion; }
 -keepclasseswithmembers class org.phalanx.android.** { kotlinx.serialization.KSerializer serializer(...); }
 -keep,includedescriptorclasses class org.phalanx.android.**$$serializer { *; }
+
+# Called by name from the native library (src/main/cpp/phalanx_llm.cpp).
+-keep class org.phalanx.android.core.ai.LlamaNative { native <methods>; }
+-keep interface org.phalanx.android.core.ai.TokenSink { *; }

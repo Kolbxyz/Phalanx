@@ -33,7 +33,8 @@ internal fun AttachSheet(
     onPhoto: () -> Unit,
     onVideo: () -> Unit,
     onGallery: () -> Unit,
-    onFile: () -> Unit
+    onFile: () -> Unit,
+    onSticker: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
     ModalSheet(onDismissRequest = onDismiss) {
@@ -49,6 +50,8 @@ internal fun AttachSheet(
                 colors.tertiaryContainer, colors.onTertiaryContainer, onVideo)
             Choice(Symbols.InsertDriveFile, R.string.composer_attach_file,
                 MaterialShapes.Clover4Leaf.toShape(), colors.surfaceContainerHighest, colors.onSurface, onFile)
+            Choice(Symbols.Sticker, R.string.composer_attach_sticker, MaterialShapes.Puffy.toShape(),
+                colors.errorContainer, colors.onErrorContainer, onSticker)
         }
     }
 }

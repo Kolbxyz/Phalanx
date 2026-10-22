@@ -35,6 +35,8 @@ data class AppSettings(
      * that time can still be read. Turning it off erases the copies.
      */
     val keepDeletedMessages: Boolean = false,
+    /** On: a conversation can be summed up by a language model that runs on this phone only. */
+    val aiSummaries: Boolean = false,
     /** The Matrix push gateway the user chose. Null: the distributor's own, else the public one. */
     val pushGateway: String? = null
 )
