@@ -46,6 +46,9 @@ private const val GIF_MIME = "image/gif"
 
 // Server thumbnails at this size stay sharp at the bubble's width on any phone screen.
 private const val THUMBNAIL_PX = 800
+
+// Discord's GIFs weigh a few megabytes at most.
+private const val FRAME_MAX_BYTES = 8L * 1024 * 1024
 private const val STICKER_PX = 512
 private const val MIN_RATIO = 0.6f
 private const val MAX_RATIO = 1.8f
@@ -109,6 +112,7 @@ private fun TapToLoad(description: String, modifier: Modifier, onLoad: () -> Uni
 @Composable
 internal fun VideoContent(
     body: MessageBody.Video,
+    actions: MessageActions,
     onOpen: () -> Unit,
     onLongPress: () -> Unit,
     modifier: Modifier = Modifier
@@ -122,13 +126,18 @@ internal fun VideoContent(
         contentAlignment = Alignment.Center
     ) {
         val load = LocalTimelinePrefs.current.autoLoadMedia
-        body.thumbnail?.takeIf { load }?.let {
+        videoPreview(body, THUMBNAIL_PX)?.takeIf { load }?.let {
             AsyncImage(
-                model = MediaRequest(it, THUMBNAIL_PX),
+                model = it,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
+        }
+        if (body.isGif) {
+            // Plays over its still frame like an image would, with nothing to press or time.
+            if (load) GifVideo(body, actions)
+            return@Box
         }
         Surface(shape = MaterialShapes.Circle.toShape(), color = MaterialTheme.colorScheme.primaryContainer) {
             Icon(
@@ -205,6 +214,16 @@ internal fun LocationContent(body: MessageBody.Location, onLongPress: () -> Unit
             style = MaterialTheme.typography.bodyLarge
         )
     }
+}
+
+/**
+ * The server's thumbnail, or else the first frame of a short video (Discord sends its GIFs as
+ * MP4s without one). Longer videos are not downloaded whole just for a still.
+ */
+internal fun videoPreview(body: MessageBody.Video, px: Int): MediaRequest? = when {
+    body.thumbnail != null -> MediaRequest(body.thumbnail, px)
+    (body.sizeBytes ?: Long.MAX_VALUE) <= FRAME_MAX_BYTES -> MediaRequest(body.media, px, videoFrame = true)
+    else -> null
 }
 
 private fun ratioOf(width: Int?, height: Int?): Float {

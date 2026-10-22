@@ -52,7 +52,7 @@ private fun EventTimelineItem.toMessage(id: String, context: MappingContext): Ti
         senderName = nameOf(sender, senderProfile),
         senderAvatar = mediaRefOf((senderProfile as? ProfileDetails.Ready)?.avatarUrl),
         isOwn = isOwn,
-        body = msgLike.kind.toBody(isReply = reply != null),
+        body = withGifFlag(msgLike.kind.toBody(isReply = reply != null)),
         replyTo = reply?.toPreview(eventId, context),
         reactions = reactions.map { it.toSummary(context.ownUserId) },
         timestampMillis = timestamp.toLong(),
@@ -85,15 +85,15 @@ private fun InReplyToDetails.toPreview(replyEventId: String?, context: MappingCo
             val body = ((details.content as? TimelineItemContent.MsgLike)?.content?.kind)?.toBody(isReply = true)
                 ?: MessageBody.Unsupported(UnsupportedKind.Other)
             details.content.destroy()
-            ReplyPreview(nameOf(details.sender, details.senderProfile), body)
+            ReplyPreview(nameOf(details.sender, details.senderProfile), body, eventId = eventId())
         }
         EmbeddedEventDetails.Unavailable -> {
             // A local echo has no event ID yet; its remote echo arrives with the details loaded.
             replyEventId?.let(context.onMissingReply)
-            ReplyPreview(senderName = null, body = null)
+            ReplyPreview(senderName = null, body = null, eventId = eventId())
         }
-        EmbeddedEventDetails.Pending -> ReplyPreview(senderName = null, body = null)
-        is EmbeddedEventDetails.Error -> ReplyPreview(senderName = null, body = null, isUnavailable = true)
+        EmbeddedEventDetails.Pending -> ReplyPreview(senderName = null, body = null, eventId = eventId())
+        is EmbeddedEventDetails.Error -> ReplyPreview(senderName = null, body = null, isUnavailable = true, eventId = eventId())
     }
 
 private fun Reaction.toSummary(ownUserId: String) =
