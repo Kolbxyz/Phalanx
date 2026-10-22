@@ -140,7 +140,7 @@ internal class ComposerController(
         if (media.isEmpty()) {
             scope.launch {
                 // The text is only cleared once the SDK accepted it, so a failure never loses it.
-                current.send(text, replyTo).fold(
+                current.send(text, replyTo = replyTo).fold(
                     onSuccess = {
                         update { if (it.draft.trim() == text) it.copy(draft = "", mode = ComposerMode.New) else it }
                     },
@@ -155,7 +155,7 @@ internal class ComposerController(
         val caption = text.takeIf { it.isNotEmpty() && media.size == 1 }
         scope.launch {
             if (caption == null && text.isNotEmpty()) {
-                current.send(text, replyTo).onFailure { notify(SEND_FAILED) }
+                current.send(text, replyTo = replyTo).onFailure { notify(SEND_FAILED) }
             }
             media.forEachIndexed { index, item ->
                 launch {
