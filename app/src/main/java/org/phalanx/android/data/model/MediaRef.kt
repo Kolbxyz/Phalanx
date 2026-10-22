@@ -11,7 +11,8 @@ data class MediaRef(internal val serialized: String)
 
 /**
  * What the image loader is asked for: [ref] scaled down by the server to about [thumbnailPx]
- * square, or the original when [thumbnailPx] is null.
+ * square, or the original when [thumbnailPx] is null. With [videoFrame], [ref] is a video and the
+ * picture is its first frame, taken on the device at most [thumbnailPx] wide.
  */
 @Immutable
-data class MediaRequest(val ref: MediaRef, val thumbnailPx: Int? = null)
+data class MediaRequest(val ref: MediaRef, val thumbnailPx: Int? = null, val videoFrame: Boolean = false)
