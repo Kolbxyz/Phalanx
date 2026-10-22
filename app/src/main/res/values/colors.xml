@@ -3,4 +3,5 @@
     <color name="phalanx_window_background">#FFF7F9FC</color>
     <color name="phalanx_icon_background">#FFE2A93B</color>
     <color name="phalanx_icon_foreground">#FF3A2410</color>
+    <color name="phalanx_notification_accent">#FFE2A93B</color>
 </resources>
