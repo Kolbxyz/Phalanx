@@ -1,5 +1,6 @@
 package org.phalanx.android.core.matrix
 
+import org.matrix.rustcomponents.sdk.RoomInfo
 import org.phalanx.android.data.model.Bridge
 
 /**
@@ -14,3 +15,6 @@ internal fun bridgeOf(userIds: List<String>): Bridge? = userIds.firstNotNullOfOr
         }
     }
 }
+
+/** The heroes are the few members a room is summed up by; bridged rooms list puppets there. */
+internal fun RoomInfo.bridge(): Bridge? = bridgeOf(heroes.map { it.userId } + serviceMembers)
