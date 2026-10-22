@@ -16,7 +16,6 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
+import org.phalanx.android.ui.components.ModalSheet
 import org.phalanx.android.ui.theme.Symbols
 
 private val QuickReactions = listOf("👍", "❤️", "😂", "😮", "😢", "🙏")
@@ -44,14 +44,18 @@ internal fun MessageActionsSheet(
     onReply: () -> Unit,
     onCopy: () -> Unit,
     onEdit: () -> Unit,
+    /** Null when the message's versions are not offered: not edited, or the setting is off. */
+    onShowVersions: (() -> Unit)?,
     onForward: () -> Unit,
+    pinned: Boolean,
+    onTogglePin: () -> Unit,
     onDelete: () -> Unit,
     senderMuted: Boolean,
     onToggleMute: () -> Unit,
     onBlock: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    ModalSheet(onDismissRequest = onDismiss) {
         val live = message.body != MessageBody.Redacted
         if (live && message.eventId != null) {
             Row(
@@ -78,9 +82,13 @@ internal fun MessageActionsSheet(
         if (live && message.eventId != null && message.body.isForwardable()) {
             Action(Symbols.Forward, R.string.action_forward, onForward)
         }
+        if (live && message.eventId != null) {
+            Action(Symbols.PushPin, if (pinned) R.string.action_unpin else R.string.action_pin, onTogglePin)
+        }
         if (message.canEdit && message.body is MessageBody.Text) {
             Action(Symbols.Edit, R.string.action_edit, onEdit)
         }
+        onShowVersions?.let { Action(Symbols.History, R.string.action_edit_history, it) }
         if (!message.isOwn) {
             if (senderMuted) {
                 Action(Symbols.NotificationsActive, R.string.action_unmute, onToggleMute)

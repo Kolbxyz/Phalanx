@@ -56,6 +56,13 @@ internal fun Composer(
             }
             ModeBanner(state.mode, actions.onCancelMode)
             AnimatedVisibility(
+                visible = state.suggestions.isNotEmpty(),
+                enter = expandVertically(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
+                exit = shrinkVertically(motion.defaultSpatialSpec()) + fadeOut(motion.defaultEffectsSpec())
+            ) {
+                MentionSuggestions(state.suggestions, actions.onPickSuggestion)
+            }
+            AnimatedVisibility(
                 visible = state.attachments.isNotEmpty(),
                 enter = expandVertically(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
                 exit = shrinkVertically(motion.defaultSpatialSpec()) + fadeOut(motion.defaultEffectsSpec())

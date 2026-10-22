@@ -105,7 +105,7 @@ internal fun ReactionRow(
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         reactions.forEach { reaction ->
-            val description = stringResource(R.string.timeline_reaction_toggle, reaction.key, reaction.count)
+            val description = stringResource(R.string.timeline_reaction_toggle, reactionName(reaction), reaction.count)
             // Ringed in the background colour, so a chip overlapping the bubble's edge stays distinct from it.
             Surface(
                 shape = CircleShape,
@@ -125,11 +125,14 @@ internal fun ReactionRow(
                     )
                     .semantics { contentDescription = description }
             ) {
-                Text(
-                    text = if (reaction.count > 1) "${reaction.key} ${reaction.count}" else reaction.key,
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                )
+                Box(Modifier.padding(horizontal = 10.dp, vertical = 4.dp)) {
+                    ReactionKey(
+                        reaction = reaction,
+                        imageSize = 20.dp,
+                        style = MaterialTheme.typography.labelLarge,
+                        suffix = reaction.count.takeIf { it > 1 }?.toString()
+                    )
+                }
             }
         }
     }

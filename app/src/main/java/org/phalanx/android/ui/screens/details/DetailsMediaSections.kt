@@ -32,8 +32,8 @@ import org.phalanx.android.ui.components.segmentedShape
 internal const val MEDIA_END = "media-end"
 private const val COLUMNS = 3
 
-/** How many of each kind show before "Show all". */
-internal const val SECTION_CAP = 15
+/** How many of each kind show before "Show all": three rows of the grid. */
+internal const val SECTION_CAP = 9
 
 /** The room's media split for the two sections, newest first. */
 internal class SharedMedia(val visual: List<TimelineEntry.Message>, val files: List<TimelineEntry.Message>)

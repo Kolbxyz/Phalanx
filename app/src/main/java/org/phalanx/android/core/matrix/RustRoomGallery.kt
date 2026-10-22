@@ -22,6 +22,8 @@ import org.matrix.rustcomponents.sdk.TimelineDiff
 import org.matrix.rustcomponents.sdk.TimelineFilter
 import org.matrix.rustcomponents.sdk.TimelineFocus
 import org.matrix.rustcomponents.sdk.TimelineListener
+import org.matrix.rustcomponents.sdk.use
+import org.phalanx.android.data.model.Participant
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.RoomGallery
 import uniffi.matrix_sdk_ui.TimelineReadReceiptTracking
@@ -60,6 +62,20 @@ internal class RustRoomGallery private constructor(
             // Offline or a server hiccup: the grid asks again when scrolled to its end.
         } finally {
             paginating.unlock()
+        }
+    }
+
+    override suspend fun members(): List<Participant> = withContext(Dispatchers.IO) {
+        try {
+            // From the server when it can, so a room synced with lazy-loaded members is complete.
+            val iterator = try {
+                room.members()
+            } catch (_: ClientException) {
+                room.membersNoSync()
+            }
+            iterator.use { it.participants() }
+        } catch (_: ClientException) {
+            emptyList()
         }
     }
 

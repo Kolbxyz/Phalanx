@@ -14,7 +14,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,6 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import org.phalanx.android.R
+import org.phalanx.android.ui.components.ModalSheet
 import org.phalanx.android.ui.theme.Symbols
 import java.time.Instant
 import java.time.LocalDate
@@ -50,7 +50,7 @@ internal fun ScheduleSheet(exact: Boolean, onDismiss: () -> Unit, onPick: (Long)
     val zone = ZoneId.systemDefault()
     val now = ZonedDateTime.now(zone)
     var picking by remember { mutableStateOf(false) }
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    ModalSheet(onDismissRequest = onDismiss) {
         Text(
             text = stringResource(R.string.schedule_title),
             style = MaterialTheme.typography.titleLarge,

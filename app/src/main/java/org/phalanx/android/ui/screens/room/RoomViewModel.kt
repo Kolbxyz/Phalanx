@@ -2,7 +2,6 @@ package org.phalanx.android.ui.screens.room
 
 import android.net.Uri
 import androidx.annotation.StringRes
-import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,7 +24,6 @@ import org.phalanx.android.core.media.VoiceRecorder
 import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.model.AppSettings
 import org.phalanx.android.data.model.MediaRef
-import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.model.ScheduledMessage
 import org.phalanx.android.data.model.TimelineEntry
@@ -57,7 +55,8 @@ class RoomViewModel @Inject constructor(
     settingsStore: SettingsStore,
     private val schedules: ScheduleRepository
 ) : ViewModel() {
-    val roomId: String = savedStateHandle.toRoute<RoomRoute>().roomId
+    private val route = savedStateHandle.toRoute<RoomRoute>()
+    val roomId: String = route.roomId
 
     /** From the room list, which is already in memory, so the header shows before the timeline opens. */
     val header: StateFlow<RoomSummary?> = roomList.rooms
@@ -84,6 +83,10 @@ class RoomViewModel @Inject constructor(
 
     private var session: TimelineSession? = null
 
+    /** The entry to scroll to and highlight, once the one the route asked for has been found. */
+    private val mutableFocus = MutableStateFlow<String?>(null)
+    val focus: StateFlow<String?> = mutableFocus.asStateFlow()
+
     /** Who reacted with one key to one message, while that list is open; members null while loading. */
     private val mutableReactors = MutableStateFlow<Reactors?>(null)
     val reactors: StateFlow<Reactors?> = mutableReactors.asStateFlow()
@@ -105,6 +108,14 @@ class RoomViewModel @Inject constructor(
                     session = opened
                     composer.attach(opened)
                     observe(opened)
+                    // Only on the first opening: back here after process death, the user has moved on.
+                    if (route.focusEventId != null && savedStateHandle.get<Boolean>(FOCUSED_KEY) != true) {
+                        savedStateHandle[FOCUSED_KEY] = true
+                        viewModelScope.launch {
+                            val found = opened.seek(route.focusEventId)
+                            if (found != null) mutableFocus.value = found else notify(R.string.timeline_focus_not_found)
+                        }
+                    }
                 },
                 onFailure = { mutableState.value = RoomUiState.Unavailable }
             )
@@ -117,6 +128,8 @@ class RoomViewModel @Inject constructor(
     fun toggleReaction(message: TimelineEntry.Message, key: String) = act { it.toggleReaction(message, key) }
 
     fun redact(message: TimelineEntry.Message) = act { it.redact(message) }
+
+    fun setPinned(message: TimelineEntry.Message, pinned: Boolean) = act { it.setPinned(message, pinned) }
 
     fun forward(message: TimelineEntry.Message, toRoomId: String) {
         val eventId = message.eventId ?: return
@@ -140,14 +153,16 @@ class RoomViewModel @Inject constructor(
         }
     }
 
+    /** Opens on [key]'s reactors, with every other reaction to the message a tab away. */
     fun showReactors(message: TimelineEntry.Message, key: String) {
         val current = session ?: return
-        val reaction = message.reactions.firstOrNull { it.key == key } ?: return
-        mutableReactors.value = Reactors(key, members = null)
+        if (message.reactions.none { it.key == key }) return
+        val opened = Reactors(message.reactions, key, members = null)
+        mutableReactors.value = opened
         viewModelScope.launch {
-            val members = current.members(reaction.senderIds)
+            val members = current.members(message.reactions.flatMap { it.senderIds }.distinct())
             // Unless the user closed it, or opened another, while the names loaded.
-            mutableReactors.update { if (it?.key == key && it.members == null) Reactors(key, members) else it }
+            mutableReactors.update { if (it === opened) opened.copy(members = members.associateBy { m -> m.userId }) else it }
         }
     }
 
@@ -199,6 +214,10 @@ class RoomViewModel @Inject constructor(
         mutableNotice.value = null
     }
 
+    fun onFocused() {
+        mutableFocus.value = null
+    }
+
     fun loadOlder() {
         val current = session ?: return
         // A failed page is transient; the list asks again the next time the user scrolls to the top.
@@ -230,5 +249,4 @@ class RoomViewModel @Inject constructor(
     }
 }
 
-@Immutable
-data class Reactors(val key: String, val members: List<Member>?)
+private const val FOCUSED_KEY = "focused"

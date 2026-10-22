@@ -35,8 +35,15 @@ interface TimelineSession {
     /** False once the start of the room has been reached. */
     val hasMoreHistory: StateFlow<Boolean>
 
-    /** Sends [text] as markdown, as a reply to [replyTo] when given. */
-    suspend fun send(text: String, replyTo: TimelineEntry.Message? = null): Result<Unit>
+    /**
+     * Sends [text] as markdown, as a reply to [replyTo] when given. "@" and the name of one of
+     * [mentions] becomes a pill that notifies them.
+     */
+    suspend fun send(
+        text: String,
+        mentions: List<Member> = emptyList(),
+        replyTo: TimelineEntry.Message? = null
+    ): Result<Unit>
 
     /**
      * Uploads [media] with an optional [caption]; returns once the upload is over. It carries on, and
@@ -44,8 +51,8 @@ interface TimelineSession {
      */
     suspend fun sendMedia(media: OutgoingMedia, caption: String?, replyTo: TimelineEntry.Message?): Result<Unit>
 
-    /** Replaces the text of this account's [message] with [text], as markdown. */
-    suspend fun edit(message: TimelineEntry.Message, text: String): Result<Unit>
+    /** Replaces the text of this account's [message] with [text], as markdown, as [send] does. */
+    suspend fun edit(message: TimelineEntry.Message, text: String, mentions: List<Member> = emptyList()): Result<Unit>
 
     /** The unsent text kept for this room, if any. Stored by the SDK, encrypted with the session. */
     suspend fun loadDraft(): String?
@@ -58,8 +65,16 @@ interface TimelineSession {
 
     suspend fun redact(message: TimelineEntry.Message): Result<Unit>
 
+
+    /** Pins or unpins [message] for everyone in the room; needs the right to change pins. */
+
+    suspend fun setPinned(message: TimelineEntry.Message, pinned: Boolean): Result<Unit>
+
     /** Loads one more page of history. A failure is transient; scrolling again retries. */
     suspend fun loadOlder(): Result<Unit>
+
+    /** The members who joined, roles first, to mention; this account left out. Empty if unavailable. */
+    suspend fun joinedMembers(): List<Member>
 
     /** Who [userIds] are in this room, in the same order. */
     suspend fun members(userIds: List<String>): List<Member>

@@ -31,13 +31,14 @@ class RoomListViewModel @Inject constructor(
     // Starts from the repository's current list, so coming back to this screen never flashes a
     // loading state.
     private val filter = MutableStateFlow(RoomFilter.All)
+    private val source = MutableStateFlow<RoomSource>(RoomSource.All)
 
-    val state: StateFlow<RoomListUiState> = combine(roomList.rooms, filter, ::toUiState)
+    val state: StateFlow<RoomListUiState> = combine(roomList.rooms, filter, source, ::toUiState)
         .flowOn(Dispatchers.Default)
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
-            toUiState(roomList.rooms.value, filter.value)
+            toUiState(roomList.rooms.value, filter.value, source.value)
         )
 
     /** For the account button in the top bar. */
@@ -64,6 +65,10 @@ class RoomListViewModel @Inject constructor(
         filter.value = value
     }
 
+    fun setSource(value: RoomSource) {
+        source.value = value
+    }
+
     fun dismissFailure() {
         mutableFailed.value = false
     }
@@ -72,13 +77,16 @@ class RoomListViewModel @Inject constructor(
         viewModelScope.launch { block().onFailure { mutableFailed.value = true } }
     }
 
-    private fun toUiState(rooms: List<RoomSummary>?, filter: RoomFilter): RoomListUiState {
+    private fun toUiState(rooms: List<RoomSummary>?, filter: RoomFilter, source: RoomSource): RoomListUiState {
         rooms ?: return RoomListUiState.Loading
         val now = System.currentTimeMillis()
+        val filtered = rooms.filter { filter.matches(it, now) }
         return RoomListUiState.Loaded(
-            rooms = rooms.filter { filter.matches(it, now) },
+            rooms = filtered.filter(source::matches),
             filter = filter,
-            archivedCount = rooms.count { it.isArchived(now) }
+            archivedCount = rooms.count { it.isArchived(now) },
+            source = source,
+            sources = sourcesOf(filtered)
         )
     }
 

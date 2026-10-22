@@ -4,10 +4,12 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import org.phalanx.android.core.matrix.MessageArchive
 import org.phalanx.android.core.matrix.RustAccountRepository
 import org.phalanx.android.core.matrix.RustAuthRepository
 import org.phalanx.android.core.matrix.PushRulesMutedUsersRepository
 import org.phalanx.android.core.matrix.RustBlockedUsersRepository
+import org.phalanx.android.core.matrix.RustEditHistoryRepository
 import org.phalanx.android.core.matrix.RustSearchRepository
 import org.phalanx.android.core.matrix.RustMediaRepository
 import org.phalanx.android.core.matrix.RustRoomActionsRepository
@@ -20,6 +22,8 @@ import org.phalanx.android.core.schedule.MessageScheduler
 import org.phalanx.android.data.repository.AccountRepository
 import org.phalanx.android.data.repository.AuthRepository
 import org.phalanx.android.data.repository.BlockedUsersRepository
+import org.phalanx.android.data.repository.DeletedMessagesRepository
+import org.phalanx.android.data.repository.EditHistoryRepository
 import org.phalanx.android.data.repository.MutedUsersRepository
 import org.phalanx.android.data.repository.MediaRepository
 import org.phalanx.android.data.repository.PushRepository
@@ -72,4 +76,10 @@ internal abstract class RepositoryModule {
 
     @Binds
     abstract fun searchRepository(impl: RustSearchRepository): SearchRepository
+
+    @Binds
+    abstract fun editHistoryRepository(impl: RustEditHistoryRepository): EditHistoryRepository
+
+    @Binds
+    abstract fun deletedMessagesRepository(impl: MessageArchive): DeletedMessagesRepository
 }

@@ -21,12 +21,12 @@ class ComposerStateTest {
 
     @Test
     fun `whitespace alone is nothing to send`() {
-        assertTrue(ComposerState(draft = "  \n").showsMic)
+        assertTrue(ComposerState().withDraft("  \n").showsMic)
     }
 
     @Test
     fun `text turns the microphone into send`() {
-        val state = ComposerState(draft = "hi")
+        val state = ComposerState().withDraft("hi")
         assertFalse(state.showsMic)
         assertTrue(state.canSend)
     }

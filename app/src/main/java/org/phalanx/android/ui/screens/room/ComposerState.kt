@@ -1,6 +1,9 @@
 package org.phalanx.android.ui.screens.room
 
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
+import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.OutgoingMedia
 import org.phalanx.android.data.model.TimelineEntry
 
@@ -18,12 +21,22 @@ data class PendingAttachment(val id: String, val media: OutgoingMedia?)
 
 @Immutable
 data class ComposerState(
-    val draft: String = "",
+    /** The field's text, cursor and IME composition; the cursor is where a mention completes. */
+    val input: TextFieldValue = TextFieldValue(),
     val mode: ComposerMode = ComposerMode.New,
     val attachments: List<PendingAttachment> = emptyList(),
     /** Loudness samples of the voice message being recorded; null when not recording. */
-    val recording: List<Float>? = null
+    val recording: List<Float>? = null,
+    /** Members picked from [suggestions]; "@" and their name in the draft is sent as a mention. */
+    val mentions: List<Member> = emptyList(),
+    val suggestions: List<MentionSuggestion> = emptyList()
 ) {
+    val draft: String
+        get() = input.text
+
+    /** [text] in the field, the cursor at its end. */
+    fun withDraft(text: String): ComposerState = copy(input = TextFieldValue(text, TextRange(text.length)))
+
     val canSend: Boolean
         get() = attachments.any { it.media != null } || draft.isNotBlank()
 

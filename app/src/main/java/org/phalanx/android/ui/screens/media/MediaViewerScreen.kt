@@ -49,7 +49,11 @@ private const val CHROME_ALPHA = 0.72f
 
 /** Swipes through the room's photos and videos, oldest to the left, starting on the one tapped. */
 @Composable
-fun MediaViewerScreen(onClose: () -> Unit, viewModel: MediaViewerViewModel = hiltViewModel()) {
+fun MediaViewerScreen(
+    onClose: () -> Unit,
+    onJumpTo: (roomId: String, eventId: String) -> Unit,
+    viewModel: MediaViewerViewModel = hiltViewModel()
+) {
     val items by viewModel.items.collectAsStateWithLifecycle()
     val videos by viewModel.videos.collectAsStateWithLifecycle()
     val notice by viewModel.notice.collectAsStateWithLifecycle()
@@ -63,7 +67,7 @@ fun MediaViewerScreen(onClose: () -> Unit, viewModel: MediaViewerViewModel = hil
             list.isEmpty() -> Box(Modifier.fillMaxSize(), Alignment.Center) {
                 Text(stringResource(R.string.timeline_open_failed), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            else -> Pager(list, videos, viewModel, onClose)
+            else -> Pager(list, videos, viewModel, onClose, onJumpTo)
         }
         TopNoticeHost(notice, onDismiss = viewModel::dismissNotice)
     }
@@ -74,7 +78,8 @@ private fun Pager(
     items: List<TimelineEntry.Message>,
     videos: Map<String, VideoFile>,
     viewModel: MediaViewerViewModel,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    onJumpTo: (roomId: String, eventId: String) -> Unit
 ) {
     // Follows the item, not the index: older pages loading in shift every index along.
     var currentId by rememberSaveable { mutableStateOf(viewModel.entryId) }
@@ -114,14 +119,27 @@ private fun Pager(
         }
         val fade = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
         AnimatedVisibility(visible = chrome, enter = fadeIn(fade), exit = fadeOut(fade)) {
-            items.getOrNull(pager.settledPage)?.let { ViewerTopBar(it, viewModel, onClose) }
+            items.getOrNull(pager.settledPage)?.let { entry ->
+                val eventId = entry.eventId
+                ViewerTopBar(
+                    entry = entry,
+                    viewModel = viewModel,
+                    onClose = onClose,
+                    onJumpTo = eventId?.let { { onJumpTo(viewModel.roomId, it) } }
+                )
+            }
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ViewerTopBar(entry: TimelineEntry.Message, viewModel: MediaViewerViewModel, onClose: () -> Unit) {
+private fun ViewerTopBar(
+    entry: TimelineEntry.Message,
+    viewModel: MediaViewerViewModel,
+    onClose: () -> Unit,
+    onJumpTo: (() -> Unit)?
+) {
     val context = LocalContext.current
     val saveAs = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("*/*")) { uri ->
         if (uri != null) viewModel.saveTo(entry, uri)
@@ -147,6 +165,12 @@ private fun ViewerTopBar(entry: TimelineEntry.Message, viewModel: MediaViewerVie
             }
         },
         actions = {
+            // A message still sending has no event ID to find it by.
+            if (onJumpTo != null) {
+                IconButton(onClick = onJumpTo) {
+                    Icon(Symbols.Chat, contentDescription = stringResource(R.string.media_jump_to_message))
+                }
+            }
             IconButton(onClick = { viewModel.share(entry) }) {
                 Icon(Symbols.Share, contentDescription = stringResource(R.string.media_share))
             }

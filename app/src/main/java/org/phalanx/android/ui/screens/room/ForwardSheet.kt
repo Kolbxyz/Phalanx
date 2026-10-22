@@ -15,7 +15,6 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -33,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.ui.components.MatrixAvatar
+import org.phalanx.android.ui.components.ModalSheet
 import org.phalanx.android.ui.theme.Symbols
 
 /** Picks the conversation a message is forwarded to; [rooms] null while the list loads. */
@@ -43,7 +43,7 @@ internal fun ForwardSheet(rooms: List<RoomSummary>?, onPick: (roomId: String) ->
     val shown = remember(rooms, query) {
         rooms?.filter { query.isBlank() || it.name.contains(query.trim(), ignoreCase = true) }
     }
-    ModalBottomSheet(
+    ModalSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ) {

@@ -50,6 +50,7 @@ import org.phalanx.android.ui.theme.Symbols
 fun RoomDetailsScreen(
     onBack: () -> Unit,
     onLeft: () -> Unit,
+    onJumpTo: (roomId: String, eventId: String) -> Unit,
     onOpenMedia: (roomId: String, entryId: String) -> Unit,
     viewModel: RoomDetailsViewModel = hiltViewModel()
 ) {
@@ -84,6 +85,8 @@ fun RoomDetailsScreen(
     val hasMore by viewModel.hasMoreMedia.collectAsStateWithLifecycle()
     var showAllMedia by rememberSaveable { mutableStateOf(false) }
     var showAllFiles by rememberSaveable { mutableStateOf(false) }
+    var showAllMembers by rememberSaveable { mutableStateOf(false) }
+    val members by viewModel.members.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val atEnd by remember { derivedStateOf { listState.layoutInfo.visibleItemsInfo.any { it.key == MEDIA_END } } }
     // Pages in older media only while the end is in view and a section is short of what it shows;
@@ -113,7 +116,8 @@ fun RoomDetailsScreen(
             item {
                 DetailsHeader(current, onFavourite = viewModel::setFavourite, onUnread = viewModel::setUnread)
             }
-            pinnedSection(pinned, onOpen = onBack)
+            pinnedSection(pinned) { eventId -> onJumpTo(viewModel.roomId, eventId) }
+            membersSection(members, showAllMembers) { showAllMembers = true }
             mediaSections(
                 media = media,
                 hasMore = hasMore,
@@ -155,14 +159,15 @@ fun RoomDetailsScreen(
     }
 }
 
-private fun LazyListScope.pinnedSection(pinned: List<TimelineEntry.Message>?, onOpen: () -> Unit) {
+private fun LazyListScope.pinnedSection(pinned: List<TimelineEntry.Message>?, onOpen: (eventId: String) -> Unit) {
     item { DetailsSectionTitle(R.string.details_pinned) }
     if (pinned.isNullOrEmpty()) {
         item { EmptyNote(stringResource(if (pinned == null) R.string.loading else R.string.details_pinned_none)) }
         return
     }
     itemsIndexed(pinned, key = { _, message -> "pin-${message.id}" }) { index, message ->
-        PinnedRow(message, segmentedShape(index, pinned.size), onClick = onOpen)
+        // Pinned events always come from the server, so they always have an event ID.
+        PinnedRow(message, segmentedShape(index, pinned.size)) { message.eventId?.let(onOpen) }
         Spacer(Modifier.height(2.dp))
     }
 }

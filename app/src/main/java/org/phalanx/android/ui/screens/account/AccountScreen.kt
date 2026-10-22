@@ -89,15 +89,16 @@ fun AccountScreen(
             }
             state.details?.let { details ->
                 SegmentedSection(stringResource(R.string.account_section_device)) {
-                    val count = if (details.managedByProvider) 2 else 3
-                    CopyRow(stringResource(R.string.account_device_id), details.deviceId, index = 0, count = count)
-                    CopyRow(stringResource(R.string.account_server), details.homeserver, index = 1, count = count)
-                    // Provider-managed accounts get the device list on the provider's site, below.
-                    if (!details.managedByProvider) {
+                    CopyRow(stringResource(R.string.account_server), details.homeserver, index = 0, count = 2)
+                    // The device list names this device by its ID; provider-managed accounts list
+                    // devices on the provider's site instead, so the ID is shown here to find it there.
+                    if (details.managedByProvider) {
+                        CopyRow(stringResource(R.string.account_device_id), details.deviceId, index = 1, count = 2)
+                    } else {
                         SegmentedRow(
                             headline = stringResource(R.string.account_devices),
-                            supporting = stringResource(R.string.account_devices_summary),
-                            shape = segmentedShape(2, count),
+                            supporting = stringResource(R.string.account_devices_summary_this, details.deviceId),
+                            shape = segmentedShape(1, 2),
                             interaction = Modifier.clickable(onClick = onOpenDevices)
                         )
                     }

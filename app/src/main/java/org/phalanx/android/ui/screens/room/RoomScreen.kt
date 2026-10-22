@@ -42,6 +42,7 @@ fun RoomScreen(
     val openRequest by viewModel.openRequest.collectAsStateWithLifecycle()
     val header by viewModel.header.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val focus by viewModel.focus.collectAsStateWithLifecycle()
     var selected by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     var attaching by remember { mutableStateOf(false) }
     var scheduling by remember { mutableStateOf(false) }
@@ -65,6 +66,7 @@ fun RoomScreen(
         val composer = viewModel.composer
         ComposerActions(
             onDraftChange = composer::onDraftChange,
+            onPickSuggestion = composer::pickSuggestion,
             onSend = composer::send,
             onCancelMode = composer::cancelMode,
             onAttach = { attaching = true },
@@ -104,7 +106,7 @@ fun RoomScreen(
                     )
                 }
                 is RoomUiState.Ready -> CompositionLocalProvider(LocalTimelinePrefs provides prefs) {
-                    TimelineList(current, padding, actions, viewModel::loadOlder)
+                    TimelineList(current, padding, actions, viewModel::loadOlder, focus, viewModel::onFocused)
                 }
             }
         }

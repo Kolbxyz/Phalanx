@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="phalanx_window_background">#FFF7F9FC</color>
-    <color name="phalanx_icon_background">#FF1F3A5F</color>
-    <color name="phalanx_icon_foreground">#FFF2B66B</color>
+    <color name="phalanx_icon_background">#FFE2A93B</color>
+    <color name="phalanx_icon_foreground">#FF3A2410</color>
 </resources>

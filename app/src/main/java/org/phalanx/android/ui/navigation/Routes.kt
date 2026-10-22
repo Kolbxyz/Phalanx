@@ -5,8 +5,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object RoomListRoute
 
+/** [focusEventId]: a message to scroll to and highlight once the conversation opens. */
 @Serializable
-data class RoomRoute(val roomId: String)
+data class RoomRoute(val roomId: String, val focusEventId: String? = null)
 
 /**
  * A photo or video of [roomId], named by its timeline item, never by its media. [fromGallery]: the
@@ -26,6 +27,9 @@ data object SettingsRoute
 
 @Serializable
 data object DevicesRoute
+
+@Serializable
+data object DeletedMessagesRoute
 
 /** One page of settings; [category] is a [org.phalanx.android.ui.screens.settings.SettingsCategory] name. */
 @Serializable

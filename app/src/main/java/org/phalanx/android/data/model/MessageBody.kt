@@ -4,8 +4,16 @@ import androidx.compose.runtime.Immutable
 
 @Immutable
 sealed interface MessageBody {
-    /** [html] is already sanitized and free of reply fallbacks; [text] is the plain fallback. */
-    data class Text(val text: String, val html: String?, val style: TextStyle) : MessageBody
+    /**
+     * [html] is already sanitized and free of reply fallbacks; [text] is the plain fallback.
+     * [emotes] are the custom emoji [html] marks with `<annotation emote="N">`, by N.
+     */
+    data class Text(
+        val text: String,
+        val html: String?,
+        val style: TextStyle,
+        val emotes: List<MediaRef?> = emptyList()
+    ) : MessageBody
 
     data class Image(
         val media: MediaRef,

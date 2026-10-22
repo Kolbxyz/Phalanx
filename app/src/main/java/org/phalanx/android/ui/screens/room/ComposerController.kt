@@ -1,6 +1,7 @@
 package org.phalanx.android.ui.screens.room
 
 import android.net.Uri
+import androidx.compose.ui.text.input.TextFieldValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,6 +41,9 @@ internal class ComposerController(
     val state: StateFlow<ComposerState> = mutableState.asStateFlow()
 
     private var session: TimelineSession? = null
+    private val mentionSource: MentionSource = MentionSource(scope) {
+        update { it.copy(suggestions = mentionSource.suggestions(it.input, session)) }
+    }
 
     init {
         scope.launch {
@@ -54,7 +58,7 @@ internal class ComposerController(
         session = opened
         scope.launch {
             val saved = opened.loadDraft() ?: return@launch
-            update { if (it.draft.isEmpty()) it.copy(draft = saved) else it }
+            update { if (it.draft.isEmpty()) it.withDraft(saved) else it }
         }
         // Saved once typing pauses, so a draft survives the app being killed, not only closed.
         scope.launch {
@@ -67,16 +71,25 @@ internal class ComposerController(
         }
     }
 
-    fun onDraftChange(value: String) {
-        update { it.copy(draft = value) }
-        session?.setTyping(shareTyping() && value.isNotBlank())
+    fun onDraftChange(value: TextFieldValue) {
+        update { it.copy(input = value, suggestions = mentionSource.suggestions(value, session)) }
+        session?.setTyping(shareTyping() && value.text.isNotBlank())
+    }
+
+    fun pickSuggestion(suggestion: MentionSuggestion) = update { state ->
+        val picked = (suggestion as? MentionSuggestion.User)?.member
+        state.copy(
+            input = MentionCompletion.complete(state.input, suggestion),
+            mentions = if (picked != null) state.mentions + picked else state.mentions,
+            suggestions = emptyList()
+        )
     }
 
     fun reply(message: TimelineEntry.Message) = update { it.copy(mode = ComposerMode.Reply(message)) }
 
     /** Puts the message's text in the field; sending then replaces it instead of posting anew. */
     fun edit(message: TimelineEntry.Message, text: String) =
-        update { it.copy(mode = ComposerMode.Edit(message), draft = text, attachments = emptyList()) }
+        update { it.withDraft(text).copy(mode = ComposerMode.Edit(message), attachments = emptyList()) }
 
     /** Leaving edit mode also drops the text being edited, which was never a draft. */
     fun cancelMode() = update {
@@ -121,7 +134,7 @@ internal class ComposerController(
         val text = snapshot.draft.trim()
         when (val mode = snapshot.mode) {
             is ComposerMode.Edit -> scope.launch {
-                current.edit(mode.message, text).fold(
+                current.edit(mode.message, text, snapshot.mentions).fold(
                     onSuccess = { update { if (it.mode == mode) ComposerState() else it } },
                     onFailure = { notify(SEND_FAILED) }
                 )
@@ -140,9 +153,12 @@ internal class ComposerController(
         if (media.isEmpty()) {
             scope.launch {
                 // The text is only cleared once the SDK accepted it, so a failure never loses it.
-                current.send(text, replyTo).fold(
+                current.send(text, snapshot.mentions, replyTo).fold(
                     onSuccess = {
-                        update { if (it.draft.trim() == text) it.copy(draft = "", mode = ComposerMode.New) else it }
+                        update {
+                            if (it.draft.trim() != text) return@update it
+                            it.withDraft("").copy(mode = ComposerMode.New, mentions = emptyList())
+                        }
                     },
                     onFailure = { notify(SEND_FAILED) }
                 )
@@ -155,7 +171,7 @@ internal class ComposerController(
         val caption = text.takeIf { it.isNotEmpty() && media.size == 1 }
         scope.launch {
             if (caption == null && text.isNotEmpty()) {
-                current.send(text, replyTo).onFailure { notify(SEND_FAILED) }
+                current.send(text, snapshot.mentions, replyTo).onFailure { notify(SEND_FAILED) }
             }
             media.forEachIndexed { index, item ->
                 launch {
@@ -173,7 +189,7 @@ internal class ComposerController(
         if (text.isEmpty() || snapshot.attachments.isNotEmpty() || snapshot.mode is ComposerMode.Edit) return
         val replyTo = (snapshot.mode as? ComposerMode.Reply)?.message?.eventId
         session?.setTyping(false)
-        update { it.copy(draft = "", mode = ComposerMode.New) }
+        update { it.withDraft("").copy(mode = ComposerMode.New, mentions = emptyList()) }
         scope.launch {
             schedules.schedule(roomId, text, replyTo, atMillis)
             notify(Notice(R.string.schedule_done, NoticeKind.Scheduled, atMillis))

@@ -16,7 +16,11 @@ import org.matrix.rustcomponents.sdk.ComposerDraftType
 import org.matrix.rustcomponents.sdk.EditedContent
 import org.matrix.rustcomponents.sdk.EmoteMessageContent
 import org.matrix.rustcomponents.sdk.EventOrTransactionId
+import org.matrix.rustcomponents.sdk.FormattedBody
+import org.matrix.rustcomponents.sdk.Mentions
+import org.matrix.rustcomponents.sdk.MessageFormat
 import org.matrix.rustcomponents.sdk.MessageType
+import org.matrix.rustcomponents.sdk.NoticeMessageContent
 import org.matrix.rustcomponents.sdk.ReceiptType
 import org.matrix.rustcomponents.sdk.Room
 import org.matrix.rustcomponents.sdk.RoomException
@@ -26,10 +30,9 @@ import org.matrix.rustcomponents.sdk.TextMessageContent
 import org.matrix.rustcomponents.sdk.Timeline
 import org.matrix.rustcomponents.sdk.TimelineDiff
 import org.matrix.rustcomponents.sdk.TimelineListener
-import org.matrix.rustcomponents.sdk.messageEventContentFromMarkdown
-import org.matrix.rustcomponents.sdk.messageEventContentFromMarkdownAsEmote
 import org.matrix.rustcomponents.sdk.messageEventContentNew
 import org.matrix.rustcomponents.sdk.use
+import org.phalanx.android.core.format.OutgoingMessage
 import org.phalanx.android.core.media.AttachmentPreparer
 import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.model.Member
@@ -57,7 +60,7 @@ internal class RustTimelineSession private constructor(
     private val mutableHasMore = MutableStateFlow(true)
     override val hasMoreHistory: StateFlow<Boolean> = mutableHasMore
 
-    // Replies whose original the SDK had not loaded; asked for once each, the item updates itself.
+    // Replies whose quoted event the SDK had not loaded; asked for once each, the item updates itself.
     private val requestedReplies: MutableSet<String> = ConcurrentHashMap.newKeySet()
     private val context = MappingContext(room.ownUserId()) { eventId ->
         if (requestedReplies.add(eventId)) {
@@ -72,11 +75,12 @@ internal class RustTimelineSession private constructor(
     private val items = TimelineItems(context)
     override val entries: StateFlow<List<TimelineEntry>> = items.entries
 
-    override suspend fun send(text: String, replyTo: TimelineEntry.Message?): Result<Unit> = io {
-        val content = contentOf(text)
-        val eventId = replyTo?.eventId
-        if (eventId != null) timeline.sendReply(content, eventId).close() else timeline.send(content).close()
-    }
+    override suspend fun send(text: String, mentions: List<Member>, replyTo: TimelineEntry.Message?): Result<Unit> =
+        io {
+            val content = contentOf(text, mentions)
+            val eventId = replyTo?.eventId
+            if (eventId != null) timeline.sendReply(content, eventId).close() else timeline.send(content).close()
+        }
 
     // On the session's scope, so leaving the room doesn't stop the upload or leak its files.
     override suspend fun sendMedia(media: OutgoingMedia, caption: String?, replyTo: TimelineEntry.Message?) =
@@ -88,26 +92,22 @@ internal class RustTimelineSession private constructor(
             }
         }.await()
 
-    override suspend fun edit(message: TimelineEntry.Message, text: String): Result<Unit> = io {
-        val target = message.target() ?: return@io
-        timeline.edit(target, EditedContent.RoomMessage(contentOf(text)))
-    }
-
-    /** "/me waves" is an emote, as in every Matrix client; markdown follows the user's setting. */
-    private suspend fun contentOf(text: String): RoomMessageEventContentWithoutRelation {
-        val emote = text.startsWith(EMOTE_PREFIX)
-        val body = if (emote) text.removePrefix(EMOTE_PREFIX) else text
-        return when {
-            !settings.current().markdown -> messageEventContentNew(
-                if (emote) {
-                    MessageType.Emote(EmoteMessageContent(body, null))
-                } else {
-                    MessageType.Text(TextMessageContent(body, null))
-                }
-            )
-            emote -> messageEventContentFromMarkdownAsEmote(body)
-            else -> messageEventContentFromMarkdown(body)
+    override suspend fun edit(message: TimelineEntry.Message, text: String, mentions: List<Member>): Result<Unit> =
+        io {
+            val target = message.target() ?: return@io
+            timeline.edit(target, EditedContent.RoomMessage(contentOf(text, mentions)))
         }
+
+    /** Markdown follows the user's setting; mentions are rendered and listed either way. */
+    private suspend fun contentOf(text: String, mentions: List<Member>): RoomMessageEventContentWithoutRelation {
+        val message = OutgoingMessage.of(text, mentions, settings.current().markdown)
+        val formatted = message.html?.let { FormattedBody(MessageFormat.Html, it) }
+        val type = when (message.kind) {
+            OutgoingMessage.Kind.Text -> MessageType.Text(TextMessageContent(message.body, formatted))
+            OutgoingMessage.Kind.Emote -> MessageType.Emote(EmoteMessageContent(message.body, formatted))
+            OutgoingMessage.Kind.Notice -> MessageType.Notice(NoticeMessageContent(message.body, formatted))
+        }
+        return messageEventContentNew(type).use { it.withMentions(Mentions(message.userIds, message.mentionsRoom)) }
     }
 
     override suspend fun loadDraft(): String? = withContext(Dispatchers.IO) {
@@ -139,6 +139,11 @@ internal class RustTimelineSession private constructor(
     override suspend fun redact(message: TimelineEntry.Message): Result<Unit> = io {
         val target = message.target() ?: return@io
         timeline.redactEvent(target, reason = null)
+    }
+
+    override suspend fun setPinned(message: TimelineEntry.Message, pinned: Boolean): Result<Unit> = io {
+        val eventId = message.eventId ?: return@io
+        if (pinned) timeline.pinEvent(eventId) else timeline.unpinEvent(eventId)
     }
 
     private fun TimelineEntry.Message.target(): EventOrTransactionId? =
@@ -218,6 +223,21 @@ internal class RustTimelineSession private constructor(
         }
     }
 
+    override suspend fun joinedMembers(): List<Member> = withContext(Dispatchers.IO) {
+        try {
+            // From the server when it can, so a room synced with lazy-loaded members is complete.
+            val iterator = try {
+                room.members()
+            } catch (_: ClientException) {
+                room.membersNoSync()
+            }
+            val own = room.ownUserId()
+            iterator.use { it.participants() }.filter { !it.invited && it.member.userId != own }.map { it.member }
+        } catch (_: ClientException) {
+            emptyList()
+        }
+    }
+
     /** Called by the repository only, when the room leaves its cache. */
     fun close() {
         typingState.close()
@@ -244,7 +264,6 @@ internal class RustTimelineSession private constructor(
     companion object {
         private const val PAGE_SIZE = 30
         private const val MAX_PAGES_PER_LOAD = 5
-        private const val EMOTE_PREFIX = "/me "
 
         /** Opens [room]'s live timeline; the session owns [room] from here and releases it in [close]. */
         suspend fun open(room: Room, settings: SettingsStore, attachments: AttachmentPreparer): RustTimelineSession {

@@ -8,10 +8,15 @@ sealed interface RoomListUiState {
     /** Waiting for the SDK's first list. */
     data object Loading : RoomListUiState
 
-    /** [rooms] already filtered by [filter]; [archivedCount] for the Archived chip's label. */
+    /**
+     * [rooms] already filtered by [filter] and [source]; [archivedCount] for the Archived chip's
+     * label; [sources] for the side panel, counted within [filter].
+     */
     data class Loaded(
         val rooms: List<RoomSummary>,
         val filter: RoomFilter = RoomFilter.All,
-        val archivedCount: Int = 0
+        val archivedCount: Int = 0,
+        val source: RoomSource = RoomSource.All,
+        val sources: List<SourceCount> = emptyList()
     ) : RoomListUiState
 }

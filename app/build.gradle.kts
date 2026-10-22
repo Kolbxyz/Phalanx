@@ -156,6 +156,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.adaptive)
     implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
     implementation(libs.androidx.work.runtime)
     implementation(libs.unifiedpush.connector)
     debugImplementation(libs.androidx.compose.ui.tooling)

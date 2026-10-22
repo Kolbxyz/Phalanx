@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import org.matrix.rustcomponents.sdk.AccountManagementAction
@@ -44,12 +46,15 @@ internal class RustAccountRepository @Inject constructor(
     private val sessionStore: SessionStore,
     @ApplicationScope scope: CoroutineScope
 ) : AccountRepository {
+    // Edits made here, so the profile is read again where the server can't push it live.
+    private val edited = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
     // Keyed on the sync service, which exists exactly while an account is open. Held for the whole
     // session so no screen ever starts from an empty profile.
     override val profile: StateFlow<AccountProfile?> = active.syncService
         .flatMapLatest { service ->
             val client = active.client()
-            if (service == null || client == null) flowOf(null) else client.ownProfile(cachedName())
+            if (service == null || client == null) flowOf(null) else client.ownProfile(cachedName(), edited)
         }
         .onEach { it?.let(::rememberName) }
         .stateIn(scope, SharingStarted.Eagerly, null)
@@ -74,11 +79,14 @@ internal class RustAccountRepository @Inject constructor(
         }
     }
 
-    override suspend fun setDisplayName(name: String): Result<Unit> = withClient { it.setDisplayName(name.trim()) }
+    override suspend fun setDisplayName(name: String): Result<Unit> =
+        withClient { it.setDisplayName(name.trim()) }.onSuccess { edited.tryEmit(Unit) }
 
-    override suspend fun setAvatar(jpeg: ByteArray): Result<Unit> = withClient { it.uploadAvatar(JPEG_MIME, jpeg) }
+    override suspend fun setAvatar(jpeg: ByteArray): Result<Unit> =
+        withClient { it.uploadAvatar(JPEG_MIME, jpeg) }.onSuccess { edited.tryEmit(Unit) }
 
-    override suspend fun removeAvatar(): Result<Unit> = withClient { it.removeAvatar() }
+    override suspend fun removeAvatar(): Result<Unit> =
+        withClient { it.removeAvatar() }.onSuccess { edited.tryEmit(Unit) }
 
     override suspend fun manageUrl(page: AccountPage): String? = io {
         val client = active.client() ?: return@io null
@@ -161,26 +169,40 @@ private fun ClientException.toAccountFailure(): AccountFailure =
 
 /**
  * The last known profile first, so the name shows without waiting for the network (and stays
- * shown offline), then what the server says, then live updates.
+ * shown offline), then what the server says, then updates: pushed by sync where the server has
+ * the profiles extension, read again after each of [edited] otherwise.
  */
-private fun Client.ownProfile(cachedName: String?): Flow<AccountProfile?> = callbackFlow {
+private fun Client.ownProfile(cachedName: String?, edited: Flow<Unit>): Flow<AccountProfile?> = callbackFlow {
     val handle = try {
         val userId = userId()
         trySend(AccountProfile(userId, cachedName, avatarUrl = cachedAvatarUrl()))
-        try {
+        suspend fun fetch() = try {
             // avatarUrl() asks the server and refreshes the cache; cachedAvatarUrl() stays empty on a
             // fresh login until something else fetched it.
             trySend(AccountProfile(userId, displayName(), avatarUrl()))
         } catch (_: ClientException) {
-            // Offline: the live listener below fills the name in once the server answers.
+            // Offline: the cached profile stays until the next edit or sync update.
         }
-        subscribeToOwnProfile(
-            object : ProfileListener {
-                override fun onUpdate(profile: UserProfile) {
-                    trySend(AccountProfile(profile.userId, profile.displayName, profile.avatarUrl))
+        fetch()
+        // Without the extension the SDK emits an empty profile at once and nothing after, which
+        // would wipe the name and photo just fetched.
+        val pushed = try {
+            isProfilesSlidingSyncExtensionSupported()
+        } catch (_: ClientException) {
+            false
+        }
+        if (pushed) {
+            subscribeToOwnProfile(
+                object : ProfileListener {
+                    override fun onUpdate(profile: UserProfile) {
+                        trySend(AccountProfile(profile.userId, profile.displayName, profile.avatarUrl))
+                    }
                 }
-            }
-        )
+            )
+        } else {
+            launch { edited.collect { fetch() } }
+            null
+        }
     } catch (_: ClientException) {
         // The client is closing under a sign-out; the session state change replaces this screen.
         null

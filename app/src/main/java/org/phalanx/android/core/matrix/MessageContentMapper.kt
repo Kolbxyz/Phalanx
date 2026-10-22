@@ -5,6 +5,7 @@ import org.matrix.rustcomponents.sdk.MessageContent
 import org.matrix.rustcomponents.sdk.MessageFormat
 import org.matrix.rustcomponents.sdk.MessageType
 import org.matrix.rustcomponents.sdk.MsgLikeKind
+import org.phalanx.android.core.format.Markdown
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.UnsupportedKind
 
@@ -91,7 +92,12 @@ private fun text(
     style: MessageBody.TextStyle,
     isReply: Boolean
 ): MessageBody.Text {
-    val html = formatted?.takeIf { it.format is MessageFormat.Html }?.body?.let(HtmlSanitizer::sanitize)
+    val html = formatted?.takeIf { it.format is MessageFormat.Html }?.body?.let(HtmlSanitizer::sanitizeWithEmotes)
     val plain = if (isReply) HtmlSanitizer.stripPlainReplyFallback(body) else body
-    return MessageBody.Text(plain, html?.takeIf { it.isNotBlank() }, style)
+    // An emote that isn't a valid mxc:// URL keeps its index, and shows its alt text instead.
+    val emotes = html?.emoteUrls?.map(::mediaRefOf).orEmpty()
+    return MessageBody.Text(plain, html?.html?.takeIf { it.isNotBlank() } ?: markdownOf(plain), style, emotes)
 }
+
+/** Bodies sent without HTML (some bridges, plain clients) still show their markdown. */
+private fun markdownOf(plain: String): String? = Markdown.render(plain).html?.let(HtmlSanitizer::sanitize)

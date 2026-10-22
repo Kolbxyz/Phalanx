@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -35,11 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import org.phalanx.android.R
@@ -61,6 +58,7 @@ internal fun SearchResultsList(
     category: SearchCategory,
     results: SearchResults,
     onOpenRoom: (String) -> Unit,
+    onOpenMessage: (roomId: String, eventId: String) -> Unit,
     onOpenFile: (MessageHit) -> Unit,
     onShowCategory: (SearchCategory) -> Unit,
     onLoadMore: () -> Unit
@@ -79,7 +77,7 @@ internal fun SearchResultsList(
     val all = category == SearchCategory.All
     LazyColumn(state = listState, modifier = Modifier.fillMaxSize().imePadding().navigationBarsPadding()) {
         if (query.isBlank()) {
-            item { Note(stringResource(R.string.search_intro)) }
+            item(key = "intro") { Note(stringResource(R.string.search_intro), rowMotion()) }
             return@LazyColumn
         }
         if (all || category == SearchCategory.Chats) {
@@ -95,7 +93,7 @@ internal fun SearchResultsList(
         if (all || category == SearchCategory.Messages) {
             val more = { onShowCategory(SearchCategory.Messages) }
             section(R.string.search_messages, results.messages, all, more, { "m-${it.eventId}" }) {
-                MessageRow(it, results.roomNames[it.roomId], query) { onOpenRoom(it.roomId) }
+                MessageRow(it, results.roomNames[it.roomId], query) { onOpenMessage(it.roomId, it.eventId) }
             }
         }
         if (all || category == SearchCategory.Media) {
@@ -103,14 +101,14 @@ internal fun SearchResultsList(
             if (shown.isNotEmpty()) {
                 item(key = "media-title") {
                     val more = all && results.media.size > COLUMNS
-                    Title(R.string.search_media, more) { onShowCategory(SearchCategory.Media) }
+                    Title(R.string.search_media, more, rowMotion()) { onShowCategory(SearchCategory.Media) }
                 }
                 items(shown.chunked(COLUMNS), key = { "media-${it.first().eventId}" }) { row ->
                     Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
+                        rowMotion().fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        row.forEach { hit -> MediaTile(hit, Modifier.weight(1f)) { onOpenRoom(hit.roomId) } }
+                        row.forEach { hit -> MediaTile(hit, Modifier.weight(1f)) { onOpenMessage(hit.roomId, hit.eventId) } }
                         repeat(COLUMNS - row.size) { Spacer(Modifier.weight(1f)) }
                     }
                 }
@@ -130,12 +128,13 @@ internal fun SearchResultsList(
             }
         }
         item(key = "footer") {
+            val motion = rowMotion()
             when {
-                results.loading -> Box(Modifier.fillMaxWidth().padding(24.dp), Alignment.Center) {
+                results.loading -> Box(motion.fillMaxWidth().padding(24.dp), Alignment.Center) {
                     LoadingIndicator(Modifier.size(40.dp))
                 }
-                results.chats.isEmpty() && found == 0 -> Note(stringResource(R.string.search_none))
-                else -> Note(stringResource(R.string.search_scope))
+                results.chats.isEmpty() && found == 0 -> Note(stringResource(R.string.search_none), motion)
+                else -> Note(stringResource(R.string.search_scope), motion)
             }
         }
     }
@@ -152,14 +151,27 @@ private fun <T> LazyListScope.section(
     row: @Composable (T) -> Unit
 ) {
     if (rows.isEmpty()) return
-    item(key = "title-$title") { Title(title, preview && rows.size > PREVIEW_COUNT, onMore) }
-    items(if (preview) rows.take(PREVIEW_COUNT) else rows, key = key) { row(it) }
+    item(key = "title-$title") { Title(title, preview && rows.size > PREVIEW_COUNT, rowMotion(), onMore) }
+    items(if (preview) rows.take(PREVIEW_COUNT) else rows, key = key) {
+        Box(rowMotion()) { row(it) }
+    }
+}
+
+/** Results fade in and slide into place as they arrive or the query narrows them, instead of jumping. */
+@Composable
+private fun LazyItemScope.rowMotion(): Modifier {
+    val motion = MaterialTheme.motionScheme
+    return Modifier.animateItem(
+        fadeInSpec = motion.defaultEffectsSpec(),
+        placementSpec = motion.defaultSpatialSpec(),
+        fadeOutSpec = motion.fastEffectsSpec()
+    )
 }
 
 @Composable
-private fun Title(title: Int, more: Boolean, onMore: () -> Unit) {
+private fun Title(title: Int, more: Boolean, modifier: Modifier, onMore: () -> Unit) {
     Row(
-        Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 16.dp),
+        modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -221,36 +233,11 @@ private fun MediaTile(hit: MessageHit, modifier: Modifier, onClick: () -> Unit) 
 }
 
 @Composable
-private fun Note(text: String) {
+private fun Note(text: String, modifier: Modifier) {
     Text(
         text = text,
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.fillMaxWidth().padding(24.dp)
+        modifier = modifier.fillMaxWidth().padding(24.dp)
     )
 }
-
-/** [text] with every occurrence of [query] in bold, ignoring case. */
-@Composable
-private fun highlight(text: String, query: String) = buildAnnotatedString {
-    val needle = query.trim()
-    if (needle.isEmpty()) {
-        append(text)
-        return@buildAnnotatedString
-    }
-    val accent = MaterialTheme.colorScheme.primary
-    var start = 0
-    while (true) {
-        val at = text.indexOf(needle, start, ignoreCase = true)
-        if (at < 0) break
-        append(text.substring(start, at))
-        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = accent)) {
-            append(text.substring(at, at + needle.length))
-        }
-        start = at + needle.length
-    }
-    append(text.substring(start))
-}
-
-/** "Sender · Conversation", or just the sender when the conversation is unknown. */
-private fun origin(sender: String, roomName: String?): String = listOfNotNull(sender, roomName).joinToString(" · ")
