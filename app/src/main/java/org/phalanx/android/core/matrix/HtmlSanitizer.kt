@@ -37,6 +37,7 @@ internal object HtmlSanitizer {
             "<span${before.trimEnd()} style=\"color:$color\"$after>"
         }
         .replace(Regex("</font>", RegexOption.IGNORE_CASE), "</span>")
+        .let(HtmlMarks::mark)
         .trim()
 
     /**

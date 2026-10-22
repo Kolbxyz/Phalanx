@@ -5,7 +5,10 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -36,8 +39,13 @@ internal fun MessageText(
         fontSize = MaterialTheme.typography.labelSmall.fontSize,
         color = LocalContentColor.current.copy(alpha = EDITED_ALPHA)
     )
-    val text = remember(body, senderName, edited, editedStyle) {
-        val content = body.html?.let { AnnotatedString.fromHtml(it, links).trimEnd() } ?: linkify(body.text, links)
+    val contentColor = LocalContentColor.current
+    var revealed by remember(body) { mutableStateOf(false) }
+    val text = remember(body, senderName, edited, editedStyle, contentColor, revealed) {
+        val content = body.html
+            ?.let { AnnotatedString.fromHtml(it, links).trimEnd() }
+            ?.withMarks(contentColor, revealed) { revealed = true }
+            ?: linkify(body.text, links)
         buildAnnotatedString {
             if (body.style == MessageBody.TextStyle.Emote) append("* $senderName ")
             append(content)

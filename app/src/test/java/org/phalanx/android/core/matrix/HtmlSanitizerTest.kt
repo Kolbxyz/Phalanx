@@ -41,7 +41,7 @@ class HtmlSanitizerTest {
 
     @Test
     fun `keeps ordinary formatting`() {
-        val html = "<b>bold</b> <i>it</i> <a href=\"https://example.org\">link</a><br><code>x</code>"
+        val html = "<b>bold</b> <i>it</i> <a href=\"https://example.org\">link</a><br><del>x</del>"
         assertEquals(html, HtmlSanitizer.sanitize(html))
     }
 
