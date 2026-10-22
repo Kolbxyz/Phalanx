@@ -44,6 +44,7 @@ fun RoomScreen(
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val focus by viewModel.focus.collectAsStateWithLifecycle()
     var selected by remember { mutableStateOf<TimelineEntry.Message?>(null) }
+    var profileOf by remember { mutableStateOf<String?>(null) }
     var attaching by remember { mutableStateOf(false) }
     var scheduling by remember { mutableStateOf(false) }
     val scheduled by viewModel.scheduled.collectAsStateWithLifecycle()
@@ -59,7 +60,8 @@ fun RoomScreen(
             onToggleReaction = viewModel::toggleReaction,
             onShowReactors = viewModel::showReactors,
             onReply = viewModel.composer::reply,
-            onLongPress = { selected = it }
+            onLongPress = { selected = it },
+            onOpenProfile = { profileOf = it }
         )
     }
     val composerActions = remember(viewModel) {
@@ -114,6 +116,7 @@ fun RoomScreen(
     TopNoticeHost(notice, onDismiss = viewModel::dismissNotice)
 
     MessageMenu(selected, onDismiss = { selected = null }, viewModel)
+    ProfileMenu(profileOf, onDismiss = { profileOf = null }, viewModel)
     val reactors by viewModel.reactors.collectAsStateWithLifecycle()
     reactors?.let { ReactorsSheet(it, onDismiss = viewModel::dismissReactors) }
     if (scheduling) {

@@ -20,10 +20,11 @@ sealed interface MessageBody {
         val thumbnail: MediaRef?,
         val width: Int?,
         val height: Int?,
-        val caption: String?,
+        val caption: Text?,
         val isSticker: Boolean,
         val filename: String,
-        val mimeType: String?
+        val mimeType: String?,
+        val sizeBytes: Long? = null
     ) : MessageBody
 
     data class Video(
@@ -34,7 +35,8 @@ sealed interface MessageBody {
         val durationMillis: Long?,
         val filename: String,
         val mimeType: String?,
-        val caption: String?
+        val caption: Text?,
+        val sizeBytes: Long? = null
     ) : MessageBody
 
     data class Audio(
@@ -52,7 +54,7 @@ sealed interface MessageBody {
         val filename: String,
         val mimeType: String?,
         val sizeBytes: Long?,
-        val caption: String?
+        val caption: Text?
     ) : MessageBody
 
     data class Location(val geoUri: String, val description: String?) : MessageBody

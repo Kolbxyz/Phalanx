@@ -40,6 +40,7 @@ internal fun RoomFilterRow(
                     selected = true,
                     onClick = onClearSource,
                     label = { Text(stringResource(source.label)) },
+                    leadingIcon = { SourceIcon(source, InputChipDefaults.AvatarSize) },
                     trailingIcon = {
                         Icon(
                             Symbols.Close,

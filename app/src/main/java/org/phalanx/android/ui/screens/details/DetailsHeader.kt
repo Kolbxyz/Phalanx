@@ -23,12 +23,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
 import org.phalanx.android.data.model.RoomSummary
+import org.phalanx.android.data.model.UserTrust
 import org.phalanx.android.ui.components.MatrixAvatar
+import org.phalanx.android.ui.components.TrustLabel
 import org.phalanx.android.ui.theme.Symbols
 
 /** The room's face: a large shaped avatar, its name, topic and who is in it, then quick toggles. */
 @Composable
-internal fun DetailsHeader(room: RoomSummary, onFavourite: (Boolean) -> Unit, onUnread: (Boolean) -> Unit) {
+internal fun DetailsHeader(
+    room: RoomSummary,
+    trust: UserTrust?,
+    onFavourite: (Boolean) -> Unit,
+    onUnread: (Boolean) -> Unit
+) {
     val colors = MaterialTheme.colorScheme
     Column(
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 16.dp),
@@ -67,6 +74,7 @@ internal fun DetailsHeader(room: RoomSummary, onFavourite: (Boolean) -> Unit, on
                 color = colors.onSurfaceVariant
             )
         }
+        trust?.let { TrustLabel(it) }
         room.topic?.let {
             Text(
                 text = it,

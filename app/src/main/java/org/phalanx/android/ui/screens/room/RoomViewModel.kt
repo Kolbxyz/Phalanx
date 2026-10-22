@@ -24,15 +24,18 @@ import org.phalanx.android.core.media.VoiceRecorder
 import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.model.AppSettings
 import org.phalanx.android.data.model.MediaRef
+import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.model.ScheduledMessage
 import org.phalanx.android.data.model.TimelineEntry
+import org.phalanx.android.data.model.UserTrust
 import org.phalanx.android.data.repository.BlockedUsersRepository
 import org.phalanx.android.data.repository.MediaRepository
 import org.phalanx.android.data.repository.MutedUsersRepository
 import org.phalanx.android.data.repository.PushRepository
 import org.phalanx.android.data.repository.RoomListRepository
 import org.phalanx.android.data.repository.ScheduleRepository
+import org.phalanx.android.data.repository.SecurityRepository
 import org.phalanx.android.data.repository.TimelineRepository
 import org.phalanx.android.data.repository.TimelineSession
 import org.phalanx.android.ui.components.Notice
@@ -53,7 +56,8 @@ class RoomViewModel @Inject constructor(
     push: PushRepository,
     private val blockedUsers: BlockedUsersRepository,
     settingsStore: SettingsStore,
-    private val schedules: ScheduleRepository
+    private val schedules: ScheduleRepository,
+    private val security: SecurityRepository
 ) : ViewModel() {
     private val route = savedStateHandle.toRoute<RoomRoute>()
     val roomId: String = route.roomId
@@ -181,6 +185,12 @@ class RoomViewModel @Inject constructor(
     fun cancelScheduled(id: String) {
         viewModelScope.launch { schedules.cancel(id) }
     }
+
+    /** Who [userId] is in this room; just their ID when the room doesn't know them. */
+    suspend fun member(userId: String): Member =
+        session?.members(listOf(userId))?.firstOrNull() ?: Member(userId, userId, null)
+
+    suspend fun trustOf(userId: String): UserTrust? = security.trustOf(userId)
 
     fun block(userId: String) {
         viewModelScope.launch { blockedUsers.block(userId).onFailure { notify(R.string.timeline_action_failed) } }

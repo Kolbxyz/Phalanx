@@ -14,9 +14,9 @@ internal fun summaryOf(body: MessageBody): String = summaryOf(body, LocalResourc
 /** [summaryOf] outside composition, such as in a notification; [label] resolves a string resource. */
 internal fun summaryOf(body: MessageBody, label: (Int) -> String): String = when (body) {
     is MessageBody.Text -> body.text
-    is MessageBody.Image -> body.caption ?: label(kindLabel(body))
-    is MessageBody.Video -> body.caption ?: label(kindLabel(body))
-    is MessageBody.File -> body.caption ?: body.filename
+    is MessageBody.Image -> body.caption?.text ?: label(kindLabel(body))
+    is MessageBody.Video -> body.caption?.text ?: label(kindLabel(body))
+    is MessageBody.File -> body.caption?.text ?: body.filename
     is MessageBody.Location -> body.description ?: label(kindLabel(body))
     else -> label(kindLabel(body))
 }

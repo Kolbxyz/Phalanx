@@ -30,6 +30,7 @@ internal fun MessageText(
     body: MessageBody.Text,
     senderName: String,
     edited: Boolean,
+    onMention: (userId: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val links = TextLinkStyles(SpanStyle(textDecoration = TextDecoration.Underline))
@@ -41,10 +42,10 @@ internal fun MessageText(
     )
     val contentColor = LocalContentColor.current
     var revealed by remember(body) { mutableStateOf(false) }
-    val text = remember(body, senderName, edited, editedStyle, contentColor, revealed) {
+    val text = remember(body, senderName, edited, editedStyle, contentColor, revealed, onMention) {
         val content = body.html
             ?.let { AnnotatedString.fromHtml(it, links).trimEnd().withInlineEmotes(body.emotes) }
-            ?.withMarks(contentColor, revealed) { revealed = true }
+            ?.withMarks(contentColor, revealed, onMention) { revealed = true }
             ?: linkify(body.text, links)
         buildAnnotatedString {
             if (body.style == MessageBody.TextStyle.Emote) append("* $senderName ")

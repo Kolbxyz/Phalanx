@@ -348,7 +348,7 @@
     <string name="action_edit_history">Version history</string>
     <string name="edit_history_original">Original</string>
     <string name="edit_history_failed">Couldn’t load the earlier versions</string>
-    <string name="media_jump_to_message">Go to message</string>
+    <string name="media_jump_to_message">View in conversation</string>
     <string name="timeline_focus_not_found">Couldn’t find that message in the conversation.</string>
     <string name="details_members_title">Members</string>
     <string name="details_members_none">No other members</string>
@@ -380,4 +380,20 @@
     <string name="composer_mention_silent">Send without notifying anyone</string>
     <string name="composer_mention_room_token" translatable="false">\@room</string>
     <string name="composer_mention_silent_token" translatable="false">\@silent</string>
+    <string name="media_info">Details</string>
+    <string name="media_open_with">Open with…</string>
+    <string name="media_info_name">Name</string>
+    <string name="media_info_type">Type</string>
+    <string name="media_info_size">Size</string>
+    <string name="media_info_dimensions">Dimensions</string>
+    <string name="media_info_dimensions_value">%1$d × %2$d</string>
+    <string name="media_info_duration">Duration</string>
+    <string name="media_info_sender">Sent by</string>
+    <string name="media_info_date">Sent on</string>
+    <string name="profile_copy_id">Copy Matrix ID</string>
+    <string name="action_copy_link">Copy link</string>
+    <string name="action_share_link">Share link</string>
+    <string name="trust_verified">Verified</string>
+    <string name="trust_unverified">Not verified</string>
+    <string name="trust_changed">Their identity changed since you verified them</string>
 </resources>

@@ -351,7 +351,7 @@
     <string name="action_edit_history">Historique des versions</string>
     <string name="edit_history_original">Original</string>
     <string name="edit_history_failed">Impossible de charger les versions précédentes</string>
-    <string name="media_jump_to_message">Aller au message</string>
+    <string name="media_jump_to_message">Voir dans la conversation</string>
     <string name="timeline_focus_not_found">Ce message est introuvable dans la conversation.</string>
     <string name="details_members_title">Membres</string>
     <string name="details_members_none">Aucun autre membre</string>
@@ -368,4 +368,20 @@
     <string name="timeline_reaction_custom">émoji personnalisé</string>
     <string name="composer_mention_room">Notifier tout le salon</string>
     <string name="composer_mention_silent">Envoyer sans notifier personne</string>
+    <string name="media_info">Détails</string>
+    <string name="media_open_with">Ouvrir avec…</string>
+    <string name="media_info_name">Nom</string>
+    <string name="media_info_type">Type</string>
+    <string name="media_info_size">Taille</string>
+    <string name="media_info_dimensions">Dimensions</string>
+    <string name="media_info_dimensions_value">%1$d × %2$d</string>
+    <string name="media_info_duration">Durée</string>
+    <string name="media_info_sender">Envoyé par</string>
+    <string name="media_info_date">Envoyé le</string>
+    <string name="profile_copy_id">Copier l’identifiant Matrix</string>
+    <string name="action_copy_link">Copier le lien</string>
+    <string name="action_share_link">Partager le lien</string>
+    <string name="trust_verified">Vérifié</string>
+    <string name="trust_unverified">Non vérifié</string>
+    <string name="trust_changed">Son identité a changé depuis votre vérification</string>
 </resources>

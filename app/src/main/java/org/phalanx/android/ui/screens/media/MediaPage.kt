@@ -67,7 +67,7 @@ private fun ZoomableImage(id: String, body: MessageBody.Image, onTap: () -> Unit
         pan = if (zoom.value > 1f) pan + panChange else Offset.Zero
     }
     LaunchedEffect(zoom) { snapshotFlow { zoom.value > 1f }.collect(onZoomed) }
-    val description = body.caption ?: stringResource(R.string.timeline_kind_image)
+    val description = body.caption?.text ?: stringResource(R.string.timeline_kind_image)
     Box(
         Modifier
             .fillMaxSize()

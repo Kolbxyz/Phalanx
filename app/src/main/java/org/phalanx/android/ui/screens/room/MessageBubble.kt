@@ -3,6 +3,7 @@ package org.phalanx.android.ui.screens.room
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -33,6 +34,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
 import org.phalanx.android.data.model.SendState
@@ -86,7 +88,12 @@ internal fun MessageBubble(
         ) {
             if (showAvatar) {
                 if (endsRun) {
-                    MatrixAvatar(message.senderName, message.senderAvatar, AvatarSize)
+                    MatrixAvatar(
+                        name = message.senderName,
+                        media = message.senderAvatar,
+                        size = AvatarSize,
+                        modifier = Modifier.clickable(role = Role.Button) { actions.onOpenProfile(message.senderId) }
+                    )
                 } else {
                     Spacer(Modifier.width(AvatarSize))
                 }
@@ -100,7 +107,9 @@ internal fun MessageBubble(
                         style = MaterialTheme.typography.labelLarge,
                         color = senderColor(message.senderId),
                         maxLines = 1,
-                        modifier = Modifier.padding(start = 14.dp, bottom = 4.dp)
+                        modifier = Modifier
+                            .clickable(role = Role.Button) { actions.onOpenProfile(message.senderId) }
+                            .padding(start = 14.dp, bottom = 4.dp)
                     )
                 }
                 Bubble(message, startsRun, endsRun, actions)
@@ -186,6 +195,10 @@ private fun Bubble(message: TimelineEntry.Message, startsRun: Boolean, endsRun: 
     val pressed by interaction.collectIsPressedAsState()
     val scale by animateFloatAsState(if (pressed) PRESSED_SCALE else 1f, MaterialTheme.motionScheme.fastSpatialSpec())
     val haptics = LocalHapticFeedback.current
+    val onLongPress = {
+        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+        actions.onLongPress(message)
+    }
 
     Surface(
         shape = shape,
@@ -210,13 +223,10 @@ private fun Bubble(message: TimelineEntry.Message, startsRun: Boolean, endsRun: 
                 interactionSource = interaction,
                 indication = null,
                 onClick = {},
-                onLongClick = {
-                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                    actions.onLongPress(message)
-                }
+                onLongClick = onLongPress
             )
     ) {
-        BubbleContent(message, layout, actions)
+        BubbleContent(message, layout, actions, onLongPress)
     }
 }
 

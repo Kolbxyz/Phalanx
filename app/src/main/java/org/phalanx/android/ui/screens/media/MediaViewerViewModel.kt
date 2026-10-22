@@ -17,10 +17,12 @@ import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.data.model.MediaRef
 import org.phalanx.android.data.model.MessageBody
+import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.MediaRepository
 import org.phalanx.android.data.repository.RoomGallery
 import org.phalanx.android.data.repository.RoomGalleryRepository
+import org.phalanx.android.data.repository.RoomListRepository
 import org.phalanx.android.data.repository.TimelineRepository
 import org.phalanx.android.data.repository.TimelineSession
 import org.phalanx.android.ui.components.Notice
@@ -48,7 +50,8 @@ class MediaViewerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val timelines: TimelineRepository,
     private val galleries: RoomGalleryRepository,
-    private val mediaFiles: MediaRepository
+    private val mediaFiles: MediaRepository,
+    private val roomList: RoomListRepository
 ) : ViewModel() {
     private val route = savedStateHandle.toRoute<MediaViewerRoute>()
     val entryId: String = route.entryId
@@ -66,6 +69,12 @@ class MediaViewerViewModel @Inject constructor(
 
     private val mutableShare = MutableStateFlow<OpenRequest?>(null)
     val shareRequest: StateFlow<OpenRequest?> = mutableShare.asStateFlow()
+
+    private val mutableOpen = MutableStateFlow<OpenRequest?>(null)
+    val openRequest: StateFlow<OpenRequest?> = mutableOpen.asStateFlow()
+
+    /** Every joined room, for picking where to forward a photo or video. */
+    val rooms: StateFlow<List<RoomSummary>?> = roomList.rooms
 
     /** Below Android 10 saving goes through a document picker, which the screen launches. */
     val savesThroughPicker: Boolean = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
@@ -109,18 +118,41 @@ class MediaViewerViewModel @Inject constructor(
         }
     }
 
-    fun share(entry: TimelineEntry.Message) {
-        val file = entry.body.fileOf() ?: return
+    fun share(entry: TimelineEntry.Message) = request(entry, mutableShare)
+
+    fun onShared() {
+        mutableShare.value = null
+    }
+
+    /** Hands the file to another app the user picks. */
+    fun openWith(entry: TimelineEntry.Message) = request(entry, mutableOpen)
+
+    fun onOpened() {
+        mutableOpen.value = null
+    }
+
+    fun onNoApp() {
+        mutableNotice.value = Notice(R.string.timeline_open_failed, NoticeKind.Error)
+    }
+
+    fun forward(entry: TimelineEntry.Message, toRoomId: String) {
+        val eventId = entry.eventId ?: return
         viewModelScope.launch {
-            mediaFiles.openable(file.media, file.filename, file.mimeType).fold(
-                onSuccess = { mutableShare.value = OpenRequest(it, file.mimeType) },
-                onFailure = { mutableNotice.value = Notice(R.string.timeline_open_failed, NoticeKind.Error) }
+            mutableNotice.value = timelines.forward(roomId, eventId, toRoomId).fold(
+                onSuccess = { Notice(R.string.timeline_forwarded, NoticeKind.Done) },
+                onFailure = { Notice(R.string.timeline_action_failed, NoticeKind.Error) }
             )
         }
     }
 
-    fun onShared() {
-        mutableShare.value = null
+    private fun request(entry: TimelineEntry.Message, into: MutableStateFlow<OpenRequest?>) {
+        val file = entry.body.fileOf() ?: return
+        viewModelScope.launch {
+            mediaFiles.openable(file.media, file.filename, file.mimeType).fold(
+                onSuccess = { into.value = OpenRequest(it, file.mimeType) },
+                onFailure = { mutableNotice.value = Notice(R.string.timeline_open_failed, NoticeKind.Error) }
+            )
+        }
     }
 
     fun saveToGallery(entry: TimelineEntry.Message) {

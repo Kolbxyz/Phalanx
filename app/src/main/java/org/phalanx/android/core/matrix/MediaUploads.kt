@@ -2,7 +2,9 @@ package org.phalanx.android.core.matrix
 
 import org.matrix.rustcomponents.sdk.AudioInfo
 import org.matrix.rustcomponents.sdk.FileInfo
+import org.matrix.rustcomponents.sdk.FormattedBody
 import org.matrix.rustcomponents.sdk.ImageInfo
+import org.matrix.rustcomponents.sdk.MessageFormat
 import org.matrix.rustcomponents.sdk.SendAttachmentJoinHandle
 import org.matrix.rustcomponents.sdk.ThumbnailInfo
 import org.matrix.rustcomponents.sdk.Timeline
@@ -16,11 +18,16 @@ import java.time.Duration
  * Queues [media] for upload through the SDK's send queue, which shows it in the timeline at once
  * and encrypts it in encrypted rooms. The returned handle completes once the upload is over.
  */
-internal fun Timeline.upload(media: OutgoingMedia, caption: String?, inReplyTo: String?): SendAttachmentJoinHandle {
+internal fun Timeline.upload(
+    media: OutgoingMedia,
+    caption: String?,
+    captionHtml: String?,
+    inReplyTo: String?
+): SendAttachmentJoinHandle {
     val params = UploadParameters(
         source = UploadSource.File(media.file.path),
         caption = caption,
-        formattedCaption = null,
+        formattedCaption = captionHtml?.let { FormattedBody(MessageFormat.Html, it) },
         mentions = null,
         inReplyTo = inReplyTo
     )

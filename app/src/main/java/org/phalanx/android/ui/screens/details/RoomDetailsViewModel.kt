@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -22,12 +23,14 @@ import org.phalanx.android.data.model.MediaRef
 import org.phalanx.android.data.model.Participant
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.model.TimelineEntry
+import org.phalanx.android.data.model.UserTrust
 import org.phalanx.android.data.repository.BlockedUsersRepository
 import org.phalanx.android.data.repository.MediaRepository
 import org.phalanx.android.data.repository.RoomActionsRepository
 import org.phalanx.android.data.repository.RoomGallery
 import org.phalanx.android.data.repository.RoomGalleryRepository
 import org.phalanx.android.data.repository.RoomListRepository
+import org.phalanx.android.data.repository.SecurityRepository
 import org.phalanx.android.ui.components.OpenRequest
 import org.phalanx.android.ui.navigation.RoomDetailsRoute
 import javax.inject.Inject
@@ -40,7 +43,8 @@ class RoomDetailsViewModel @Inject constructor(
     galleries: RoomGalleryRepository,
     private val actions: RoomActionsRepository,
     private val blockedUsers: BlockedUsersRepository,
-    private val media: MediaRepository
+    private val media: MediaRepository,
+    private val security: SecurityRepository
 ) : ViewModel() {
     val roomId: String = savedStateHandle.toRoute<RoomDetailsRoute>().roomId
 
@@ -48,6 +52,13 @@ class RoomDetailsViewModel @Inject constructor(
     val room: StateFlow<RoomSummary?> = roomList.rooms
         .map { rooms -> rooms?.firstOrNull { it.id == roomId } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, roomList.rooms.value?.firstOrNull { it.id == roomId })
+
+    /** For a one-to-one chat, whether the other person is verified; null for a group or until known. */
+    val trust: StateFlow<UserTrust?> = room
+        .map { it?.dmUserId }
+        .distinctUntilChanged()
+        .mapLatest { userId -> userId?.let { security.trustOf(it) } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val gallery = MutableStateFlow<RoomGallery?>(null)
 

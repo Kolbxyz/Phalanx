@@ -1,6 +1,8 @@
 package org.phalanx.android.ui.screens.room
 
 import android.content.ClipData
+import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -9,6 +11,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import org.phalanx.android.data.model.AppSettings
@@ -19,6 +22,7 @@ import org.phalanx.android.data.model.TimelineEntry
 @Composable
 internal fun MessageMenu(message: TimelineEntry.Message?, onDismiss: () -> Unit, viewModel: RoomViewModel) {
     val clipboard = LocalClipboard.current
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var deleting by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     var blocking by remember { mutableStateOf<TimelineEntry.Message?>(null) }
@@ -28,6 +32,10 @@ internal fun MessageMenu(message: TimelineEntry.Message?, onDismiss: () -> Unit,
     val header by viewModel.header.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val text = (message?.body as? MessageBody.Text)?.text
+
+    fun copy(value: String) {
+        scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, value))) }
+    }
 
     // Every choice closes the sheet once it has acted.
     fun then(action: () -> Unit): () -> Unit = {
@@ -42,9 +50,9 @@ internal fun MessageMenu(message: TimelineEntry.Message?, onDismiss: () -> Unit,
             onReply = then { viewModel.composer.reply(message) },
             onEdit = then { text?.let { viewModel.composer.edit(message, it) } },
             onShowVersions = versionsTarget(message, settings)?.let { eventId -> then { versionsOf = eventId } },
-            onCopy = then {
-                text?.let { scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, it))) } }
-            },
+            onCopy = then { text?.let(::copy) },
+            onCopyLink = { link -> then { copy(link) }() },
+            onShareLink = { link -> then { shareText(context, link) }() },
             onForward = then { forwarding = message },
             pinned = message.eventId in header?.pinnedEventIds.orEmpty(),
             onTogglePin = then { viewModel.setPinned(message, message.eventId !in header?.pinnedEventIds.orEmpty()) },
@@ -85,6 +93,12 @@ internal fun MessageMenu(message: TimelineEntry.Message?, onDismiss: () -> Unit,
             onDismiss = { blocking = null }
         )
     }
+}
+
+/** The system share sheet for [text]; a chooser always resolves, so there is no failure to report. */
+private fun shareText(context: Context, text: String) {
+    val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
+    context.startActivity(Intent.createChooser(send, null))
 }
 
 /** An edited message's versions are offered once it is sent, and only with the setting on. */
