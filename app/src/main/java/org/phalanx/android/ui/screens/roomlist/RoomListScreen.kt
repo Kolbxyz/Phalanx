@@ -63,6 +63,7 @@ fun RoomListScreen(
     val profile by viewModel.profile.collectAsStateWithLifecycle()
     val avatar by viewModel.avatar.collectAsStateWithLifecycle()
     val actionFailed by viewModel.actionFailed.collectAsStateWithLifecycle()
+    val drafts by viewModel.drafts.collectAsStateWithLifecycle()
     var menuFor by remember { mutableStateOf<RoomSummary?>(null) }
     var leaving by remember { mutableStateOf<RoomSummary?>(null) }
     var searching by rememberSaveable { mutableStateOf(false) }
@@ -127,6 +128,7 @@ fun RoomListScreen(
                     RoomListUiState.Loading -> RoomListPlaceholder(padding)
                     is RoomListUiState.Loaded -> RoomList(
                         current,
+                        drafts,
                         padding,
                         viewModel::setFilter,
                         onClearSource = { viewModel.setSource(RoomSource.All) },
@@ -153,6 +155,7 @@ fun RoomListScreen(
             onToggleRead = then { viewModel.setUnread(room, !room.hasUnread) },
             onToggleFavourite = then { viewModel.setFavourite(room, !room.isFavourite) },
             onToggleArchived = then { viewModel.setArchived(room, !room.isLowPriority) },
+            onToggleMuted = then { viewModel.setMuted(room, !room.isMuted) },
             onDetails = then { onOpenDetails(room.id) },
             onLeave = then { leaving = room }
         )
@@ -172,6 +175,7 @@ fun RoomListScreen(
 @Composable
 private fun RoomList(
     state: RoomListUiState.Loaded,
+    drafts: Map<String, String>,
     padding: PaddingValues,
     onFilter: (RoomFilter) -> Unit,
     onClearSource: () -> Unit,
@@ -223,6 +227,7 @@ private fun RoomList(
         itemsIndexed(rooms, key = { _, room -> room.id }, contentType = { _, _ -> ROOM_ROW }) { index, room ->
             RoomRow(
                 room,
+                draft = drafts[room.id],
                 shape = segmentedShape(index, rooms.size),
                 onClick = { onOpenRoom(room.id) },
                 onLongClick = { onLongClick(room) },

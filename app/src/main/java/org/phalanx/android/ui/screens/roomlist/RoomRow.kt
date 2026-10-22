@@ -58,6 +58,7 @@ import java.time.format.FormatStyle
 @Composable
 internal fun RoomRow(
     room: RoomSummary,
+    draft: String?,
     shape: Shape,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
@@ -102,32 +103,9 @@ internal fun RoomRow(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false)
                     )
-                    if (room.isFavourite) {
-                        Icon(
-                            Symbols.Star,
-                            contentDescription = stringResource(R.string.roomlist_favourite),
-                            tint = colors.tertiary,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
+                    NameMarks(room)
                 }
-                room.preview?.let { body ->
-                    val preview = summaryOf(body)
-                    val sender = room.previewSender
-                    Text(
-                        text = when {
-                            room.previewIsOwn -> stringResource(R.string.roomlist_you_prefix, preview)
-                            !room.isDirect && sender != null ->
-                                stringResource(R.string.roomlist_sender_prefix, sender, preview)
-                            else -> preview
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = if (unread) FontWeight.Medium else null,
-                        color = if (unread) colors.onSurface else colors.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+                RowPreview(room, draft, unread)
             }
             Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 room.lastActivityMillis?.let { millis ->
@@ -145,13 +123,34 @@ internal fun RoomRow(
                     exit = scaleOut(motion.fastSpatialSpec()) + fadeOut(motion.fastEffectsSpec())
                 ) {
                     if (room.unreadCount > 0) {
-                        UnreadBadge(room.unreadCount, mention = room.highlightCount > 0)
+                        UnreadBadge(room.unreadCount, mention = room.highlightCount > 0, muted = room.isMuted)
                     } else {
                         UnreadDot()
                     }
                 }
             }
         }
+    }
+}
+
+/** Small marks after the name: muted, then favourite. */
+@Composable
+private fun NameMarks(room: RoomSummary) {
+    if (room.isMuted) {
+        Icon(
+            Symbols.NotificationsOff,
+            contentDescription = stringResource(R.string.roomlist_muted),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(16.dp)
+        )
+    }
+    if (room.isFavourite) {
+        Icon(
+            Symbols.Star,
+            contentDescription = stringResource(R.string.roomlist_favourite),
+            tint = MaterialTheme.colorScheme.tertiary,
+            modifier = Modifier.size(16.dp)
+        )
     }
 }
 
@@ -185,13 +184,22 @@ private fun RoomAvatar(room: RoomSummary) {
 }
 
 @Composable
-private fun UnreadBadge(count: Long, mention: Boolean) {
+private fun UnreadBadge(count: Long, mention: Boolean, muted: Boolean) {
     val quantity = count.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
     val description = pluralStringResource(R.plurals.roomlist_unread, quantity, count)
     Surface(
         shape = CircleShape,
-        color = if (mention) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-        contentColor = if (mention) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onPrimary,
+        // A muted room still counts its messages, quietly; a mention of this account always stands out.
+        color = when {
+            mention -> MaterialTheme.colorScheme.error
+            muted -> MaterialTheme.colorScheme.surfaceVariant
+            else -> MaterialTheme.colorScheme.primary
+        },
+        contentColor = when {
+            mention -> MaterialTheme.colorScheme.onError
+            muted -> MaterialTheme.colorScheme.onSurfaceVariant
+            else -> MaterialTheme.colorScheme.onPrimary
+        },
         modifier = Modifier
             .defaultMinSize(minWidth = 24.dp, minHeight = 24.dp)
             .semantics { contentDescription = description }

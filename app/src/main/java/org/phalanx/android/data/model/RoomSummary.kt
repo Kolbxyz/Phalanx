@@ -16,6 +16,7 @@ data class RoomSummary(
     /** Who sent [preview], for group chats. */
     val previewSender: String?,
     val lastActivityMillis: Long?,
+    /** Unread messages, counted on the device so encrypted and mentions-only rooms count too. */
     val unreadCount: Long,
     val highlightCount: Long,
     val isFavourite: Boolean,
@@ -31,7 +32,9 @@ data class RoomSummary(
     /** Events pinned in the room, as every member's client shows them. */
     val pinnedEventIds: Set<String> = emptySet(),
     /** The network the room is bridged to; null for a Matrix-only room. */
-    val bridge: Bridge? = null
+    val bridge: Bridge? = null,
+    /** Muted by hand: no notifications, here or on any device sharing the account's push rules. */
+    val isMuted: Boolean = false
 ) {
     val hasUnread: Boolean
         get() = unreadCount > 0 || isMarkedUnread

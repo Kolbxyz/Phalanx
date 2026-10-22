@@ -36,6 +36,7 @@ internal fun RoomActionsSheet(
     onToggleRead: () -> Unit,
     onToggleFavourite: () -> Unit,
     onToggleArchived: () -> Unit,
+    onToggleMuted: () -> Unit,
     onDetails: () -> Unit,
     onLeave: () -> Unit
 ) {
@@ -58,6 +59,11 @@ internal fun RoomActionsSheet(
             Action(Symbols.StarOutline, R.string.room_action_unfavourite, onToggleFavourite)
         } else {
             Action(Symbols.Star, R.string.room_action_favourite, onToggleFavourite)
+        }
+        if (room.isMuted) {
+            Action(Symbols.Notifications, R.string.room_action_unmute, onToggleMuted)
+        } else {
+            Action(Symbols.NotificationsOff, R.string.room_action_mute, onToggleMuted)
         }
         if (room.isLowPriority) {
             Action(Symbols.Unarchive, R.string.room_action_unarchive, onToggleArchived)

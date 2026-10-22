@@ -10,13 +10,17 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.repository.AccountProfile
 import org.phalanx.android.data.repository.AccountRepository
+import org.phalanx.android.data.repository.DraftsRepository
 import org.phalanx.android.data.repository.RoomActionsRepository
 import org.phalanx.android.data.repository.RoomListRepository
 import org.phalanx.android.ui.components.decodeAvatar
@@ -26,6 +30,7 @@ import javax.inject.Inject
 class RoomListViewModel @Inject constructor(
     roomList: RoomListRepository,
     account: AccountRepository,
+    drafts: DraftsRepository,
     private val actions: RoomActionsRepository
 ) : ViewModel() {
     // Starts from the repository's current list, so coming back to this screen never flashes a
@@ -40,6 +45,13 @@ class RoomListViewModel @Inject constructor(
             SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
             toUiState(roomList.rooms.value, filter.value, source.value)
         )
+
+    /** Unsent text by room ID, shown in place of the last message. */
+    val drafts: StateFlow<Map<String, String>> = drafts.drafts
+
+    init {
+        roomList.rooms.filterNotNull().onEach { rooms -> drafts.lookUp(rooms.map { it.id }) }.launchIn(viewModelScope)
+    }
 
     /** For the account button in the top bar. */
     val profile: StateFlow<AccountProfile?> = account.profile
@@ -58,6 +70,8 @@ class RoomListViewModel @Inject constructor(
     fun setUnread(room: RoomSummary, unread: Boolean) = act { actions.setUnread(room.id, unread) }
 
     fun leave(room: RoomSummary) = act { actions.leave(room.id) }
+
+    fun setMuted(room: RoomSummary, muted: Boolean) = act { actions.setMuted(room.id, muted) }
 
     fun setArchived(room: RoomSummary, archived: Boolean) = act { actions.setArchived(room.id, archived) }
 
