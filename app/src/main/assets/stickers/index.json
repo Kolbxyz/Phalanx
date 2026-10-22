@@ -1,0 +1,265 @@
+{
+ "packs": [
+  {
+   "id": "reactions",
+   "stickers": [
+    {
+     "file": "reactions/lol.webp",
+     "body": "😂"
+    },
+    {
+     "file": "reactions/rofl.webp",
+     "body": "🤣"
+    },
+    {
+     "file": "reactions/sob.webp",
+     "body": "😭"
+    },
+    {
+     "file": "reactions/pleading.webp",
+     "body": "🥹"
+    },
+    {
+     "file": "reactions/mindblown.webp",
+     "body": "🤯"
+    },
+    {
+     "file": "reactions/woozy.webp",
+     "body": "🥴"
+    },
+    {
+     "file": "reactions/melting.webp",
+     "body": "🫠"
+    },
+    {
+     "file": "reactions/smiling_tear.webp",
+     "body": "🥲"
+    },
+    {
+     "file": "reactions/hot.webp",
+     "body": "🥵"
+    },
+    {
+     "file": "reactions/cold.webp",
+     "body": "🥶"
+    },
+    {
+     "file": "reactions/cool.webp",
+     "body": "😎"
+    },
+    {
+     "file": "reactions/thinking.webp",
+     "body": "🤔"
+    },
+    {
+     "file": "reactions/facepalm.webp",
+     "body": "🤦"
+    },
+    {
+     "file": "reactions/cry_laugh.webp",
+     "body": "😂😭"
+    },
+    {
+     "file": "reactions/mind_sparkles.webp",
+     "body": "🤯✨"
+    },
+    {
+     "file": "reactions/cool_poop.webp",
+     "body": "😎💩"
+    }
+   ]
+  },
+  {
+   "id": "love",
+   "stickers": [
+    {
+     "file": "love/heart.webp",
+     "body": "❤️"
+    },
+    {
+     "file": "love/hearts_face.webp",
+     "body": "🥰"
+    },
+    {
+     "file": "love/heart_eyes.webp",
+     "body": "😍"
+    },
+    {
+     "file": "love/kiss.webp",
+     "body": "😘"
+    },
+    {
+     "file": "love/two_hearts.webp",
+     "body": "💕"
+    },
+    {
+     "file": "love/love_letter.webp",
+     "body": "💌"
+    },
+    {
+     "file": "love/rose.webp",
+     "body": "🌹"
+    },
+    {
+     "file": "love/revolving.webp",
+     "body": "💞"
+    },
+    {
+     "file": "love/rose_love.webp",
+     "body": "🌹🥰"
+    },
+    {
+     "file": "love/kiss_heart.webp",
+     "body": "😘❤️"
+    }
+   ]
+  },
+  {
+   "id": "cats",
+   "stickers": [
+    {
+     "file": "cats/cat.webp",
+     "body": "🐱"
+    },
+    {
+     "file": "cats/grin.webp",
+     "body": "😺"
+    },
+    {
+     "file": "cats/smile.webp",
+     "body": "😸"
+    },
+    {
+     "file": "cats/joy.webp",
+     "body": "😹"
+    },
+    {
+     "file": "cats/heart_eyes.webp",
+     "body": "😻"
+    },
+    {
+     "file": "cats/smirk.webp",
+     "body": "😼"
+    },
+    {
+     "file": "cats/scream.webp",
+     "body": "🙀"
+    },
+    {
+     "file": "cats/cry.webp",
+     "body": "😿"
+    },
+    {
+     "file": "cats/royal_cat.webp",
+     "body": "🐱👑"
+    },
+    {
+     "file": "cats/cat_pizza.webp",
+     "body": "🐱🍕"
+    }
+   ]
+  },
+  {
+   "id": "snacks",
+   "stickers": [
+    {
+     "file": "snacks/pizza.webp",
+     "body": "🍕"
+    },
+    {
+     "file": "snacks/fries.webp",
+     "body": "🍟"
+    },
+    {
+     "file": "snacks/waffle.webp",
+     "body": "🧇"
+    },
+    {
+     "file": "snacks/ice_cream.webp",
+     "body": "🍦"
+    },
+    {
+     "file": "snacks/chocolate.webp",
+     "body": "🍫"
+    },
+    {
+     "file": "snacks/burger.webp",
+     "body": "🍔"
+    },
+    {
+     "file": "snacks/taco.webp",
+     "body": "🌮"
+    },
+    {
+     "file": "snacks/pizza_love.webp",
+     "body": "🍕😍"
+    },
+    {
+     "file": "snacks/fries_pleading.webp",
+     "body": "🍟🥹"
+    },
+    {
+     "file": "snacks/burger_cool.webp",
+     "body": "🍔😎"
+    }
+   ]
+  },
+  {
+   "id": "france",
+   "stickers": [
+    {
+     "file": "france/flag.webp",
+     "body": "🇫🇷"
+    },
+    {
+     "file": "france/croissant.webp",
+     "body": "🥐"
+    },
+    {
+     "file": "france/baguette.webp",
+     "body": "🥖"
+    },
+    {
+     "file": "france/cheese.webp",
+     "body": "🧀"
+    },
+    {
+     "file": "france/wine.webp",
+     "body": "🍷"
+    },
+    {
+     "file": "france/tower.webp",
+     "body": "🗼"
+    },
+    {
+     "file": "france/rooster.webp",
+     "body": "🐓"
+    },
+    {
+     "file": "france/croissant_flag.webp",
+     "body": "🥐🇫🇷"
+    },
+    {
+     "file": "france/rooster_flag.webp",
+     "body": "🐓🇫🇷"
+    },
+    {
+     "file": "france/tower_baguette.webp",
+     "body": "🗼🥖"
+    },
+    {
+     "file": "france/cool_baguette.webp",
+     "body": "😎🥖"
+    },
+    {
+     "file": "france/cheese_pleading.webp",
+     "body": "🧀🥹"
+    },
+    {
+     "file": "france/wine_crown.webp",
+     "body": "🍷👑"
+    }
+   ]
+  }
+ ]
+}
