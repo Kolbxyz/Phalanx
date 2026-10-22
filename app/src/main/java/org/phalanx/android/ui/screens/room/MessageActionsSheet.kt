@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -43,6 +44,8 @@ internal fun MessageActionsSheet(
     onReact: (String) -> Unit,
     onReply: () -> Unit,
     onCopy: () -> Unit,
+    onCopyLink: (String) -> Unit,
+    onShareLink: (String) -> Unit,
     onEdit: () -> Unit,
     /** Null when the message's versions are not offered: not edited, or the setting is off. */
     onShowVersions: (() -> Unit)?,
@@ -79,6 +82,7 @@ internal fun MessageActionsSheet(
         }
         if (message.canReply) Action(Symbols.Reply, R.string.action_reply, onReply)
         if (message.body is MessageBody.Text) Action(Symbols.ContentCopy, R.string.action_copy, onCopy)
+        LinkActions(remember(message.body) { linksOf(message.body) }, onCopyLink, onShareLink)
         if (live && message.eventId != null && message.body.isForwardable()) {
             Action(Symbols.Forward, R.string.action_forward, onForward)
         }

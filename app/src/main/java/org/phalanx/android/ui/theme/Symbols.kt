@@ -79,6 +79,10 @@ internal object Symbols {
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_shield)
     val Share: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_share)
+    val Link: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_link)
+    val OpenInNew: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_open_in_new)
     val PushPin: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_keep)
     val PhotoLibrary: ImageVector

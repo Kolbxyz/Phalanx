@@ -2,6 +2,7 @@ package org.phalanx.android.data.repository
 
 import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.flow.StateFlow
+import org.phalanx.android.data.model.UserTrust
 
 /** Whether this session can read encrypted history, and the recovery key that lets it. */
 interface SecurityRepository {
@@ -29,6 +30,9 @@ interface SecurityRepository {
     suspend fun cancelVerification()
 
     fun resetVerification()
+
+    /** How far [userId]'s identity is trusted; null when it can't be known (no keys published, offline). */
+    suspend fun trustOf(userId: String): UserTrust?
 }
 
 @Immutable

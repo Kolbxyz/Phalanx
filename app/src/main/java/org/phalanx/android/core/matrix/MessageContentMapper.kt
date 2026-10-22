@@ -44,10 +44,11 @@ internal fun MessageType.toBody(isReply: Boolean): MessageBody = when (val type 
             thumbnail = info?.thumbnailSource?.toRef(),
             width = info?.width?.toInt(),
             height = info?.height?.toInt(),
-            caption = caption,
+            caption = caption(caption, formattedCaption),
             isSticker = false,
             filename = filename,
-            mimeType = info?.mimetype
+            mimeType = info?.mimetype,
+            sizeBytes = info?.size?.toLong()
         )
     }
     is MessageType.Video -> with(type.content) {
@@ -59,7 +60,8 @@ internal fun MessageType.toBody(isReply: Boolean): MessageBody = when (val type 
             durationMillis = info?.duration?.toMillis(),
             filename = filename,
             mimeType = info?.mimetype,
-            caption = caption
+            caption = caption(caption, formattedCaption),
+            sizeBytes = info?.size?.toLong()
         )
     }
     is MessageType.Audio -> with(type.content) {
@@ -78,7 +80,7 @@ internal fun MessageType.toBody(isReply: Boolean): MessageBody = when (val type 
             filename = filename,
             mimeType = info?.mimetype,
             sizeBytes = info?.size?.toLong(),
-            caption = caption
+            caption = caption(caption, formattedCaption)
         )
     }
     is MessageType.Location -> MessageBody.Location(type.content.geoUri, type.content.description)
@@ -98,6 +100,10 @@ private fun text(
     val emotes = html?.emoteUrls?.map(::mediaRefOf).orEmpty()
     return MessageBody.Text(plain, html?.html?.takeIf { it.isNotBlank() } ?: markdownOf(plain), style, emotes)
 }
+
+/** Captions format like any text: their own HTML, or markdown for plain ones. */
+private fun caption(caption: String?, formatted: FormattedBody?): MessageBody.Text? =
+    caption?.let { text(it, formatted, MessageBody.TextStyle.Normal, isReply = false) }
 
 /** Bodies sent without HTML (some bridges, plain clients) still show their markdown. */
 private fun markdownOf(plain: String): String? = Markdown.render(plain).html?.let(HtmlSanitizer::sanitize)

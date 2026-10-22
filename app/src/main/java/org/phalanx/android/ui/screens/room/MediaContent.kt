@@ -2,7 +2,7 @@ package org.phalanx.android.ui.screens.room
 
 import android.text.format.Formatter
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,8 +52,13 @@ private const val MAX_RATIO = 1.8f
 
 /** The bubble keeps its final size while the image loads, so nothing below it jumps. */
 @Composable
-internal fun ImageContent(body: MessageBody.Image, onOpen: () -> Unit, modifier: Modifier = Modifier) {
-    val description = body.caption ?: stringResource(kindLabel(body))
+internal fun ImageContent(
+    body: MessageBody.Image,
+    onOpen: () -> Unit,
+    onLongPress: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val description = body.caption?.text ?: stringResource(kindLabel(body))
     if (body.isSticker) {
         AsyncImage(
             model = MediaRequest(body.media, STICKER_PX),
@@ -70,7 +75,7 @@ internal fun ImageContent(body: MessageBody.Image, onOpen: () -> Unit, modifier:
         .aspectRatio(ratioOf(body.width, body.height))
         .background(MaterialTheme.colorScheme.surfaceContainerHighest)
     if (!load) {
-        TapToLoad(description, frame, onLoad = { load = true })
+        TapToLoad(description, frame, onLoad = { load = true }, onLongPress)
         return
     }
     // A GIF's server thumbnail is a still frame; the file itself is small enough to play in place.
@@ -83,14 +88,14 @@ internal fun ImageContent(body: MessageBody.Image, onOpen: () -> Unit, modifier:
         model = request,
         contentDescription = description,
         contentScale = ContentScale.Crop,
-        modifier = frame.clickable(onClick = onOpen)
+        modifier = frame.combinedClickable(onClick = onOpen, onLongClick = onLongPress)
     )
 }
 
 /** Stands in for a picture until the user asks for it, when media isn't loaded automatically. */
 @Composable
-private fun TapToLoad(description: String, modifier: Modifier, onLoad: () -> Unit) {
-    Box(modifier.clickable(onClick = onLoad), contentAlignment = Alignment.Center) {
+private fun TapToLoad(description: String, modifier: Modifier, onLoad: () -> Unit, onLongPress: () -> Unit) {
+    Box(modifier.combinedClickable(onClick = onLoad, onLongClick = onLongPress), contentAlignment = Alignment.Center) {
         Surface(shape = MaterialShapes.Cookie9Sided.toShape(), color = MaterialTheme.colorScheme.secondaryContainer) {
             Icon(
                 Symbols.Download,
@@ -102,13 +107,18 @@ private fun TapToLoad(description: String, modifier: Modifier, onLoad: () -> Uni
 }
 
 @Composable
-internal fun VideoContent(body: MessageBody.Video, onOpen: () -> Unit, modifier: Modifier = Modifier) {
+internal fun VideoContent(
+    body: MessageBody.Video,
+    onOpen: () -> Unit,
+    onLongPress: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Box(
         modifier = modifier
             .width(MediaWidth)
             .aspectRatio(ratioOf(body.width, body.height))
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .clickable(onClick = onOpen),
+            .combinedClickable(onClick = onOpen, onLongClick = onLongPress),
         contentAlignment = Alignment.Center
     ) {
         val load = LocalTimelinePrefs.current.autoLoadMedia
@@ -146,12 +156,13 @@ internal fun VideoContent(body: MessageBody.Video, onOpen: () -> Unit, modifier:
 internal fun FileContent(
     body: MessageBody.File,
     onOpen: (MediaRef, String, String?) -> Unit,
+    onLongPress: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     Row(
         modifier = modifier
-            .clickable { onOpen(body.media, body.filename, body.mimeType) }
+            .combinedClickable(onLongClick = onLongPress) { onOpen(body.media, body.filename, body.mimeType) }
             .padding(horizontal = 12.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -179,11 +190,11 @@ internal fun FileContent(
 
 /** Opens the user's maps app on the shared point. */
 @Composable
-internal fun LocationContent(body: MessageBody.Location, modifier: Modifier = Modifier) {
+internal fun LocationContent(body: MessageBody.Location, onLongPress: () -> Unit, modifier: Modifier = Modifier) {
     val uriHandler = LocalUriHandler.current
     Row(
         modifier = modifier
-            .clickable { uriHandler.openUri(body.geoUri) }
+            .combinedClickable(onLongClick = onLongPress) { uriHandler.openUri(body.geoUri) }
             .padding(horizontal = 12.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically

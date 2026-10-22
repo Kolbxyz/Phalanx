@@ -55,6 +55,7 @@ fun RoomDetailsScreen(
     viewModel: RoomDetailsViewModel = hiltViewModel()
 ) {
     val room by viewModel.room.collectAsStateWithLifecycle()
+    val trust by viewModel.trust.collectAsStateWithLifecycle()
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
     val media by viewModel.mediaItems.collectAsStateWithLifecycle()
     val notice by viewModel.notice.collectAsStateWithLifecycle()
@@ -114,7 +115,7 @@ fun RoomDetailsScreen(
             )
         ) {
             item {
-                DetailsHeader(current, onFavourite = viewModel::setFavourite, onUnread = viewModel::setUnread)
+                DetailsHeader(current, trust, onFavourite = viewModel::setFavourite, onUnread = viewModel::setUnread)
             }
             pinnedSection(pinned) { eventId -> onJumpTo(viewModel.roomId, eventId) }
             membersSection(members, showAllMembers) { showAllMembers = true }

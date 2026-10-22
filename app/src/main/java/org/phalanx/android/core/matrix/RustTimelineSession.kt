@@ -86,7 +86,8 @@ internal class RustTimelineSession private constructor(
     override suspend fun sendMedia(media: OutgoingMedia, caption: String?, replyTo: TimelineEntry.Message?) =
         scope.async {
             try {
-                runCatchingSdk { timeline.upload(media, caption, replyTo?.eventId).use { it.join() } }
+                val html = caption?.let { OutgoingMessage.of(it, emptyList(), settings.current().markdown).html }
+                runCatchingSdk { timeline.upload(media, caption, html, replyTo?.eventId).use { it.join() } }
             } finally {
                 attachments.discard(media)
             }

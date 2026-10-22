@@ -20,8 +20,10 @@ import org.matrix.rustcomponents.sdk.Encryption
 import org.matrix.rustcomponents.sdk.RecoveryException
 import org.matrix.rustcomponents.sdk.RecoveryState
 import org.matrix.rustcomponents.sdk.RecoveryStateListener
+import org.matrix.rustcomponents.sdk.UserIdentity
 import org.matrix.rustcomponents.sdk.VerificationState
 import org.matrix.rustcomponents.sdk.VerificationStateListener
+import org.phalanx.android.data.model.UserTrust
 import org.phalanx.android.data.repository.RecoveryStatus
 import org.phalanx.android.data.repository.SecurityRepository
 import org.phalanx.android.data.repository.SecurityStatus
@@ -70,6 +72,18 @@ internal class RustSecurityRepository @Inject constructor(
     override suspend fun cancelVerification() = withContext(Dispatchers.IO) { flow.cancel() }
 
     override fun resetVerification() = flow.reset()
+
+    override suspend fun trustOf(userId: String): UserTrust? = withEncryption { encryption ->
+        // Asks the server when the identity isn't cached yet, as for someone never met before.
+        val identity: UserIdentity? = encryption.userIdentity(userId, true)
+        identity?.use {
+            when {
+                it.hasVerificationViolation() -> UserTrust.Changed
+                it.isVerified() -> UserTrust.Verified
+                else -> UserTrust.Unverified
+            }
+        }
+    }.getOrNull()
 
     private suspend fun <T> withEncryption(block: suspend (Encryption) -> T): Result<T> = withContext(Dispatchers.IO) {
         val client = active.client() ?: return@withContext Result.failure(IOException("Signed out"))
