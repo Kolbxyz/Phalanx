@@ -73,6 +73,9 @@ interface TimelineSession {
     /** Loads one more page of history. A failure is transient; scrolling again retries. */
     suspend fun loadOlder(): Result<Unit>
 
+    /** The members who joined, roles first, to mention; this account left out. Empty if unavailable. */
+    suspend fun joinedMembers(): List<Member>
+
     /** Who [userIds] are in this room, in the same order. */
     suspend fun members(userIds: List<String>): List<Member>
 

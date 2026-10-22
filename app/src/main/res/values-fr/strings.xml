@@ -332,4 +332,6 @@
     <string name="search_none">Aucun résultat</string>
     <string name="search_scope">Seuls les messages reçus par ce téléphone depuis l’activation de la recherche peuvent être trouvés.</string>
     <string name="search_failed">La recherche a échoué</string>
+    <string name="composer_mention_room">Notifier tout le salon</string>
+    <string name="composer_mention_silent">Envoyer sans notifier personne</string>
 </resources>

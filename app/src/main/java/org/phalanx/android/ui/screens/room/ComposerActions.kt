@@ -6,6 +6,7 @@ import androidx.compose.runtime.Stable
 @Stable
 internal class ComposerActions(
     val onDraftChange: (String) -> Unit,
+    val onPickSuggestion: (MentionSuggestion) -> Unit,
     val onSend: () -> Unit,
     val onCancelMode: () -> Unit,
     val onAttach: () -> Unit,

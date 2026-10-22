@@ -329,4 +329,8 @@
     <string name="search_none">No results</string>
     <string name="search_scope">Only messages this phone has received since search was turned on can be found.</string>
     <string name="search_failed">Search failed</string>
+    <string name="composer_mention_room">Notify everyone in this room</string>
+    <string name="composer_mention_silent">Send without notifying anyone</string>
+    <string name="composer_mention_room_token" translatable="false">\@room</string>
+    <string name="composer_mention_silent_token" translatable="false">\@silent</string>
 </resources>

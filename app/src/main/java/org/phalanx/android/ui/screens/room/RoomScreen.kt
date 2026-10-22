@@ -65,6 +65,7 @@ fun RoomScreen(
         val composer = viewModel.composer
         ComposerActions(
             onDraftChange = composer::onDraftChange,
+            onPickSuggestion = composer::pickSuggestion,
             onSend = composer::send,
             onCancelMode = composer::cancelMode,
             onAttach = { attaching = true },

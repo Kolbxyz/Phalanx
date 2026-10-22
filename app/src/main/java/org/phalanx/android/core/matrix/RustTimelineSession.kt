@@ -223,6 +223,21 @@ internal class RustTimelineSession private constructor(
         }
     }
 
+    override suspend fun joinedMembers(): List<Member> = withContext(Dispatchers.IO) {
+        try {
+            // From the server when it can, so a room synced with lazy-loaded members is complete.
+            val iterator = try {
+                room.members()
+            } catch (_: ClientException) {
+                room.membersNoSync()
+            }
+            val own = room.ownUserId()
+            iterator.use { it.participants() }.filter { !it.invited && it.member.userId != own }.map { it.member }
+        } catch (_: ClientException) {
+            emptyList()
+        }
+    }
+
     /** Called by the repository only, when the room leaves its cache. */
     fun close() {
         typingState.close()
