@@ -9,6 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -41,8 +43,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.phalanx.android.R
 import org.phalanx.android.data.model.TimelineEntry
+import org.phalanx.android.ui.components.OpenFileEffect
 import org.phalanx.android.ui.components.OpenRequest
 import org.phalanx.android.ui.components.TopNoticeHost
+import org.phalanx.android.ui.screens.room.ForwardSheet
 import org.phalanx.android.ui.theme.Symbols
 
 private const val CHROME_ALPHA = 0.72f
@@ -59,15 +63,24 @@ fun MediaViewerScreen(
     val notice by viewModel.notice.collectAsStateWithLifecycle()
     val share by viewModel.shareRequest.collectAsStateWithLifecycle()
     ShareEffect(share, viewModel::onShared)
+    val open by viewModel.openRequest.collectAsStateWithLifecycle()
+    OpenFileEffect(open, viewModel::onOpened, chooser = true, onNoApp = viewModel::onNoApp)
 
-    Surface(color = MaterialTheme.colorScheme.surfaceContainerLowest, modifier = Modifier.fillMaxSize()) {
+    // The pages draw their own ground, so swiping them away can fade it.
+    val ground = MaterialTheme.colorScheme.surfaceContainerLowest
+    Surface(
+        color = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.fillMaxSize()
+    ) {
         val list = items
+        val state = Modifier.fillMaxSize().background(ground)
         when {
-            list == null -> Box(Modifier.fillMaxSize(), Alignment.Center) { LoadingIndicator(Modifier.size(64.dp)) }
-            list.isEmpty() -> Box(Modifier.fillMaxSize(), Alignment.Center) {
+            list == null -> Box(state, Alignment.Center) { LoadingIndicator(Modifier.size(64.dp)) }
+            list.isEmpty() -> Box(state, Alignment.Center) {
                 Text(stringResource(R.string.timeline_open_failed), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            else -> Pager(list, videos, viewModel, onClose, onJumpTo)
+            else -> Pager(list, videos, ground, viewModel, onClose, onJumpTo)
         }
         TopNoticeHost(notice, onDismiss = viewModel::dismissNotice)
     }
@@ -77,6 +90,7 @@ fun MediaViewerScreen(
 private fun Pager(
     items: List<TimelineEntry.Message>,
     videos: Map<String, VideoFile>,
+    ground: Color,
     viewModel: MediaViewerViewModel,
     onClose: () -> Unit,
     onJumpTo: (roomId: String, eventId: String) -> Unit
@@ -100,7 +114,7 @@ private fun Pager(
     }
     var zoomed by remember { mutableStateOf(false) }
     var chrome by rememberSaveable { mutableStateOf(true) }
-    Box(Modifier.fillMaxSize()) {
+    SwipeToDismiss(enabled = !zoomed, background = ground, onDismiss = onClose) {
         HorizontalPager(
             state = pager,
             key = { items[it].id },
@@ -117,6 +131,8 @@ private fun Pager(
                 onZoomed = { if (page == pager.settledPage) zoomed = it }
             )
         }
+    }
+    Box(Modifier.fillMaxSize()) {
         val fade = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
         AnimatedVisibility(visible = chrome, enter = fadeIn(fade), exit = fadeOut(fade)) {
             items.getOrNull(pager.settledPage)?.let { entry ->
@@ -141,6 +157,36 @@ private fun ViewerTopBar(
     onJumpTo: (() -> Unit)?
 ) {
     val context = LocalContext.current
+    var info by rememberSaveable { mutableStateOf(false) }
+    var forwarding by rememberSaveable { mutableStateOf(false) }
+    if (info) {
+        MediaInfoSheet(
+            entry = entry,
+            onDismiss = { info = false },
+            onOpenWith = {
+                info = false
+                viewModel.openWith(entry)
+            },
+            onForward = entry.eventId?.let {
+                {
+                    info = false
+                    forwarding = true
+                }
+            },
+            onJumpTo = onJumpTo
+        )
+    }
+    if (forwarding) {
+        val rooms by viewModel.rooms.collectAsStateWithLifecycle()
+        ForwardSheet(
+            rooms = rooms?.filter { it.id != viewModel.roomId },
+            onPick = {
+                forwarding = false
+                viewModel.forward(entry, it)
+            },
+            onDismiss = { forwarding = false }
+        )
+    }
     val saveAs = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("*/*")) { uri ->
         if (uri != null) viewModel.saveTo(entry, uri)
     }
@@ -165,12 +211,6 @@ private fun ViewerTopBar(
             }
         },
         actions = {
-            // A message still sending has no event ID to find it by.
-            if (onJumpTo != null) {
-                IconButton(onClick = onJumpTo) {
-                    Icon(Symbols.Chat, contentDescription = stringResource(R.string.media_jump_to_message))
-                }
-            }
             IconButton(onClick = { viewModel.share(entry) }) {
                 Icon(Symbols.Share, contentDescription = stringResource(R.string.media_share))
             }
@@ -184,6 +224,9 @@ private fun ViewerTopBar(
                 }
             ) {
                 Icon(Symbols.Download, contentDescription = stringResource(R.string.media_save))
+            }
+            IconButton(onClick = { info = true }) {
+                Icon(Symbols.Info, contentDescription = stringResource(R.string.media_info))
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(

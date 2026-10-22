@@ -66,7 +66,7 @@ fun SearchOverlay(
         onClose()
     }
     BackHandler(onBack = close)
-    OpenFileEffect(openRequest, viewModel::onOpened, viewModel::onNoApp)
+    OpenFileEffect(openRequest, viewModel::onOpened, onNoApp = viewModel::onNoApp)
 
     Surface(color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxSize()) {
         Column(Modifier.statusBarsPadding()) {
