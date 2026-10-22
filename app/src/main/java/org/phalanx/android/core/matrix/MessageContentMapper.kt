@@ -92,9 +92,11 @@ private fun text(
     style: MessageBody.TextStyle,
     isReply: Boolean
 ): MessageBody.Text {
-    val html = formatted?.takeIf { it.format is MessageFormat.Html }?.body?.let(HtmlSanitizer::sanitize)
+    val html = formatted?.takeIf { it.format is MessageFormat.Html }?.body?.let(HtmlSanitizer::sanitizeWithEmotes)
     val plain = if (isReply) HtmlSanitizer.stripPlainReplyFallback(body) else body
-    return MessageBody.Text(plain, html?.takeIf { it.isNotBlank() } ?: markdownOf(plain), style)
+    // An emote that isn't a valid mxc:// URL keeps its index, and shows its alt text instead.
+    val emotes = html?.emoteUrls?.map(::mediaRefOf).orEmpty()
+    return MessageBody.Text(plain, html?.html?.takeIf { it.isNotBlank() } ?: markdownOf(plain), style, emotes)
 }
 
 /** Bodies sent without HTML (some bridges, plain clients) still show their markdown. */

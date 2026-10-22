@@ -23,8 +23,11 @@ import org.phalanx.android.data.model.UnsupportedKind
 /** What mapping needs from the session beyond the item itself. */
 internal class MappingContext(
     val ownUserId: String,
-    /** Asked for a replied-to event the SDK has not loaded yet; the item updates once it has. */
-    val onMissingReply: (eventId: String) -> Unit
+    /**
+     * Asked with the ID of a reply whose quoted event the SDK has not loaded yet; the reply's item
+     * updates once it has.
+     */
+    val onMissingReply: (replyEventId: String) -> Unit
 )
 
 /**
@@ -40,16 +43,17 @@ internal fun TimelineItem.toEntry(context: MappingContext): TimelineEntry? = use
 private fun EventTimelineItem.toMessage(id: String, context: MappingContext): TimelineEntry.Message? {
     val msgLike = (content as? TimelineItemContent.MsgLike)?.content ?: return null
     val reply = msgLike.inReplyTo
+    val eventId = (eventOrTransactionId as? EventOrTransactionId.EventId)?.eventId
     return TimelineEntry.Message(
         id = id,
-        eventId = (eventOrTransactionId as? EventOrTransactionId.EventId)?.eventId,
+        eventId = eventId,
         transactionId = (eventOrTransactionId as? EventOrTransactionId.TransactionId)?.transactionId,
         senderId = sender,
         senderName = nameOf(sender, senderProfile),
         senderAvatar = mediaRefOf((senderProfile as? ProfileDetails.Ready)?.avatarUrl),
         isOwn = isOwn,
         body = msgLike.kind.toBody(isReply = reply != null),
-        replyTo = reply?.toPreview(context),
+        replyTo = reply?.toPreview(eventId, context),
         reactions = reactions.map { it.toSummary(context.ownUserId) },
         timestampMillis = timestamp.toLong(),
         isEdited = msgLike.isEdited(),
@@ -73,7 +77,8 @@ internal fun nameOf(userId: String, profile: ProfileDetails?): String {
     return if (ready.displayNameAmbiguous) "$name ($userId)" else name
 }
 
-private fun InReplyToDetails.toPreview(context: MappingContext): ReplyPreview =
+/** [replyEventId] is the reply's own ID: the SDK fills the details in on the item that quotes. */
+private fun InReplyToDetails.toPreview(replyEventId: String?, context: MappingContext): ReplyPreview =
     when (val details = event()) {
         is EmbeddedEventDetails.Ready -> {
             // Anything but a message (a poll, a state change) still gets a label, never "loading".
@@ -83,7 +88,8 @@ private fun InReplyToDetails.toPreview(context: MappingContext): ReplyPreview =
             ReplyPreview(nameOf(details.sender, details.senderProfile), body)
         }
         EmbeddedEventDetails.Unavailable -> {
-            context.onMissingReply(eventId())
+            // A local echo has no event ID yet; its remote echo arrives with the details loaded.
+            replyEventId?.let(context.onMissingReply)
             ReplyPreview(senderName = null, body = null)
         }
         EmbeddedEventDetails.Pending -> ReplyPreview(senderName = null, body = null)
@@ -95,5 +101,7 @@ private fun Reaction.toSummary(ownUserId: String) =
         key = key,
         count = senders.size,
         byMe = senders.any { it.senderId == ownUserId },
-        senderIds = senders.sortedBy { it.timestamp }.map { it.senderId }
+        senderIds = senders.sortedBy { it.timestamp }.map { it.senderId },
+        // Bridges (Discord's custom emoji, say) react with an image; its key is the image's URL.
+        image = key.takeIf { it.startsWith("mxc://") }?.let(::mediaRefOf)
     )

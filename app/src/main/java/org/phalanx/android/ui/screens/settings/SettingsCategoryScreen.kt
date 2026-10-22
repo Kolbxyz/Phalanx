@@ -30,6 +30,7 @@ fun SettingsCategoryScreen(
     category: SettingsCategory,
     onBack: () -> Unit,
     onOpenDevices: () -> Unit,
+    onOpenDeletedMessages: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -77,6 +78,7 @@ fun SettingsCategoryScreen(
                 SettingsCategory.Media -> MediaSettings(current, viewModel)
                 SettingsCategory.Privacy -> {
                     PrivacySettings(current, viewModel)
+                    MessageHistorySection(current, viewModel, onOpenDeletedMessages)
                     BlockedUsersSection(blocked, viewModel::unblock)
                 }
                 SettingsCategory.About -> AboutSettings()

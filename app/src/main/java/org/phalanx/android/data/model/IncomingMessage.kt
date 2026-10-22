@@ -1,5 +1,7 @@
 package org.phalanx.android.data.model
 
+import android.graphics.Bitmap
+
 /** One event a push woke the app for, fetched and decrypted on the device. */
 data class IncomingMessage(
     val roomId: String,
@@ -7,6 +9,8 @@ data class IncomingMessage(
     val roomName: String,
     val isDirect: Boolean,
     val senderName: String,
+    /** Their photo, already fetched: a notification can't load it later. Null without one. */
+    val senderAvatar: Bitmap? = null,
     /** Null for an invitation to the room. */
     val body: MessageBody?,
     val timestampMillis: Long,

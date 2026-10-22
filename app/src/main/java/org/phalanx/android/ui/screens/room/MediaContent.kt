@@ -42,6 +42,8 @@ import org.phalanx.android.ui.theme.Symbols
 internal val MediaWidth = 260.dp
 private val StickerSize = 160.dp
 
+private const val GIF_MIME = "image/gif"
+
 // Server thumbnails at this size stay sharp at the bubble's width on any phone screen.
 private const val THUMBNAIL_PX = 800
 private const val STICKER_PX = 512
@@ -71,8 +73,14 @@ internal fun ImageContent(body: MessageBody.Image, onOpen: () -> Unit, modifier:
         TapToLoad(description, frame, onLoad = { load = true })
         return
     }
+    // A GIF's server thumbnail is a still frame; the file itself is small enough to play in place.
+    val request = if (body.mimeType == GIF_MIME) {
+        MediaRequest(body.media)
+    } else {
+        MediaRequest(body.thumbnail ?: body.media, THUMBNAIL_PX)
+    }
     AsyncImage(
-        model = MediaRequest(body.thumbnail ?: body.media, THUMBNAIL_PX),
+        model = request,
         contentDescription = description,
         contentScale = ContentScale.Crop,
         modifier = frame.clickable(onClick = onOpen)

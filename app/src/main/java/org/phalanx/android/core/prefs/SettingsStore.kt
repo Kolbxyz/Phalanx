@@ -54,6 +54,10 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
 
     suspend fun setPublicReadReceipts(enabled: Boolean) = store.edit { it[PUBLIC_READ_RECEIPTS] = enabled }
 
+    suspend fun setShowEditHistory(enabled: Boolean) = store.edit { it[SHOW_EDIT_HISTORY] = enabled }
+
+    suspend fun setKeepDeletedMessages(enabled: Boolean) = store.edit { it[KEEP_DELETED] = enabled }
+
     /** Null goes back to finding the gateway automatically. */
     suspend fun setPushGateway(url: String?) = store.edit {
         if (url == null) it.remove(PUSH_GATEWAY) else it[PUSH_GATEWAY] = url
@@ -74,6 +78,8 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
             autoLoadMedia = this[AUTO_LOAD_MEDIA] ?: defaults.autoLoadMedia,
             sendTypingNotices = this[SEND_TYPING] ?: defaults.sendTypingNotices,
             publicReadReceipts = this[PUBLIC_READ_RECEIPTS] ?: defaults.publicReadReceipts,
+            showEditHistory = this[SHOW_EDIT_HISTORY] ?: defaults.showEditHistory,
+            keepDeletedMessages = this[KEEP_DELETED] ?: defaults.keepDeletedMessages,
             pushGateway = this[PUSH_GATEWAY]
         )
     }
@@ -92,5 +98,7 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
         val AUTO_LOAD_MEDIA = booleanPreferencesKey("auto_load_media")
         val SEND_TYPING = booleanPreferencesKey("send_typing_notices")
         val PUSH_GATEWAY = stringPreferencesKey("push_gateway")
+        val SHOW_EDIT_HISTORY = booleanPreferencesKey("show_edit_history")
+        val KEEP_DELETED = booleanPreferencesKey("keep_deleted_messages")
     }
 }

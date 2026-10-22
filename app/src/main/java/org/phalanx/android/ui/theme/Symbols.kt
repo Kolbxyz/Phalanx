@@ -145,4 +145,8 @@ internal object Symbols {
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_arrow_back)
     val ExitToApp: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_logout)
+    val History: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_history)
+    val DeleteHistory: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_delete_history)
 }

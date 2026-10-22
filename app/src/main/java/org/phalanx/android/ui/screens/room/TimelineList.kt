@@ -57,6 +57,7 @@ private const val LOAD_AHEAD = 5
 private const val OLDER_KEY = "older"
 private const val TYPING_KEY = "typing"
 private const val JUMP_AFTER_ITEMS = 4
+private const val FOCUS_OFFSET_DIVISOR = 3
 
 // Messages further apart than this start a new run even from the same sender.
 private const val RUN_GAP_MILLIS = 5 * 60 * 1000L
@@ -66,10 +67,32 @@ internal fun TimelineList(
     state: RoomUiState.Ready,
     padding: PaddingValues,
     actions: MessageActions,
-    onLoadOlder: () -> Unit
+    onLoadOlder: () -> Unit,
+    focus: String?,
+    onFocused: () -> Unit
 ) {
     val listState = rememberLazyListState()
     val motion = MaterialTheme.motionScheme
+    val reducedMotion = LocalReducedMotion.current
+    // Whether the list sticks to the newest message as they arrive; see below.
+    var following by remember { mutableStateOf(true) }
+
+    // A message asked for from elsewhere (a pinned message, a photo, a search hit): brought a little
+    // above the middle and highlighted, so the eye finds it.
+    var highlighted by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(focus) {
+        val target = focus ?: return@LaunchedEffect
+        val index = state.entries.indexOfFirst { it.id == target }
+        if (index >= 0) {
+            // The typing row, when shown, comes before every entry in the list.
+            val item = index + if (state.typing.isNotEmpty()) 1 else 0
+            val offset = -listState.layoutInfo.viewportSize.height / FOCUS_OFFSET_DIVISOR
+            following = false
+            if (reducedMotion) listState.scrollToItem(item, offset) else listState.animateScrollToItem(item, offset)
+            highlighted = target
+        }
+        onFocused()
+    }
 
     // The list is reversed, so the oldest message is the last item; ask for more history when it
     // gets close, and again each time the list grows and it is still close.
@@ -88,8 +111,6 @@ internal fun TimelineList(
     // below the fold because the list kept its anchor on the previous item. Whether the user is
     // following the newest messages is only decided when a scroll ends, so a burst of arrivals
     // can't push the list out of following by itself. A message this account sends always shows.
-    val reducedMotion = LocalReducedMotion.current
-    var following by remember { mutableStateOf(true) }
     LaunchedEffect(listState) {
         snapshotFlow { listState.isScrollInProgress }
             .filter { scrolling -> !scrolling }
@@ -158,7 +179,7 @@ internal fun TimelineList(
                                 endsRun = !sameRun(entry, newer),
                                 isNew = isNew,
                                 actions = actions,
-                                modifier = animated
+                                modifier = animated.focusHighlight(entry.id == highlighted) { highlighted = null }
                             )
                         }
                         is TimelineEntry.DayDivider -> DayDivider(entry.millis, animated)

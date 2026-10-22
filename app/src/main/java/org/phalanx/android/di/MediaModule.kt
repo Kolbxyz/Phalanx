@@ -1,7 +1,10 @@
 package org.phalanx.android.di
 
 import android.content.Context
+import android.os.Build
 import coil3.ImageLoader
+import coil3.gif.AnimatedImageDecoder
+import coil3.gif.GifDecoder
 import coil3.memory.MemoryCache
 import dagger.Module
 import dagger.Provides
@@ -31,6 +34,13 @@ internal object MediaModule {
             .components {
                 add(SdkMediaFetcher.Factory(active))
                 add(MediaRequestKeyer)
+                // GIFs, animated WebP and bridges' animated custom emoji play instead of freezing on
+                // their first frame: the platform decoder from Android 9, Coil's own before it.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    add(AnimatedImageDecoder.Factory())
+                } else {
+                    add(GifDecoder.Factory())
+                }
             }
             .memoryCache { MemoryCache.Builder().maxSizePercent(context, MEMORY_SHARE).build() }
             // No disk cache on purpose, see SdkMediaFetcher.

@@ -27,7 +27,11 @@ data class RoomSummary(
     val memberCount: Long = 0,
     val isEncrypted: Boolean = false,
     /** Archived by hand (Matrix's low-priority tag), so other clients file it away too. */
-    val isLowPriority: Boolean = false
+    val isLowPriority: Boolean = false,
+    /** Events pinned in the room, as every member's client shows them. */
+    val pinnedEventIds: Set<String> = emptySet(),
+    /** The network the room is bridged to; null for a Matrix-only room. */
+    val bridge: Bridge? = null
 ) {
     val hasUnread: Boolean
         get() = unreadCount > 0 || isMarkedUnread

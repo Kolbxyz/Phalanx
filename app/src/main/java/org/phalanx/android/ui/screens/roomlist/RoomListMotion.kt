@@ -1,7 +1,12 @@
 package org.phalanx.android.ui.screens.roomlist
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.material3.MaterialTheme
@@ -10,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -20,6 +26,23 @@ private const val STAGGER_MILLIS = 35L
 private const val MAX_STAGGERED = 12
 private const val PRESSED_SCALE = 0.97f
 private val EntranceRise = 28.dp
+private const val SEARCH_FROM_SCALE = 0.85f
+private val SearchOrigin = TransformOrigin(1f, 0f)
+
+/** Grows the search out of the search button's corner, the way a search bar expands in Material 3. */
+@Composable
+internal fun SearchReveal(visible: Boolean, content: @Composable () -> Unit) {
+    val motion = MaterialTheme.motionScheme
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(motion.defaultEffectsSpec()) +
+            scaleIn(motion.defaultSpatialSpec(), initialScale = SEARCH_FROM_SCALE, transformOrigin = SearchOrigin),
+        exit = fadeOut(motion.fastEffectsSpec()) +
+            scaleOut(motion.fastSpatialSpec(), targetScale = SEARCH_FROM_SCALE, transformOrigin = SearchOrigin)
+    ) {
+        content()
+    }
+}
 
 /**
  * Rows on screen when the list first shows rise into place one after another; rows scrolled to

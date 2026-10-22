@@ -4,6 +4,8 @@ import android.content.ActivityNotFoundException
 import android.content.ClipData
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,9 +19,11 @@ import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,20 +63,30 @@ internal fun ProfileHeader(
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         val changeLabel = stringResource(R.string.account_photo_change)
+        val interactions = remember { MutableInteractionSource() }
+        val cookie = MaterialShapes.Cookie9Sided.toShape()
+        // The whole box takes the tap, badge included, but only the cookie ripples: clipping the box
+        // would cut the badge that sits over its corner.
         Box(
             modifier = Modifier
                 .padding(bottom = 8.dp)
-                .clip(MaterialShapes.Cookie9Sided.toShape())
-                .clickable(enabled = !busy, onClickLabel = changeLabel, onClick = onPickPhoto)
+                .clickable(
+                    interactionSource = interactions,
+                    indication = null,
+                    enabled = !busy,
+                    onClickLabel = changeLabel,
+                    onClick = onPickPhoto
+                )
         ) {
             InitialAvatar(
                 name = profile.label,
-                shape = MaterialShapes.Cookie9Sided.toShape(),
+                shape = cookie,
                 size = 112.dp,
                 container = colors.primaryContainer,
                 content = colors.onPrimaryContainer,
                 image = avatar,
-                textStyle = MaterialTheme.typography.displaySmall
+                textStyle = MaterialTheme.typography.displaySmall,
+                modifier = Modifier.clip(cookie).indication(interactions, ripple())
             )
             if (busy) LoadingIndicator(Modifier.align(Alignment.Center).size(48.dp))
             Surface(

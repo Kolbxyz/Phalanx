@@ -28,6 +28,13 @@ data class AppSettings(
     val sendTypingNotices: Boolean = false,
     /** Off: read receipts stay private, so others never see when this account read their messages. */
     val publicReadReceipts: Boolean = false,
+    /** On: an edited message offers its earlier versions, fetched from the server when asked. */
+    val showEditHistory: Boolean = false,
+    /**
+     * On: every message received is copied for 7 days, sealed on this phone, so one deleted in
+     * that time can still be read. Turning it off erases the copies.
+     */
+    val keepDeletedMessages: Boolean = false,
     /** The Matrix push gateway the user chose. Null: the distributor's own, else the public one. */
     val pushGateway: String? = null
 )

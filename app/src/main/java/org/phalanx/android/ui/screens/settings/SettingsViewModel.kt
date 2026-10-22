@@ -71,6 +71,10 @@ class SettingsViewModel @Inject constructor(
 
     fun setPublicReadReceipts(enabled: Boolean) = edit { store.setPublicReadReceipts(enabled) }
 
+    fun setShowEditHistory(enabled: Boolean) = edit { store.setShowEditHistory(enabled) }
+
+    fun setKeepDeletedMessages(enabled: Boolean) = edit { store.setKeepDeletedMessages(enabled) }
+
     fun unblock(userId: String) = edit {
         blockedUsers.unblock(userId).onFailure { mutableFailed.value = true }
     }

@@ -18,6 +18,21 @@ class HtmlSanitizerTest {
     }
 
     @Test
+    fun `marks custom emotes for inline images when asked`() {
+        val html = "hi <img data-mx-emoticon src=\"mxc://s/abc\" alt=\":wave:\" height=\"32\"> there"
+        val sanitized = HtmlSanitizer.sanitizeWithEmotes(html)
+        assertEquals("hi <annotation emote=\"0\">:wave:</annotation> there", sanitized.html)
+        assertEquals(listOf("mxc://s/abc"), sanitized.emoteUrls)
+    }
+
+    @Test
+    fun `keeps alt text for an image that is not on the homeserver`() {
+        val sanitized = HtmlSanitizer.sanitizeWithEmotes("<img src=\"https://x.org/a.png\" alt=\":a:\">")
+        assertEquals(":a:", sanitized.html)
+        assertEquals(emptyList<String>(), sanitized.emoteUrls)
+    }
+
+    @Test
     fun `drops an image without alt text`() {
         assertEquals("a  b", HtmlSanitizer.sanitize("a <img src=\"mxc://s/x\"/> b"))
     }

@@ -43,7 +43,7 @@ internal fun MessageText(
     var revealed by remember(body) { mutableStateOf(false) }
     val text = remember(body, senderName, edited, editedStyle, contentColor, revealed) {
         val content = body.html
-            ?.let { AnnotatedString.fromHtml(it, links).trimEnd() }
+            ?.let { AnnotatedString.fromHtml(it, links).trimEnd().withInlineEmotes(body.emotes) }
             ?.withMarks(contentColor, revealed) { revealed = true }
             ?: linkify(body.text, links)
         buildAnnotatedString {
@@ -53,9 +53,11 @@ internal fun MessageText(
         }
     }
     val notice = body.style == MessageBody.TextStyle.Notice
+    val emotes = remember(body.emotes) { emoteContent(body.emotes) }
     Text(
         text = text,
         modifier = modifier,
+        inlineContent = emotes,
         style = messageTextStyle(),
         // Notices are what bots and bridges send about themselves; quieter than people's messages.
         color = if (notice) LocalContentColor.current.copy(alpha = NOTICE_ALPHA) else LocalContentColor.current,

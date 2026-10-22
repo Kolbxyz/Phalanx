@@ -14,10 +14,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.data.model.MediaRef
+import org.phalanx.android.data.model.Participant
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.BlockedUsersRepository
@@ -60,6 +62,11 @@ class RoomDetailsViewModel @Inject constructor(
     val hasMoreMedia: StateFlow<Boolean> = gallery
         .flatMapLatest { it?.hasMoreMedia ?: flowOf(true) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    /** Null until the gallery has opened and loaded them. */
+    val members: StateFlow<List<Participant>?> = gallery
+        .mapLatest { it?.members() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val mutableNotice = MutableStateFlow<Int?>(null)
     val notice: StateFlow<Int?> = mutableNotice.asStateFlow()

@@ -52,6 +52,7 @@ class MediaViewerViewModel @Inject constructor(
 ) : ViewModel() {
     private val route = savedStateHandle.toRoute<MediaViewerRoute>()
     val entryId: String = route.entryId
+    val roomId: String = route.roomId
 
     /** Null until the source is open. */
     private val mutableItems = MutableStateFlow<List<TimelineEntry.Message>?>(null)

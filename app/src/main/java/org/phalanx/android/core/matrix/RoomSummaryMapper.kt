@@ -45,7 +45,10 @@ internal suspend fun Room.toSummary(): RoomSummary = use { room ->
         topic = info.topic?.takeIf { it.isNotBlank() },
         memberCount = info.joinedMembersCount.toLong(),
         isEncrypted = info.encryptionState == EncryptionState.ENCRYPTED,
-        isLowPriority = info.isLowPriority
+        isLowPriority = info.isLowPriority,
+        pinnedEventIds = info.pinnedEventIds.toSet(),
+        // The heroes are the few members a room is summed up by; bridged rooms list puppets there.
+        bridge = bridgeOf(info.heroes.map { it.userId } + info.serviceMembers)
     )
 }
 

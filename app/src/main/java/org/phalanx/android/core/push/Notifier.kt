@@ -14,6 +14,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.IconCompat
 import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.phalanx.android.MainActivity
@@ -65,7 +66,11 @@ internal class Notifier @Inject constructor(@ApplicationContext private val cont
             existingStyle(message.roomId) ?: NotificationCompat.MessagingStyle(self)
         style.setConversationTitle(if (message.isDirect) null else message.roomName)
         style.setGroupConversation(!message.isDirect)
-        style.addMessage(text, message.timestampMillis, Person.Builder().setName(message.senderName).build())
+        val sender = Person.Builder()
+            .setName(message.senderName)
+            .setIcon(message.senderAvatar?.let(IconCompat::createWithBitmap))
+            .build()
+        style.addMessage(text, message.timestampMillis, sender)
         val notification = NotificationCompat.Builder(context, if (message.isNoisy) CHANNEL_MESSAGES else CHANNEL_QUIET)
             .setSmallIcon(R.drawable.ic_notification)
             .setStyle(style)

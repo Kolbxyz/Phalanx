@@ -1,11 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A heater shield: the formation the app is named for, drawn inside the 66dp adaptive safe zone. -->
+<!--
+  Phalanx, the flying sand serpent of Shadow of the Colossus, as one flat silhouette: an undulating
+  body, sail fins along its back and a forked tail. Kept inside the 66dp adaptive safe zone.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Body and head; the eye is cut out of it (even-odd), so the themed icon keeps it. -->
     <path
         android:fillColor="@color/phalanx_icon_foreground"
-        android:pathData="M54,28 L78,36 L78,56 C78,69 67,78 54,82 C41,78 30,69 30,56 L30,36 Z" />
+        android:fillType="evenOdd"
+        android:pathData="M27.4,63.9C33.3,58.7 39.2,55 45.2,58C51.1,61 54,65.4 60,63.9C65.9,62.4 67.4,55 73.3,52.1C76.2,50.6 79.2,49.1 82.2,49.9C84.4,50.6 85.9,52.1 85.1,53.6C83.6,55 80.7,55 78.5,55.8C74,58 71.1,66.9 63.7,69.8C56.3,72.8 51.1,67.6 45.2,64.7C39.2,61.7 34.1,62.4 27.4,63.9ZM81.4,51L82.4,51.9L81.4,52.9L80.5,51.9Z" />
+    <!-- The sail fins along its back, longest behind the head, and the tail fin. -->
+    <path
+        android:fillColor="@color/phalanx_icon_foreground"
+        android:pathData="M71.8,53.6C71.1,47.6 69.6,41.7 67.4,34.3C73.3,39.5 77,45.4 78.5,50.6ZM60,63.9C60,56.5 58.5,50.6 55.5,43.9C61.4,48.4 65.1,54.3 66.6,60.2ZM46.6,59.5C45.9,53.6 44.4,49.9 41.5,45.4C47.4,48.4 51.1,53.6 53.3,62.4ZM34.8,59.5C34.1,55.8 32.6,53.6 29.6,51.3C34.8,52.1 37.8,54.3 40,57.3Z" />
+    <path
+        android:fillColor="@color/phalanx_icon_foreground"
+        android:pathData="M28.9,63.2C25.9,61 23.7,59.5 21.5,59.5C23.7,62.4 24.4,65.4 23.7,68.4C25.9,66.1 27.4,64.7 29.6,63.9Z" />
 </vector>

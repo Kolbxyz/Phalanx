@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
+import org.phalanx.android.data.model.AppSettings
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
 
@@ -22,7 +23,10 @@ internal fun MessageMenu(message: TimelineEntry.Message?, onDismiss: () -> Unit,
     var deleting by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     var blocking by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     var forwarding by remember { mutableStateOf<TimelineEntry.Message?>(null) }
+    var versionsOf by remember { mutableStateOf<String?>(null) }
     val muted by viewModel.muted.collectAsStateWithLifecycle()
+    val header by viewModel.header.collectAsStateWithLifecycle()
+    val settings by viewModel.settings.collectAsStateWithLifecycle()
     val text = (message?.body as? MessageBody.Text)?.text
 
     // Every choice closes the sheet once it has acted.
@@ -37,10 +41,13 @@ internal fun MessageMenu(message: TimelineEntry.Message?, onDismiss: () -> Unit,
             onReact = { key -> then { viewModel.toggleReaction(message, key) }() },
             onReply = then { viewModel.composer.reply(message) },
             onEdit = then { text?.let { viewModel.composer.edit(message, it) } },
+            onShowVersions = versionsTarget(message, settings)?.let { eventId -> then { versionsOf = eventId } },
             onCopy = then {
                 text?.let { scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, it))) } }
             },
             onForward = then { forwarding = message },
+            pinned = message.eventId in header?.pinnedEventIds.orEmpty(),
+            onTogglePin = then { viewModel.setPinned(message, message.eventId !in header?.pinnedEventIds.orEmpty()) },
             onDelete = then { deleting = message },
             senderMuted = message.senderId in muted,
             onToggleMute = then { viewModel.setMuted(message.senderId, message.senderId !in muted) },
@@ -58,6 +65,7 @@ internal fun MessageMenu(message: TimelineEntry.Message?, onDismiss: () -> Unit,
             onDismiss = { forwarding = null }
         )
     }
+    versionsOf?.let { eventId -> EditHistorySheet(eventId, onDismiss = { versionsOf = null }) }
     deleting?.let { target ->
         DeleteMessageDialog(
             onConfirm = {
@@ -78,3 +86,7 @@ internal fun MessageMenu(message: TimelineEntry.Message?, onDismiss: () -> Unit,
         )
     }
 }
+
+/** An edited message's versions are offered once it is sent, and only with the setting on. */
+private fun versionsTarget(message: TimelineEntry.Message, settings: AppSettings?): String? =
+    message.eventId?.takeIf { message.isEdited && settings?.showEditHistory == true }

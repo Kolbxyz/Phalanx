@@ -65,7 +65,7 @@ internal fun InputRow(state: ComposerState, actions: ComposerActions, enterToSen
             }
         }
         TextField(
-            value = state.draft,
+            value = state.input,
             onValueChange = actions.onDraftChange,
             modifier = Modifier.weight(1f),
             placeholder = { Text(stringResource(R.string.composer_hint)) },

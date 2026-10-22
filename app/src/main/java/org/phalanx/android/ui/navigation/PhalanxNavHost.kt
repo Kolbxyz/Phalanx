@@ -11,11 +11,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.unit.IntOffset
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import org.phalanx.android.ui.screens.account.AccountScreen
+import org.phalanx.android.ui.screens.deleted.DeletedMessagesScreen
 import org.phalanx.android.ui.screens.details.RoomDetailsScreen
 import org.phalanx.android.ui.screens.devices.DevicesScreen
 import org.phalanx.android.ui.screens.media.MediaViewerScreen
@@ -55,6 +57,7 @@ fun PhalanxNavHost(openRoom: String?, onRoomOpened: () -> Unit) {
                 composable<RoomListRoute> {
                     RoomListScreen(
                         onOpenRoom = { navController.navigate(RoomRoute(it)) },
+                        onOpenMessage = navController::jumpTo,
                         onOpenDetails = { navController.navigate(RoomDetailsRoute(it)) },
                         onOpenAccount = { navController.navigate(SettingsRoute) }
                     )
@@ -78,7 +81,7 @@ fun PhalanxNavHost(openRoom: String?, onRoomOpened: () -> Unit) {
                     popExitTransition = { fadeOut(effects) }
                 ) {
                     CompositionLocalProvider(LocalNavAnimatedScope provides this) {
-                        MediaViewerScreen(onClose = { navController.popBackStack() })
+                        MediaViewerScreen(onClose = { navController.popBackStack() }, onJumpTo = navController::jumpTo)
                     }
                 }
                 composable<RoomDetailsRoute> {
@@ -86,6 +89,7 @@ fun PhalanxNavHost(openRoom: String?, onRoomOpened: () -> Unit) {
                         RoomDetailsScreen(
                             onBack = { navController.popBackStack() },
                             onLeft = { navController.popBackStack(RoomListRoute, inclusive = false) },
+                            onJumpTo = navController::jumpTo,
                             onOpenMedia = { roomId, entryId ->
                                 navController.navigate(MediaViewerRoute(roomId, entryId, fromGallery = true))
                             }
@@ -115,12 +119,24 @@ fun PhalanxNavHost(openRoom: String?, onRoomOpened: () -> Unit) {
                     SettingsCategoryScreen(
                         category = category,
                         onBack = { navController.popBackStack() },
-                        onOpenDevices = { navController.navigate(DevicesRoute) }
+                        onOpenDevices = { navController.navigate(DevicesRoute) },
+                        onOpenDeletedMessages = { navController.navigate(DeletedMessagesRoute) }
                     )
+                }
+                composable<DeletedMessagesRoute> {
+                    DeletedMessagesScreen(onBack = { navController.popBackStack() })
                 }
             }
         }
     }
+}
+
+/**
+ * Opens [roomId] on [eventId], straight over the room list: whatever led here (the room itself, its
+ * details, the media viewer) is left behind, so back returns to the list as from any conversation.
+ */
+private fun NavController.jumpTo(roomId: String, eventId: String) {
+    navigate(RoomRoute(roomId, eventId)) { popUpTo(RoomListRoute) }
 }
 
 private const val SHIFT_DIVISOR = 4

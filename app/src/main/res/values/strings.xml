@@ -40,7 +40,7 @@
     <string name="account_name_failed">Couldn’t change your name. Try again.</string>
     <string name="account_save">Save</string>
     <string name="account_cancel">Cancel</string>
-    <string name="account_section_device">This device</string>
+    <string name="account_section_device">Session</string>
     <string name="account_device_id">Device ID</string>
     <string name="account_server">Server</string>
     <string name="account_copy">Copy</string>
@@ -49,6 +49,7 @@
     <string name="account_manage_summary">Password, email and more, on your server’s site</string>
     <string name="account_devices">Devices</string>
     <string name="account_devices_summary">See and sign out your other sessions</string>
+    <string name="account_devices_summary_this">This device is %1$s. See and sign out the others.</string>
     <string name="account_section_app">App</string>
     <string name="account_sign_out">Sign out</string>
     <string name="account_sign_out_title">Sign out?</string>
@@ -259,6 +260,7 @@
     <string name="security_verify_done">This session is verified.</string>
     <string name="security_verify_failed">Verification was cancelled or failed. You can try again.</string>
     <string name="timeline_reactors_show">See who reacted</string>
+    <string name="timeline_reactors_heading">Reactions</string>
     <plurals name="timeline_reactors_title">
         <item quantity="one">%1$s · %2$d person</item>
         <item quantity="other">%1$s · %2$d people</item>
@@ -329,6 +331,51 @@
     <string name="search_none">No results</string>
     <string name="search_scope">Only messages this phone has received since search was turned on can be found.</string>
     <string name="search_failed">Search failed</string>
+    <string name="settings_message_history">Message history</string>
+    <string name="settings_edit_history">Show edit history</string>
+    <string name="settings_edit_history_summary">See every earlier version of an edited message, and when it changed</string>
+    <string name="settings_keep_deleted">Keep deleted messages</string>
+    <string name="settings_keep_deleted_summary">Keep an encrypted copy of messages on this phone for 7 days, so one deleted in that time can still be read. Turning this off erases the copies</string>
+    <string name="settings_deleted_messages">Deleted messages</string>
+    <string name="settings_deleted_messages_summary">Messages this phone received before they were deleted</string>
+    <string name="deleted_empty">No deleted messages yet</string>
+    <string name="deleted_scope">Only messages this phone received while the setting was on, before they were deleted, are here.</string>
+    <string name="deleted_times">Sent %1$s · Deleted %2$s</string>
+    <string name="deleted_times_edited">Sent %1$s · Edited · Deleted %2$s</string>
+    <string name="deleted_clear">Clear all</string>
+    <string name="deleted_clear_title">Clear deleted messages?</string>
+    <string name="deleted_clear_body">Every kept copy is erased from this phone, deleted or not. This can’t be undone.</string>
+    <string name="action_edit_history">Version history</string>
+    <string name="edit_history_original">Original</string>
+    <string name="edit_history_failed">Couldn’t load the earlier versions</string>
+    <string name="media_jump_to_message">Go to message</string>
+    <string name="timeline_focus_not_found">Couldn’t find that message in the conversation.</string>
+    <string name="details_members_title">Members</string>
+    <string name="details_members_none">No other members</string>
+    <string name="details_member_admin">Admin</string>
+    <string name="details_member_moderator">Moderator</string>
+    <string name="details_member_invited">Invited</string>
+    <string name="action_pin">Pin</string>
+    <string name="action_unpin">Unpin</string>
+    <string name="bridge_whatsapp" translatable="false">WhatsApp</string>
+    <string name="bridge_signal" translatable="false">Signal</string>
+    <string name="bridge_telegram" translatable="false">Telegram</string>
+    <string name="bridge_discord" translatable="false">Discord</string>
+    <string name="bridge_instagram" translatable="false">Instagram</string>
+    <string name="bridge_messenger" translatable="false">Messenger</string>
+    <string name="bridge_meta" translatable="false">Meta</string>
+    <string name="bridge_slack" translatable="false">Slack</string>
+    <string name="bridge_gmessages" translatable="false">Google Messages</string>
+    <string name="bridge_linkedin" translatable="false">LinkedIn</string>
+    <string name="bridge_twitter" translatable="false">X (Twitter)</string>
+    <string name="bridge_bluesky" translatable="false">Bluesky</string>
+    <string name="bridge_imessage" translatable="false">iMessage</string>
+    <string name="sources_title">Sources</string>
+    <string name="sources_all">All sources</string>
+    <string name="sources_matrix">Matrix</string>
+    <string name="sources_open">Show sources</string>
+    <string name="sources_clear">Show all sources</string>
+    <string name="timeline_reaction_custom">custom emoji</string>
     <string name="composer_mention_room">Notify everyone in this room</string>
     <string name="composer_mention_silent">Send without notifying anyone</string>
     <string name="composer_mention_room_token" translatable="false">\@room</string>

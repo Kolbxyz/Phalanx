@@ -9,6 +9,7 @@ import dagger.hilt.android.HiltAndroidApp
 import org.matrix.rustcomponents.sdk.LogLevel
 import org.matrix.rustcomponents.sdk.TracingConfiguration
 import org.matrix.rustcomponents.sdk.initPlatform
+import org.phalanx.android.core.matrix.MessageArchiver
 import org.phalanx.android.core.push.PushRegistrar
 import javax.inject.Inject
 
@@ -19,6 +20,9 @@ class PhalanxApplication : Application(), SingletonImageLoader.Factory {
 
     @Inject
     internal lateinit var pushRegistrar: PushRegistrar
+
+    @Inject
+    internal lateinit var messageArchiver: MessageArchiver
 
     override fun newImageLoader(context: PlatformContext): ImageLoader = imageLoader.get()
 
@@ -40,5 +44,6 @@ class PhalanxApplication : Application(), SingletonImageLoader.Factory {
             useLightweightTokioRuntime = false
         )
         pushRegistrar.start()
+        messageArchiver.start()
     }
 }

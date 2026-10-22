@@ -1,6 +1,13 @@
 package org.phalanx.android.ui.screens.search
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -43,7 +50,12 @@ import org.phalanx.android.ui.theme.Symbols
  * Shown over the chat list; back or the arrow closes it.
  */
 @Composable
-fun SearchOverlay(onClose: () -> Unit, onOpenRoom: (String) -> Unit, viewModel: SearchViewModel = hiltViewModel()) {
+fun SearchOverlay(
+    onClose: () -> Unit,
+    onOpenRoom: (String) -> Unit,
+    onOpenMessage: (roomId: String, eventId: String) -> Unit,
+    viewModel: SearchViewModel = hiltViewModel()
+) {
     val query by viewModel.query.collectAsStateWithLifecycle()
     val category by viewModel.category.collectAsStateWithLifecycle()
     val results by viewModel.results.collectAsStateWithLifecycle()
@@ -72,18 +84,33 @@ fun SearchOverlay(onClose: () -> Unit, onOpenRoom: (String) -> Unit, viewModel: 
                     )
                 }
             }
-            SearchResultsList(
-                query = query,
-                category = category,
-                results = results,
-                onOpenRoom = { roomId ->
-                    close()
-                    onOpenRoom(roomId)
-                },
-                onOpenFile = viewModel::openFile,
-                onShowCategory = viewModel::onCategory,
-                onLoadMore = viewModel::loadMore
-            )
+            // A new kind of result fades through rather than swapping in place.
+            val motion = MaterialTheme.motionScheme
+            AnimatedContent(
+                targetState = category,
+                transitionSpec = {
+                    val enter = fadeIn(motion.defaultEffectsSpec()) +
+                        scaleIn(motion.defaultSpatialSpec(), initialScale = SWAP_FROM_SCALE)
+                    enter togetherWith fadeOut(motion.fastEffectsSpec())
+                }
+            ) { shown ->
+                SearchResultsList(
+                    query = query,
+                    category = shown,
+                    results = results,
+                    onOpenRoom = { roomId ->
+                        close()
+                        onOpenRoom(roomId)
+                    },
+                    onOpenMessage = { roomId, eventId ->
+                        close()
+                        onOpenMessage(roomId, eventId)
+                    },
+                    onOpenFile = viewModel::openFile,
+                    onShowCategory = viewModel::onCategory,
+                    onLoadMore = viewModel::loadMore
+                )
+            }
         }
         TopNoticeHost(notice, onDismiss = viewModel::dismissNotice)
     }
@@ -106,14 +133,17 @@ private fun SearchField(query: String, onChange: (String) -> Unit, onBack: () ->
             placeholder = { Text(stringResource(R.string.search_hint)) },
             singleLine = true,
             shape = CircleShape,
-            trailingIcon = if (query.isNotEmpty()) {
-                {
+            trailingIcon = {
+                val motion = MaterialTheme.motionScheme
+                AnimatedVisibility(
+                    visible = query.isNotEmpty(),
+                    enter = fadeIn(motion.fastEffectsSpec()) + scaleIn(motion.fastSpatialSpec()),
+                    exit = fadeOut(motion.fastEffectsSpec()) + scaleOut(motion.fastSpatialSpec())
+                ) {
                     IconButton(onClick = { onChange("") }) {
                         Icon(Symbols.Close, contentDescription = stringResource(R.string.search_clear))
                     }
                 }
-            } else {
-                null
             },
             colors = TextFieldDefaults.colors(
                 focusedIndicatorColor = Color.Transparent,
@@ -125,3 +155,5 @@ private fun SearchField(query: String, onChange: (String) -> Unit, onBack: () ->
         )
     }
 }
+
+private const val SWAP_FROM_SCALE = 0.96f

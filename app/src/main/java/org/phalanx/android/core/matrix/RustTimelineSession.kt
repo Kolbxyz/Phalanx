@@ -60,7 +60,7 @@ internal class RustTimelineSession private constructor(
     private val mutableHasMore = MutableStateFlow(true)
     override val hasMoreHistory: StateFlow<Boolean> = mutableHasMore
 
-    // Replies whose original the SDK had not loaded; asked for once each, the item updates itself.
+    // Replies whose quoted event the SDK had not loaded; asked for once each, the item updates itself.
     private val requestedReplies: MutableSet<String> = ConcurrentHashMap.newKeySet()
     private val context = MappingContext(room.ownUserId()) { eventId ->
         if (requestedReplies.add(eventId)) {

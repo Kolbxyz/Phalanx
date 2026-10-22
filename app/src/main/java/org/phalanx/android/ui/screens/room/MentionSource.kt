@@ -1,5 +1,6 @@
 package org.phalanx.android.ui.screens.room
 
+import androidx.compose.ui.text.input.TextFieldValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.phalanx.android.data.model.Member
@@ -12,8 +13,8 @@ import org.phalanx.android.data.repository.TimelineSession
 internal class MentionSource(private val scope: CoroutineScope, private val onLoaded: () -> Unit) {
     private var members: List<Member>? = null
 
-    fun suggestions(draft: String, session: TimelineSession?): List<MentionSuggestion> {
-        if (MentionCompletion.query(draft) == null) return emptyList()
+    fun suggestions(input: TextFieldValue, session: TimelineSession?): List<MentionSuggestion> {
+        if (MentionCompletion.query(input) == null) return emptyList()
         if (members == null && session != null) {
             members = emptyList()
             scope.launch {
@@ -21,6 +22,6 @@ internal class MentionSource(private val scope: CoroutineScope, private val onLo
                 onLoaded()
             }
         }
-        return MentionCompletion.suggestions(draft, members.orEmpty())
+        return MentionCompletion.suggestions(input, members.orEmpty())
     }
 }

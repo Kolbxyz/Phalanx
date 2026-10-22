@@ -17,6 +17,7 @@ internal object HtmlSanitizer {
 
     // Custom emotes are <img> tags pointing at mxc:// media; the alt text (":shortcode:") stands in.
     private val image = Regex("<img\\b[^>]*?>", RegexOption.IGNORE_CASE)
+    private val srcAttribute = Regex("\\bsrc\\s*=\\s*(\"(mxc://[^\"]*)\"|'(mxc://[^']*)')", RegexOption.IGNORE_CASE)
     private val altAttribute = Regex("\\balt\\s*=\\s*(\"([^\"]*)\"|'([^']*)')", RegexOption.IGNORE_CASE)
     private val mxColor = Regex("\\bdata-mx-color\\s*=\\s*\"(#[0-9a-fA-F]{6})\"", RegexOption.IGNORE_CASE)
     private val fontColor = Regex(
@@ -24,12 +25,28 @@ internal object HtmlSanitizer {
         RegexOption.IGNORE_CASE
     )
 
-    fun sanitize(html: String): String = html
+    /** Custom emotes become their alt text. */
+    fun sanitize(html: String): String = clean(html, emotes = null)
+
+    /**
+     * Custom emotes become `<annotation emote="N">alt</annotation>`, N indexing [SanitizedHtml.emoteUrls],
+     * so the text can draw the image in their place and still read the alt text out.
+     */
+    fun sanitizeWithEmotes(html: String): SanitizedHtml {
+        val emotes = ArrayList<String>()
+        return SanitizedHtml(clean(html, emotes), emotes)
+    }
+
+    private fun clean(html: String, emotes: MutableList<String>?): String = html
         .replace(replyFallback, "")
         .replace(dropped, "")
         .replace(image) { match ->
             val alt = altAttribute.find(match.value)?.let { it.groupValues[2].ifEmpty { it.groupValues[3] } }
-            alt?.let(::escape).orEmpty()
+            val src = srcAttribute.find(match.value)?.let { it.groupValues[2].ifEmpty { it.groupValues[3] } }
+            val text = alt?.let(::escape).orEmpty()
+            if (emotes == null || src == null || text.isEmpty()) return@replace text
+            emotes += src
+            "<annotation emote=\"${emotes.size - 1}\">$text</annotation>"
         }
         .replace(mxColor) { "style=\"color:${it.groupValues[1]}\"" }
         .replace(fontColor) { match ->
@@ -55,3 +72,6 @@ internal object HtmlSanitizer {
     // Attribute values are already entity-encoded; only stray angle brackets could open a tag.
     private fun escape(text: String) = text.replace("<", "&lt;").replace(">", "&gt;")
 }
+
+/** Sanitized HTML and the `mxc://` URLs of the custom emotes it marks, in order. */
+internal class SanitizedHtml(val html: String, val emoteUrls: List<String>)
