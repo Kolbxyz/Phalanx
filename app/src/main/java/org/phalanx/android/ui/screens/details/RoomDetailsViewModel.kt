@@ -90,17 +90,24 @@ class RoomDetailsViewModel @Inject constructor(
     val left: StateFlow<Boolean> = mutableLeft.asStateFlow()
 
     init {
-        viewModelScope.launch { galleries.open(roomId).onSuccess { gallery.value = it } }
-    }
-
-    fun loadMoreMedia() {
-        val current = gallery.value ?: return
-        viewModelScope.launch { current.loadMoreMedia() }
+        viewModelScope.launch {
+            galleries.open(roomId).onSuccess { opened ->
+                gallery.value = opened
+                // A busy room's first page may hold no media at all; look a little further back,
+                // never through the whole history: that is the gallery screen's, page by page.
+                repeat(EXTRA_PAGES) {
+                    if (opened.media.value.isNotEmpty() || !opened.hasMoreMedia.value) return@onSuccess
+                    opened.loadMoreMedia()
+                }
+            }.onFailure { mutableNotice.value = R.string.details_gallery_failed }
+        }
     }
 
     fun setFavourite(favourite: Boolean) = act { actions.setFavourite(roomId, favourite) }
 
     fun setUnread(unread: Boolean) = act { actions.setUnread(roomId, unread) }
+
+    fun setMuted(muted: Boolean) = act { actions.setMuted(roomId, muted) }
 
     fun leave() = act { actions.leave(roomId).onSuccess { mutableLeft.value = true } }
 
@@ -131,3 +138,5 @@ class RoomDetailsViewModel @Inject constructor(
         viewModelScope.launch { block().onFailure { notify(R.string.timeline_action_failed) } }
     }
 }
+
+private const val EXTRA_PAGES = 2

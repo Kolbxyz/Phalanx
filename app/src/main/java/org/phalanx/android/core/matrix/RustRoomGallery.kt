@@ -52,14 +52,16 @@ internal class RustRoomGallery private constructor(
     private val mutableHasMore = MutableStateFlow(true)
     override val hasMoreMedia: StateFlow<Boolean> = mutableHasMore
 
-    override suspend fun loadMoreMedia() {
-        if (!mutableHasMore.value || !paginating.tryLock()) return
-        try {
+    override suspend fun loadMoreMedia(): Boolean {
+        if (!mutableHasMore.value || !paginating.tryLock()) return false
+        return try {
             withContext(Dispatchers.IO) {
                 if (mediaTimeline.paginateBackwards(PAGE_SIZE.toUShort())) mutableHasMore.value = false
             }
+            true
         } catch (_: ClientException) {
             // Offline or a server hiccup: the grid asks again when scrolled to its end.
+            false
         } finally {
             paginating.unlock()
         }

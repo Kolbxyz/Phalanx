@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -20,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,6 +50,7 @@ fun RoomDetailsScreen(
     onLeft: () -> Unit,
     onJumpTo: (roomId: String, eventId: String) -> Unit,
     onOpenMedia: (roomId: String, entryId: String) -> Unit,
+    onShowAll: (roomId: String, files: Boolean) -> Unit,
     viewModel: RoomDetailsViewModel = hiltViewModel()
 ) {
     val room by viewModel.room.collectAsStateWithLifecycle()
@@ -84,20 +83,8 @@ fun RoomDetailsScreen(
         }
     }
     val hasMore by viewModel.hasMoreMedia.collectAsStateWithLifecycle()
-    var showAllMedia by rememberSaveable { mutableStateOf(false) }
-    var showAllFiles by rememberSaveable { mutableStateOf(false) }
     var showAllMembers by rememberSaveable { mutableStateOf(false) }
     val members by viewModel.members.collectAsStateWithLifecycle()
-    val listState = rememberLazyListState()
-    val atEnd by remember { derivedStateOf { listState.layoutInfo.visibleItemsInfo.any { it.key == MEDIA_END } } }
-    // Pages in older media only while the end is in view and a section is short of what it shows;
-    // keyed on the count too, so a page that still leaves it short asks for the next.
-    LaunchedEffect(atEnd, media?.size, showAllMedia, showAllFiles, hasMore) {
-        val shared = sharedMediaOf(media)
-        val wantsMore = showAllMedia || showAllFiles ||
-            shared.visual.size < SECTION_CAP || shared.files.size < SECTION_CAP
-        if (atEnd && hasMore && media != null && wantsMore) viewModel.loadMoreMedia()
-    }
 
     Scaffold(
         topBar = { TopAppBar(title = {}, navigationIcon = { BackButton(onBack) }) },
@@ -105,7 +92,6 @@ fun RoomDetailsScreen(
     ) { padding ->
         val current = room ?: return@Scaffold
         LazyColumn(
-            state = listState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 start = 16.dp,
@@ -115,19 +101,17 @@ fun RoomDetailsScreen(
             )
         ) {
             item {
-                DetailsHeader(current, trust, onFavourite = viewModel::setFavourite, onUnread = viewModel::setUnread)
+                DetailsHeader(
+                    current,
+                    trust,
+                    onFavourite = viewModel::setFavourite,
+                    onUnread = viewModel::setUnread,
+                    onMuted = viewModel::setMuted
+                )
             }
             pinnedSection(pinned) { eventId -> onJumpTo(viewModel.roomId, eventId) }
             membersSection(members, showAllMembers) { showAllMembers = true }
-            mediaSections(
-                media = media,
-                hasMore = hasMore,
-                showAllMedia = showAllMedia,
-                showAllFiles = showAllFiles,
-                onShowAllMedia = { showAllMedia = true },
-                onShowAllFiles = { showAllFiles = true },
-                onOpen = open
-            )
+            mediaSections(media, hasMore, onShowAll = { files -> onShowAll(viewModel.roomId, files) }, onOpen = open)
             item {
                 SegmentedSection(stringResource(R.string.details_manage)) {
                     val dmUser = current.dmUserId

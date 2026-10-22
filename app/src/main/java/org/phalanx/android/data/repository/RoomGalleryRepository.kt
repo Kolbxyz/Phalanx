@@ -22,8 +22,8 @@ interface RoomGallery {
 
     val hasMoreMedia: StateFlow<Boolean>
 
-    /** Loads one more page of older media. */
-    suspend fun loadMoreMedia()
+    /** Loads one more page of older media; false if it couldn't be fetched or one already is. */
+    suspend fun loadMoreMedia(): Boolean
 
     /** Joined and invited members, highest role first, then by name. Empty if they can't be loaded. */
     suspend fun members(): List<Participant>
