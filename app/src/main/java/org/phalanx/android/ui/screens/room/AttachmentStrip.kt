@@ -35,7 +35,11 @@ private val TileShape = RoundedCornerShape(16.dp)
 
 /** The files waiting to be sent with the next message, each removable before it goes. */
 @Composable
-internal fun AttachmentStrip(attachments: List<PendingAttachment>, onRemove: (String) -> Unit) {
+internal fun AttachmentStrip(
+    attachments: List<PendingAttachment>,
+    onRemove: (String) -> Unit,
+    onEdit: (String) -> Unit
+) {
     val motion = MaterialTheme.motionScheme
     LazyRow(
         contentPadding = PaddingValues(horizontal = 12.dp),
@@ -51,6 +55,23 @@ internal fun AttachmentStrip(attachments: List<PendingAttachment>, onRemove: (St
                 )
             ) {
                 Tile(attachment.media)
+                // Not GIFs: re-encoding one would stop the animation.
+                val image = attachment.media as? OutgoingMedia.Image
+                if (image != null && image.mimeType != "image/gif") {
+                    FilledTonalIconButton(
+                        onClick = { onEdit(attachment.id) },
+                        modifier = Modifier.align(Alignment.BottomStart).padding(2.dp).size(24.dp),
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                        )
+                    ) {
+                        Icon(
+                            Symbols.Edit,
+                            contentDescription = stringResource(R.string.composer_edit_image),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
                 FilledTonalIconButton(
                     onClick = { onRemove(attachment.id) },
                     modifier = Modifier.align(Alignment.TopEnd).padding(2.dp).size(24.dp),
