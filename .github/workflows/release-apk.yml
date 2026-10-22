@@ -36,6 +36,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ steps.tag.outputs.name }}
+          # llama.cpp, built into the app, is a submodule.
+          submodules: true
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4

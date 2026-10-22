@@ -19,6 +19,9 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          # llama.cpp, built into the app, is a submodule.
+          submodules: true
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
