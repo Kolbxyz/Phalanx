@@ -282,6 +282,9 @@
     <string name="notification_checking">Recherche de nouveaux messages…</string>
     <string name="notification_invite">%1$s vous a invité</string>
     <string name="notification_new_message">Nouveau message</string>
+    <string name="notification_action_mark_read">Marquer comme lu</string>
+    <string name="notification_action_reply">Répondre</string>
+    <string name="notification_reply_hint">Message</string>
     <string name="notification_self">Vous</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_summary">Distributeur et passerelle de notifications</string>

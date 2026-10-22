@@ -279,6 +279,9 @@
     <string name="notification_checking">Checking for new messages…</string>
     <string name="notification_invite">%1$s invited you</string>
     <string name="notification_new_message">New message</string>
+    <string name="notification_action_mark_read">Mark as read</string>
+    <string name="notification_action_reply">Reply</string>
+    <string name="notification_reply_hint">Message</string>
     <string name="notification_self">You</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_summary">Push distributor and gateway</string>

@@ -56,6 +56,10 @@
             android:name=".core.schedule.ScheduleAlarmReceiver"
             android:exported="false" />
 
+        <receiver
+            android:name=".core.push.NotificationActionReceiver"
+            android:exported="false" />
+
         <!-- UnifiedPush: the distributor binds this through the connector's own exported receiver. -->
         <service
             android:name=".core.push.PhalanxPushService"
