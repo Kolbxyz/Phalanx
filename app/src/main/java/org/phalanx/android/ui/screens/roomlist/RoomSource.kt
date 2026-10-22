@@ -1,5 +1,6 @@
 package org.phalanx.android.ui.screens.roomlist
 
+import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Immutable
 import org.phalanx.android.R
 import org.phalanx.android.data.model.Bridge
@@ -55,6 +56,25 @@ internal val Bridge.label: Int
         Bridge.Twitter -> R.string.bridge_twitter
         Bridge.Bluesky -> R.string.bridge_bluesky
         Bridge.IMessage -> R.string.bridge_imessage
+    }
+
+/** Simple Icons' monochrome logo (CC0), or null for a network it has none of. */
+@get:DrawableRes
+internal val Bridge.logo: Int?
+    get() = when (this) {
+        Bridge.WhatsApp -> R.drawable.brand_whatsapp
+        Bridge.Signal -> R.drawable.brand_signal
+        Bridge.Telegram -> R.drawable.brand_telegram
+        Bridge.Discord -> R.drawable.brand_discord
+        Bridge.Instagram -> R.drawable.brand_instagram
+        Bridge.Messenger -> R.drawable.brand_messenger
+        Bridge.Meta -> R.drawable.brand_meta
+        Bridge.Slack -> R.drawable.brand_slack
+        Bridge.GoogleMessages -> R.drawable.brand_gmessages
+        Bridge.Twitter -> R.drawable.brand_twitter
+        Bridge.Bluesky -> R.drawable.brand_bluesky
+        Bridge.IMessage -> R.drawable.brand_imessage
+        Bridge.LinkedIn -> null
     }
 
 internal val RoomSource.label: Int

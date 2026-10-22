@@ -2,6 +2,7 @@ package org.phalanx.android.ui.screens.roomlist
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -15,9 +16,11 @@ import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
 import org.phalanx.android.ui.components.InitialAvatar
@@ -63,18 +66,20 @@ internal fun SourcesDrawer(
     )
 }
 
+/** The network's logo, in the theme's colour like any icon; its initial for one without a logo. */
 @Composable
-private fun SourceIcon(source: RoomSource) {
-    when (source) {
-        RoomSource.All -> Icon(Symbols.Chat, contentDescription = null)
-        RoomSource.Matrix -> Icon(Symbols.Hub, contentDescription = null)
-        // No brand logos ship in the app; the network's initial stands in, like a contact's.
-        is RoomSource.Network -> {
+internal fun SourceIcon(source: RoomSource, size: Dp = 24.dp) {
+    val logo = (source as? RoomSource.Network)?.bridge?.logo
+    when {
+        source == RoomSource.All -> Icon(Symbols.Chat, contentDescription = null, Modifier.size(size))
+        source == RoomSource.Matrix -> Icon(Symbols.Hub, contentDescription = null, Modifier.size(size))
+        logo != null -> Icon(painterResource(logo), contentDescription = null, Modifier.size(size))
+        else -> {
             val name = stringResource(source.label)
             InitialAvatar(
                 name = name,
                 shape = CircleShape,
-                size = 24.dp,
+                size = size,
                 container = MaterialTheme.colorScheme.tertiaryContainer,
                 content = MaterialTheme.colorScheme.onTertiaryContainer,
                 textStyle = MaterialTheme.typography.labelMedium
