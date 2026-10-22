@@ -46,6 +46,17 @@ android {
 
         // The Rust SDK is ~100 MiB across four ABIs. x86 is emulator-only, so it is not shipped.
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
+
+        // On-device summaries (llama.cpp) are 64-bit only: a 32-bit phone is too slow and too short
+        // of memory for a 3B model, and the app then offers no summaries (core/ai/LlamaNative.kt).
+        externalNativeBuild { cmake { abiFilters += "arm64-v8a" } }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
     }
 
     signingConfigs {
