@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -24,6 +25,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.ClipEntry
@@ -32,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
@@ -44,8 +47,15 @@ import org.phalanx.android.ui.theme.Symbols
 
 /** The profile of [userId], opened from a mention or a sender, and the block confirmation it leads to. */
 @Composable
-internal fun ProfileMenu(userId: String?, onDismiss: () -> Unit, viewModel: RoomViewModel) {
+internal fun ProfileMenu(
+    userId: String?,
+    onDismiss: () -> Unit,
+    onOpenRoom: (roomId: String) -> Unit,
+    viewModel: RoomViewModel,
+    profiles: ProfileViewModel = hiltViewModel()
+) {
     var blocking by remember { mutableStateOf<Member?>(null) }
+    var viewing by remember { mutableStateOf<Member?>(null) }
     val muted by viewModel.muted.collectAsStateWithLifecycle()
     if (userId != null) {
         // The ID stands in for the name until the room says who they are.
@@ -56,6 +66,16 @@ internal fun ProfileMenu(userId: String?, onDismiss: () -> Unit, viewModel: Room
             trust = trust,
             muted = userId in muted,
             onDismiss = onDismiss,
+            onViewAvatar = { viewing = member },
+            onMessage = {
+                onDismiss()
+                profiles.message(
+                    userId,
+                    // Already their direct chat: closing the profile is all it takes.
+                    onOpened = { roomId -> if (roomId != viewModel.roomId) onOpenRoom(roomId) },
+                    onFailed = { viewModel.notify(R.string.profile_message_failed) }
+                )
+            },
             onToggleMute = {
                 viewModel.setMuted(userId, userId !in muted)
                 onDismiss()
@@ -65,6 +85,9 @@ internal fun ProfileMenu(userId: String?, onDismiss: () -> Unit, viewModel: Room
                 onDismiss()
             }
         )
+    }
+    viewing?.let { target ->
+        target.avatar?.let { AvatarViewer(it, target.name, onDismiss = { viewing = null }) }
     }
     blocking?.let { target ->
         BlockUserDialog(
@@ -84,6 +107,8 @@ private fun ProfileSheet(
     trust: UserTrust?,
     muted: Boolean,
     onDismiss: () -> Unit,
+    onViewAvatar: () -> Unit,
+    onMessage: () -> Unit,
     onToggleMute: () -> Unit,
     onBlock: () -> Unit
 ) {
@@ -95,7 +120,19 @@ private fun ProfileSheet(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            MatrixAvatar(member.name, member.avatar, 96.dp)
+            val viewLabel = stringResource(R.string.profile_photo)
+            MatrixAvatar(
+                member.name,
+                member.avatar,
+                96.dp,
+                modifier = if (member.avatar == null) {
+                    Modifier
+                } else {
+                    Modifier
+                        .clip(CircleShape)
+                        .clickable(onClickLabel = viewLabel, role = Role.Image, onClick = onViewAvatar)
+                }
+            )
             Spacer(Modifier.height(8.dp))
             Text(member.name, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
             if (member.name != member.userId) {
@@ -111,6 +148,7 @@ private fun ProfileSheet(
             TrustLabel(it, Modifier.fillMaxWidth().padding(top = 4.dp).wrapContentWidth(Alignment.CenterHorizontally))
         }
         Spacer(Modifier.height(8.dp))
+        ProfileAction(Symbols.Chat, R.string.profile_message, onClick = onMessage)
         ProfileAction(Symbols.ContentCopy, R.string.profile_copy_id) {
             scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, member.userId))) }
             onDismiss()
