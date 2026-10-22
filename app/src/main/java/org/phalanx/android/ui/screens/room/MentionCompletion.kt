@@ -20,6 +20,7 @@ sealed interface MentionSuggestion {
 /** Completes the "@..." word under the cursor, wherever it is in the draft, as Discord and Element do. */
 internal object MentionCompletion {
     private const val MAX_SUGGESTIONS = 5
+    private const val WORD_END = ",.;:!?)"
     private val beforeCursor = Regex("(?:^|\\s)@([^\\s@]*)$")
 
     /** The "@..." word under the cursor, from its "@" to the end of the word. */
@@ -30,7 +31,8 @@ internal object MentionCompletion {
         val cursor = input.selection.start
         val match = beforeCursor.find(input.text.substring(0, cursor)) ?: return null
         val query = match.groupValues[1]
-        val end = input.text.indexOfFirst(cursor) { it.isWhitespace() }
+        // The rest of the word goes too, up to a space or the punctuation that follows a name.
+        val end = input.text.indexOfFirst(cursor) { it.isWhitespace() || it in WORD_END }
         return Word(start = cursor - query.length - 1, end = end, query = query)
     }
 
