@@ -18,7 +18,9 @@ import org.phalanx.android.R
 import org.phalanx.android.ui.components.Notice
 import org.phalanx.android.ui.components.NoticeKind
 import org.phalanx.android.core.media.AttachmentPreparer
+import org.phalanx.android.core.media.ImageEdits
 import org.phalanx.android.core.media.VoiceRecorder
+import org.phalanx.android.data.model.OutgoingMedia
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.ScheduleRepository
 import org.phalanx.android.data.repository.TimelineSession
@@ -71,8 +73,12 @@ internal class ComposerController(
         }
     }
 
-    fun onDraftChange(value: TextFieldValue) {
-        update { it.copy(input = value, suggestions = mentionSource.suggestions(value, session)) }
+    fun onDraftChange(typed: TextFieldValue) {
+        var value = typed
+        update {
+            value = typed.asLinkPasteOver(it.input) ?: typed
+            it.copy(input = value, suggestions = mentionSource.suggestions(value, session))
+        }
         session?.setTyping(shareTyping() && value.text.isNotBlank())
     }
 
@@ -117,6 +123,23 @@ internal class ComposerController(
                     }
                 )
             }
+        }
+    }
+
+    /** Replaces the picture with its edited copy; the unedited file goes once the copy is ready. */
+    fun editAttachment(id: String, edits: ImageEdits) {
+        val original = mutableState.value.attachments.firstOrNull { it.id == id }?.media as? OutgoingMedia.Image ?: return
+        if (edits.isUnchanged) return
+        scope.launch {
+            preparer.edit(original, edits).fold(
+                onSuccess = { edited ->
+                    update { state ->
+                        state.copy(attachments = state.attachments.map { if (it.id == id) it.copy(media = edited) else it })
+                    }
+                    preparer.discard(original)
+                },
+                onFailure = { notify(Notice(R.string.editor_failed, NoticeKind.Error)) }
+            )
         }
     }
 

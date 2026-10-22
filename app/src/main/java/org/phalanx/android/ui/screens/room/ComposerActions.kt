@@ -12,6 +12,8 @@ internal class ComposerActions(
     val onCancelMode: () -> Unit,
     val onAttach: () -> Unit,
     val onRemoveAttachment: (String) -> Unit,
+    /** Opens the editor on a picture waiting to be sent. */
+    val onEditAttachment: (String) -> Unit,
     val onRecord: () -> Unit,
     val onCancelRecording: () -> Unit,
     val onSendRecording: () -> Unit,
