@@ -198,7 +198,7 @@
     <string name="settings_speech_model">Speech model</string>
     <string name="settings_speech_model_rejected">That file is not a supported speech model, so it was not kept.</string>
     <string name="settings_speech_hint_title">Getting the speech model</string>
-    <string name="settings_speech_hint">Download ggml-small-q5_1.bin (190 MB, quick) or ggml-large-v3-turbo-q5_0.bin (550 MB, most accurate) from whisper.cpp’s page on Hugging Face, then pick it here. Voice messages in French, English and about a hundred other languages can then be written out, on this phone only.</string>
+    <string name="settings_speech_hint">Download ggml-small-q5_1.bin (190 MB, quick) or ggml-large-v3-turbo-q5_0.bin (574 MB, most accurate) from whisper.cpp’s page on Hugging Face, then pick it here. Voice messages in French, English and about a hundred other languages can then be written out, on this phone only.</string>
     <string name="transcript_action">Transcribe</string>
     <string name="transcript_writing">Transcribing…</string>
     <string name="transcript_empty">No speech heard</string>
