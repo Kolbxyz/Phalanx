@@ -24,6 +24,17 @@ grep -E '^/[^ ]+\.kt:[0-9]+:[0-9]+: ' "$log" | head -n 20 | while IFS= read -r l
   echo "::error file=${file#"$root"},line=$number,title=detekt::$message"
 done
 
+# C and C++ (clang through ninja, often indented in Gradle's output): "/…/file.cpp:12:5: error: message"
+grep -oE '/[^ :]+\.(c|cc|cpp|h|hpp):[0-9]+:[0-9]+: (fatal )?error: .*' "$log" | sort -u | head -n 20 |
+  while IFS= read -r line; do
+    file="${line%%:*}"; rest="${line#*:}"; number="${rest%%:*}"; message="${rest#*error: }"
+    echo "::error file=${file#"$root"},line=$number,title=C++::$message"
+  done
+
+# The linker, CMake and ninja's failed steps, which name no source line.
+text=$(grep -E 'ld(\.lld)?: error:|CMake Error|^ *FAILED: ' -A 3 "$log" | head -n 40 | escape)
+[ -n "$text" ] && echo "::error title=Native build::$text"
+
 # Android lint's text report: "app/src/…/File.kt:12: Error: message [Id]"
 report=app/build/reports/lint-results-debug.txt
 if [ -f "$report" ]; then

@@ -37,6 +37,7 @@ UnifiedPush `PushService` → expedited WorkManager worker → `NotificationClie
 - `allowBackup=false` and empty `dataExtractionRules`: crypto keys never leave the device.
 - HTTPS only; user-installed CAs are not trusted.
 - Zero third-party telemetry, crash reporting or analytics SDKs.
+- Offline translation (`core/ai/translation`) runs Bergamot (`libphalanx_mt.so`, built from the `bergamot-translator` submodule) on language pairs the user imports, each file checked by hash. It is used when exactly one installed pair translates into the phone's language; anything else goes to the language model. Bergamot's logging is off.
 - Never log URLs, tokens, room names, event content or key material.
 - Emoji Kitchen is off by default (Privacy settings). When on, only the mixes the user views are fetched from `www.gstatic.com`; the pair index ships in the APK (`tools/emoji-kitchen`), so nothing else is sent to Google.
 - App lock (`core/security/AppLock`) holds the UI back behind the system's BiometricPrompt, with the phone's PIN as fallback; sync and notifications carry on. With it on, Recents shows no picture of the app.

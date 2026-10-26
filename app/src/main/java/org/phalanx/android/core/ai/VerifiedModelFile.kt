@@ -2,15 +2,11 @@ package org.phalanx.android.core.ai
 
 import android.content.Context
 import android.net.Uri
-import android.provider.OpenableColumns
 import java.io.File
 import java.io.IOException
-import java.io.InputStream
-import java.security.MessageDigest
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -68,38 +64,10 @@ internal class VerifiedModelFile(
     }
 
     private fun copyVerified(uri: Uri, job: Job, onProgress: (Float) -> Unit): KnownModel {
-        val digest = MessageDigest.getInstance("SHA-256")
-        val limit = known.maxOfOrNull { it.maxBytes } ?: throw ModelRejectedException()
-        // Progress against the file's own size when the picker tells it, else against the limit.
-        val total = sizeOf(uri)?.takeIf { it in 1..limit } ?: limit
-        var copied = 0L
-        open(uri).use { source ->
-            partial.outputStream().use { target ->
-                val buffer = ByteArray(BUFFER_BYTES)
-                var read = source.read(buffer)
-                // No supported model is larger than the limit: stop before filling the storage. The
-                // size then matches no model below, so the file is rejected.
-                while (read >= 0 && copied <= limit) {
-                    job.ensureActive()
-                    copied += read
-                    digest.update(buffer, 0, read)
-                    target.write(buffer, 0, read)
-                    onProgress(copied.toFloat() / total)
-                    read = source.read(buffer)
-                }
-            }
-        }
-        val hash = digest.digest().joinToString("") { "%02x".format(it) }
-        return known.firstOrNull { copied <= it.maxBytes && it.sha256 == hash } ?: throw ModelRejectedException()
+        val copy = copyHashed(context, uri, partial, known.maxOfOrNull { it.maxBytes } ?: 0L, job, onProgress)
+        return known.firstOrNull { copy.size <= it.maxBytes && it.sha256 == copy.sha256 }
+            ?: throw ModelRejectedException()
     }
-
-    private fun open(uri: Uri): InputStream =
-        context.contentResolver.openInputStream(uri) ?: throw IOException("Unreadable")
-
-    private fun sizeOf(uri: Uri): Long? =
-        context.contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { cursor ->
-            cursor.takeIf { it.moveToFirst() && !it.isNull(0) }?.getLong(0)
-        }
 
     // Only this class writes the file and its name, after checking the hash. A language model
     // imported before names were kept is recognised by its exact size.
@@ -107,9 +75,5 @@ internal class VerifiedModelFile(
         if (!file.isFile) return null
         val name = if (nameFile.isFile) nameFile.readText() else null
         return known.firstOrNull { it.name == name || (name == null && it.maxBytes == file.length()) }?.name
-    }
-
-    private companion object {
-        const val BUFFER_BYTES = 1 shl 20
     }
 }

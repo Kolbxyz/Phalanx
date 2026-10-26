@@ -9,6 +9,13 @@
 ./gradlew :app:detekt               # Static analysis
 ```
 
+The native code comes from submodules. After cloning, fetch them, then the few nested ones Bergamot needs (its others, such as CUDA and FBGEMM, are never built):
+
+```bash
+git submodule update --init
+.github/scripts/init-bergamot.sh
+```
+
 ktlint runs as a standalone binary in CI; run it locally with `ktlint "app/src/**/*.kt"`.
 
 The Android SDK lives on the Windows side, so build from Android Studio or a Windows shell. The WSL Gradle cannot run the Windows build tools.

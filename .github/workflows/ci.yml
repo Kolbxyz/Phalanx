@@ -14,14 +14,18 @@ jobs:
   build:
     name: Build, Test & Lint
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    # Marian, Bergamot's engine, adds about ten minutes to a build without ccache.
+    timeout-minutes: 45
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          # llama.cpp, built into the app, is a submodule.
+          # llama.cpp, whisper.cpp and bergamot-translator, built into the app, are submodules.
           submodules: true
+
+      - name: Fetch Bergamot's nested submodules
+        run: .github/scripts/init-bergamot.sh
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5

@@ -49,6 +49,7 @@ internal fun MessageMenu(
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val text = (message?.body as? MessageBody.Text)?.text
     val aiOn = settings?.aiSummaries == true
+    val offlinePairs by assist.pairs.collectAsStateWithLifecycle()
 
     fun copy(value: String) {
         scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, value))) }
@@ -69,7 +70,7 @@ internal fun MessageMenu(
             onEdit = then { text?.let { viewModel.composer.edit(message, it) } },
             onShowVersions = versionsTarget(message, settings)?.let { eventId -> then { versionsOf = eventId } },
             onCopy = then { text?.let(::copy) },
-            onTranslate = text?.takeIf { aiOn }?.let { then { assist.translate(it) } },
+            onTranslate = text?.takeIf { aiOn || offlinePairs.isNotEmpty() }?.let { then { assist.translate(it) } },
             onSummarize = text?.takeIf { aiOn && it.length >= AssistViewModel.LONG_MESSAGE_CHARS }
                 ?.let { then { assist.summarize(it) } },
             onFindActions = text?.takeIf { aiOn && mayHoldActions(it) }?.let { then { actions.find(message, it) } },

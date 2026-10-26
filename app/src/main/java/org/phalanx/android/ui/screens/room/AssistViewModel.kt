@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.util.Locale
 import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +17,8 @@ import org.phalanx.android.core.ai.LocalSummarizer
 import org.phalanx.android.core.ai.MAX_TRANSLATED_CHARS
 import org.phalanx.android.core.ai.ModelMissingException
 import org.phalanx.android.core.ai.SummariesUnsupportedException
+import org.phalanx.android.core.ai.translation.LanguagePair
+import org.phalanx.android.core.ai.translation.Translator
 
 /** What the model is asked to do with one message. */
 internal enum class AssistKind(
@@ -38,21 +39,27 @@ internal sealed interface AssistState {
     data class Failed(val kind: AssistKind, @StringRes val message: Int) : AssistState
 }
 
-/** Translates one message into the phone's language, or sums a long one up, with the local model. */
+/**
+ * Translates one message into the phone's language, with Bergamot or the local model (see
+ * [Translator]), or sums a long one up with the local model.
+ */
 @HiltViewModel
 internal class AssistViewModel @Inject constructor(
     private val model: LocalSummarizer,
+    private val translator: Translator,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
+    /** The offline translation pairs installed, which translate even with summaries off. */
+    val pairs: StateFlow<List<LanguagePair>> = translator.pairs
+
     private val mutableState = MutableStateFlow<AssistState>(AssistState.Idle)
     val state: StateFlow<AssistState> = mutableState.asStateFlow()
     private var job: Job? = null
 
     fun translate(text: String) {
-        // The model is asked for a language by its English name, which it knows best.
-        val language = context.resources.configuration.locales[0].getDisplayLanguage(Locale.ENGLISH)
+        val into = context.resources.configuration.locales[0]
         run(AssistKind.Translate, partial = text.length > MAX_TRANSLATED_CHARS) { onText ->
-            model.translate(text, language, onText)
+            translator.translate(text, into, onText)
         }
     }
 

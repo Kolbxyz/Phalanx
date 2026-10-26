@@ -203,6 +203,11 @@
     <string name="settings_speech_model_rejected">Ce fichier n’est pas un modèle vocal pris en charge, il n’a donc pas été gardé.</string>
     <string name="settings_speech_hint_title">Obtenir le modèle vocal</string>
     <string name="settings_speech_hint">Téléchargez ggml-small-q5_1.bin (190 Mo, rapide) ou ggml-large-v3-turbo-q5_0.bin (574 Mo, le plus précis) depuis la page de whisper.cpp sur Hugging Face, puis choisissez-le ici. Les messages vocaux en français, en anglais et dans une centaine d’autres langues pourront alors être retranscrits, sur ce téléphone uniquement.</string>
+    <string name="settings_translation_section">Traduction hors ligne</string>
+    <string name="settings_translation_import">Ajouter une paire de langues</string>
+    <string name="settings_translation_rejected">Ce fichier n’est pas un modèle de traduction pris en charge, il n’a donc pas été gardé.</string>
+    <string name="settings_translation_hint_title">Obtenir une paire de langues</string>
+    <string name="settings_translation_hint">Téléchargez les fichiers d’une paire depuis les modèles de traduction de Firefox de Mozilla (le modèle, sa liste lex et son vocabulaire, décompressés), puis choisissez-les ici ensemble. Les messages dans cette langue sont alors traduits en une seconde environ, sur ce téléphone uniquement ; les autres langues passent toujours par le modèle de langue.</string>
     <string name="settings_vision_section">Photos</string>
     <string name="settings_vision_model">Modèle de vision</string>
     <string name="settings_vision_model_rejected">Ce fichier n’est pas un modèle de vision pris en charge, il n’a donc pas été gardé.</string>
