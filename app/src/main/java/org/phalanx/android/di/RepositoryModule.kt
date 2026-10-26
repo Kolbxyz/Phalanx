@@ -14,6 +14,7 @@ import org.phalanx.android.core.matrix.RustBridgeRepository
 import org.phalanx.android.core.matrix.RustDraftsRepository
 import org.phalanx.android.core.matrix.RustEditHistoryRepository
 import org.phalanx.android.core.matrix.RustMediaRepository
+import org.phalanx.android.core.matrix.RustRecentPhotos
 import org.phalanx.android.core.matrix.RustRoomActionsRepository
 import org.phalanx.android.core.matrix.RustRoomGalleryRepository
 import org.phalanx.android.core.matrix.RustRoomListRepository
@@ -35,6 +36,7 @@ import org.phalanx.android.data.repository.MediaRepository
 import org.phalanx.android.data.repository.MutedUsersRepository
 import org.phalanx.android.data.repository.PushRepository
 import org.phalanx.android.data.repository.ReactionPushRepository
+import org.phalanx.android.data.repository.RecentPhotosRepository
 import org.phalanx.android.data.repository.ReminderRepository
 import org.phalanx.android.data.repository.RoomActionsRepository
 import org.phalanx.android.data.repository.RoomGalleryRepository
@@ -83,6 +85,9 @@ internal abstract class RepositoryModule {
 
     @Binds
     abstract fun reminderRepository(impl: Reminders): ReminderRepository
+
+    @Binds
+    abstract fun recentPhotosRepository(impl: RustRecentPhotos): RecentPhotosRepository
 
     @Binds
     abstract fun securityRepository(impl: RustSecurityRepository): SecurityRepository

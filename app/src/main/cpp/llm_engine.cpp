@@ -4,8 +4,6 @@
 
 namespace {
 
-constexpr int32_t kBatch = 512;
-
 bool isCancelled(void *flag) { return static_cast<std::atomic<bool> *>(flag)->load(); }
 
 }  // namespace

@@ -2,15 +2,10 @@ package org.phalanx.android.core.ai
 
 import java.io.ByteArrayOutputStream
 import java.time.ZonedDateTime
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -122,44 +117,27 @@ class LocalSummarizer @Inject internal constructor(
     private suspend fun run(path: String, prompt: Prompt, maxTokens: Int, onText: (String) -> Unit): String =
         loaded.use(path) { handle -> generate(handle, prompt, maxTokens, onText) }
 
+    // Cancelling the coroutine stops the native loop, which no suspension point can interrupt.
     private suspend fun generate(handle: Long, prompt: Prompt, maxTokens: Int, onText: (String) -> Unit): String =
-        coroutineScope {
-            val finished = AtomicBoolean(false)
-            // Cancelling the coroutine stops the native loop, which no suspension point can interrupt.
-            val watcher = launch {
-                try {
-                    awaitCancellation()
-                } finally {
-                    if (!finished.get()) LlamaNative.cancel(handle)
-                }
+        cancellableNative({ LlamaNative.cancel(handle) }) {
+            val reply = ByteArrayOutputStream()
+            LlamaNative.complete(
+                handle,
+                prompt.system.toByteArray(),
+                prompt.user.toByteArray(),
+                CONTEXT_TOKENS,
+                maxTokens,
+                prompt.grammar?.toByteArray()
+            ) { piece ->
+                reply.write(piece)
+                onText(reply.toString(Charsets.UTF_8.name()))
+                isActive
             }
-            try {
-                val reply = ByteArrayOutputStream()
-                LlamaNative.complete(
-                    handle,
-                    prompt.system.toByteArray(),
-                    prompt.user.toByteArray(),
-                    CONTEXT_TOKENS,
-                    maxTokens,
-                    prompt.grammar?.toByteArray()
-                ) { piece ->
-                    reply.write(piece)
-                    onText(reply.toString(Charsets.UTF_8.name()))
-                    isActive
-                }
-                ensureActive()
-                reply.toString(Charsets.UTF_8.name()).trim()
-            } finally {
-                finished.set(true)
-                // Joined before the handle can be freed, so a late cancel never touches freed memory.
-                withContext(NonCancellable) { watcher.cancelAndJoin() }
-            }
+            ensureActive()
+            reply.toString(Charsets.UTF_8.name()).trim()
         }
 
     private companion object {
-        // Room for SummaryPrompt's budget plus the reply; Ministral 3 takes far more, but the KV
-        // cache grows with it and a phone has little memory to spare.
-        const val CONTEXT_TOKENS = 6144
         const val SUMMARY_TOKENS = 400
         const val REPLIES_TOKENS = 120
         const val TRANSLATION_TOKENS = 1_600

@@ -69,7 +69,7 @@ internal class VerifiedModelFile(
 
     private fun copyVerified(uri: Uri, job: Job, onProgress: (Float) -> Unit): KnownModel {
         val digest = MessageDigest.getInstance("SHA-256")
-        val limit = known.maxOf { it.maxBytes }
+        val limit = known.maxOfOrNull { it.maxBytes } ?: throw ModelRejectedException()
         // Progress against the file's own size when the picker tells it, else against the limit.
         val total = sizeOf(uri)?.takeIf { it in 1..limit } ?: limit
         var copied = 0L

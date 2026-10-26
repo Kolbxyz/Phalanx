@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.KSerializer
+import org.phalanx.android.core.ai.photos.PhotoNote
 import org.phalanx.android.core.ai.speech.Transcript
 import org.phalanx.android.core.matrix.ActiveClient
 import org.phalanx.android.core.prefs.SettingsStore
@@ -22,8 +23,8 @@ import org.phalanx.android.di.ApplicationScope
 
 /**
  * AI results kept on this phone while "Keep AI results" is on, so a transcript or a room's
- * catch-up is not written twice. Sealed like the session; turning the setting off or signing out
- * deletes them all.
+ * catch-up is not written twice, and photos can be found by what they show. Sealed like the
+ * session; turning the setting off or signing out deletes them all.
  */
 @Singleton
 class AiDisk @Inject internal constructor(
@@ -44,7 +45,10 @@ class AiDisk @Inject internal constructor(
     // A catch-up goes stale fast: by the next day the user has read the room or more came in.
     internal val catchUps = shelf("catch_ups", CatchUp.serializer(), CATCH_UPS, TimeUnit.DAYS.toMillis(1))
 
-    private val shelves = listOf(transcripts, catchUps)
+    // A photo's description holds for as long as the photo is worth finding.
+    internal val photos = shelf("photos", PhotoNote.serializer(), PHOTOS, TimeUnit.DAYS.toMillis(PHOTO_DAYS))
+
+    private val shelves = listOf(transcripts, catchUps, photos)
 
     fun start() {
         scope.launch {
@@ -66,6 +70,9 @@ class AiDisk @Inject internal constructor(
     /** The result kept as [key], or null when there is none or keeping them is off. */
     internal suspend fun <T> read(shelf: AiShelf<T>, key: String): T? = if (enabled.value) shelf.get(key) else null
 
+    /** Every result on [shelf], by key; empty when keeping them is off. */
+    internal suspend fun <T> readAll(shelf: AiShelf<T>): Map<String, T> = if (enabled.value) shelf.all() else emptyMap()
+
     /** Keeps [value] as [key] while the setting is on; does nothing otherwise. */
     internal suspend fun <T> keep(shelf: AiShelf<T>, key: String, value: T) {
         if (!enabled.value) return
@@ -82,5 +89,7 @@ class AiDisk @Inject internal constructor(
         const val TRANSCRIPTS = 2_000
         const val TRANSCRIPT_DAYS = 30L
         const val CATCH_UPS = 200
+        const val PHOTOS = 20_000
+        const val PHOTO_DAYS = 365L
     }
 }

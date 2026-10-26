@@ -203,6 +203,13 @@
     <string name="settings_speech_model_rejected">That file is not a supported speech model, so it was not kept.</string>
     <string name="settings_speech_hint_title">Getting the speech model</string>
     <string name="settings_speech_hint">Download ggml-small-q5_1.bin (190 MB, quick) or ggml-large-v3-turbo-q5_0.bin (574 MB, most accurate) from whisper.cpp’s page on Hugging Face, then pick it here. Voice messages in French, English and about a hundred other languages can then be written out, on this phone only.</string>
+    <string name="settings_vision_section">Photos</string>
+    <string name="settings_vision_model">Vision model</string>
+    <string name="settings_vision_model_rejected">That file is not a supported vision model, so it was not kept.</string>
+    <string name="settings_vision_hint_title">Getting the vision model</string>
+    <string name="settings_vision_hint">Download the mmproj file published beside Ministral 3 3B on Mistral’s Hugging Face page, then pick it here. With it, the language model can read photos, on this phone only.</string>
+    <string name="settings_photo_search">Make photos searchable</string>
+    <string name="settings_photo_search_summary">While the phone charges and sits idle on Wi-Fi, photos in your chats are described on this phone so search finds them by what they show or the text in them. Needs the vision model and “Keep AI results on this phone”.</string>
     <string name="transcript_action">Transcribe</string>
     <string name="transcript_writing">Transcribing…</string>
     <string name="transcript_empty">No speech heard</string>
