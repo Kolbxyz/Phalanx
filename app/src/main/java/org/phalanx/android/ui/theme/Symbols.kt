@@ -181,4 +181,8 @@ internal object Symbols {
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_visibility)
     val Incognito: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_domino_mask)
+    val SpeechToText: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_speech_to_text)
+    val Call: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_call)
 }

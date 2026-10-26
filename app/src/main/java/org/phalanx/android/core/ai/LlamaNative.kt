@@ -30,13 +30,17 @@ internal object LlamaNative {
 
     external fun free(handle: Long)
 
-    /** True if the reply ran to its end, false if it was cancelled. */
+    /**
+     * True if the reply ran to its end, false if it was cancelled. [grammar], GBNF with a "root"
+     * rule, holds the reply to that shape; null leaves it free.
+     */
     external fun complete(
         handle: Long,
         system: ByteArray,
         user: ByteArray,
         contextSize: Int,
         maxNewTokens: Int,
+        grammar: ByteArray?,
         sink: TokenSink
     ): Boolean
 }

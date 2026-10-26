@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.phalanx.android.R
+import org.phalanx.android.data.model.BridgeHealth
 import org.phalanx.android.data.model.BridgeNetwork
 import org.phalanx.android.data.model.BridgeStatus
 import org.phalanx.android.ui.components.BackButton
@@ -50,6 +52,7 @@ fun BridgesScreen(onBack: () -> Unit, onOpenRoom: (String) -> Unit, viewModel: B
     val statuses by viewModel.statuses.collectAsStateWithLifecycle()
     val connecting by viewModel.connecting.collectAsStateWithLifecycle()
     val failed by viewModel.failed.collectAsStateWithLifecycle()
+    val health by viewModel.health.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { viewModel.open.collect(onOpenRoom) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
@@ -86,7 +89,14 @@ fun BridgesScreen(onBack: () -> Unit, onOpenRoom: (String) -> Unit, viewModel: B
                 )
             }
             itemsIndexed(list, key = { _, status -> status.network.name }) { index, status ->
-                BridgeRow(status, segmentedShape(index, list.size), connecting, viewModel::connect, onOpenRoom)
+                BridgeRow(
+                    status,
+                    health[status.network] ?: BridgeHealth.Unknown,
+                    segmentedShape(index, list.size),
+                    connecting,
+                    viewModel::connect,
+                    onOpenRoom
+                )
             }
         }
     }
@@ -95,6 +105,7 @@ fun BridgesScreen(onBack: () -> Unit, onOpenRoom: (String) -> Unit, viewModel: B
 @Composable
 private fun BridgeRow(
     status: BridgeStatus,
+    health: BridgeHealth,
     shape: Shape,
     connecting: BridgeNetwork?,
     onConnect: (BridgeStatus.Available) -> Unit,
@@ -106,10 +117,13 @@ private fun BridgeRow(
         supporting = stringResource(
             when {
                 status is BridgeStatus.Unavailable -> R.string.bridges_unavailable
+                roomId != null && health == BridgeHealth.LoggedOut -> R.string.bridges_logged_out
+                roomId != null && health == BridgeHealth.Connected -> R.string.bridges_connected
                 roomId != null -> R.string.bridges_chatting
                 else -> R.string.bridges_available
             }
         ),
+        headlineColor = if (health == BridgeHealth.LoggedOut) MaterialTheme.colorScheme.error else Color.Unspecified,
         shape = shape,
         leading = { Icon(Symbols.Chat, contentDescription = null) },
         trailing = when {
@@ -118,7 +132,15 @@ private fun BridgeRow(
             else -> {
                 {
                     val interaction = remember { MutableInteractionSource() }
-                    if (roomId != null) {
+                    if (roomId != null && health == BridgeHealth.LoggedOut) {
+                        // Asks the bot to start signing in again, then opens the chat with it.
+                        Button(
+                            onClick = { onConnect(status) },
+                            enabled = connecting == null,
+                            modifier = Modifier.pressShrink(interaction),
+                            interactionSource = interaction
+                        ) { Text(stringResource(R.string.bridges_reconnect)) }
+                    } else if (roomId != null) {
                         FilledTonalButton(
                             onClick = { onOpen(roomId) },
                             modifier = Modifier.pressShrink(interaction),

@@ -14,11 +14,14 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import java.time.ZoneId
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
+import org.phalanx.android.core.ai.actions.mayHoldActions
 import org.phalanx.android.data.model.AppSettings
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
+import org.phalanx.android.ui.components.NoticeKind
 
 /** The long-press sheet for [message], and the delete confirmation it can lead to. */
 @Composable
@@ -27,7 +30,9 @@ internal fun MessageMenu(
     onDismiss: () -> Unit,
     viewModel: RoomViewModel,
     kitchen: KitchenViewModel = hiltViewModel(),
-    assist: AssistViewModel = hiltViewModel()
+    assist: AssistViewModel = hiltViewModel(),
+    reminder: ReminderViewModel = hiltViewModel(),
+    actions: ActionsViewModel = hiltViewModel()
 ) {
     val clipboard = LocalClipboard.current
     val context = LocalContext.current
@@ -37,6 +42,7 @@ internal fun MessageMenu(
     var forwarding by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     var versionsOf by remember { mutableStateOf<String?>(null) }
     var mixingFor by remember { mutableStateOf<TimelineEntry.Message?>(null) }
+    var remindingOf by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     val kitchenOn by kitchen.enabled.collectAsStateWithLifecycle()
     val muted by viewModel.muted.collectAsStateWithLifecycle()
     val header by viewModel.header.collectAsStateWithLifecycle()
@@ -66,9 +72,11 @@ internal fun MessageMenu(
             onTranslate = text?.takeIf { aiOn }?.let { then { assist.translate(it) } },
             onSummarize = text?.takeIf { aiOn && it.length >= AssistViewModel.LONG_MESSAGE_CHARS }
                 ?.let { then { assist.summarize(it) } },
+            onFindActions = text?.takeIf { aiOn && mayHoldActions(it) }?.let { then { actions.find(message, it) } },
             onCopyLink = { link -> then { copy(link) }() },
             onShareLink = { link -> then { shareText(context, link) }() },
             onForward = then { forwarding = message },
+            onRemind = message.eventId?.let { then { remindingOf = message } },
             pinned = message.eventId in header?.pinnedEventIds.orEmpty(),
             onTogglePin = then { viewModel.setPinned(message, message.eventId !in header?.pinnedEventIds.orEmpty()) },
             onDelete = then { deleting = message },
@@ -89,6 +97,37 @@ internal fun MessageMenu(
         )
     }
     versionsOf?.let { eventId -> EditHistorySheet(eventId, onDismiss = { versionsOf = null }) }
+    remindingOf?.let { target ->
+        ScheduleSheet(
+            exact = viewModel.canScheduleExactly(),
+            onDismiss = { remindingOf = null },
+            onPick = { at ->
+                remindingOf = null
+                reminder.remind(target, at) { saved ->
+                    if (saved) {
+                        viewModel.notify(R.string.remind_done, NoticeKind.Scheduled)
+                    } else {
+                        viewModel.notify(R.string.remind_failed)
+                    }
+                }
+            },
+            title = R.string.remind_title
+        )
+    }
+    val actionsState by actions.state.collectAsStateWithLifecycle()
+    ActionsSheet(
+        state = actionsState,
+        onDismiss = actions::dismiss,
+        onRemind = { found ->
+            (actionsState as? ActionsState.Found)?.let { state ->
+                reminder.remind(state.message, found.at.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()) {
+                    viewModel.notify(if (it) R.string.remind_done else R.string.remind_failed)
+                }
+            }
+        },
+        onCopy = ::copy,
+        onNoApp = { viewModel.notify(R.string.actions_no_app) }
+    )
     val assistState by assist.state.collectAsStateWithLifecycle()
     AssistSheet(assistState, onDismiss = assist::dismiss)
     mixingFor?.let { target ->

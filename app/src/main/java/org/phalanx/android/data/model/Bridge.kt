@@ -45,3 +45,14 @@ sealed interface BridgeStatus {
     /** The bot exists; [roomId] is the chat with it once one was started. */
     data class Available(override val network: BridgeNetwork, val botId: String, val roomId: String?) : BridgeStatus
 }
+
+/** How a bridge's login stands, as its bot last said. */
+enum class BridgeHealth {
+    Connected,
+
+    /** Logged out, disconnected or its session expired: it needs signing in again. */
+    LoggedOut,
+
+    /** The bot said nothing telling. */
+    Unknown
+}

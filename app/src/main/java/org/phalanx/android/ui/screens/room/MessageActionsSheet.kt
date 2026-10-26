@@ -50,12 +50,16 @@ internal fun MessageActionsSheet(
     onTranslate: (() -> Unit)?,
     /** Null hides summing the message up: AI is off, or the message is short or not text. */
     onSummarize: (() -> Unit)?,
+    /** Null hides looking for dates, tasks and places: AI is off, or the message has no hint of any. */
+    onFindActions: (() -> Unit)?,
     onCopyLink: (String) -> Unit,
     onShareLink: (String) -> Unit,
     onEdit: () -> Unit,
     /** Null when the message's versions are not offered: not edited, or the setting is off. */
     onShowVersions: (() -> Unit)?,
     onForward: () -> Unit,
+    /** Null when the message can't be reminded of yet: it is still being sent. */
+    onRemind: (() -> Unit)?,
     pinned: Boolean,
     onTogglePin: () -> Unit,
     onDelete: () -> Unit,
@@ -105,6 +109,7 @@ internal fun MessageActionsSheet(
         if (message.body is MessageBody.Text) Action(Symbols.ContentCopy, R.string.action_copy, onCopy)
         onTranslate?.let { Action(Symbols.Translate, R.string.action_translate, it) }
         onSummarize?.let { Action(Symbols.Summarize, R.string.action_summarize_message, it) }
+        onFindActions?.let { Action(Symbols.EditCalendar, R.string.action_find_actions, it) }
         LinkActions(remember(message.body) { linksOf(message.body) }, onCopyLink, onShareLink)
         if (live && message.eventId != null && message.body.isForwardable()) {
             Action(Symbols.Forward, R.string.action_forward, onForward)
@@ -116,6 +121,7 @@ internal fun MessageActionsSheet(
             Action(Symbols.Edit, R.string.action_edit, onEdit)
         }
         onShowVersions?.let { Action(Symbols.History, R.string.action_edit_history, it) }
+        if (live) onRemind?.let { Action(Symbols.AlarmOn, R.string.action_remind, it) }
         if (!message.isOwn) {
             if (senderMuted) {
                 Action(Symbols.NotificationsActive, R.string.action_unmute, onToggleMute)

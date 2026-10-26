@@ -1,13 +1,15 @@
 package org.phalanx.android.core.ai
 
 /**
- * A model file this build accepts, identified by the SHA-256 of its contents. [name] is the file
- * as Mistral publishes it, so the user can tell which one to download.
+ * A model file this build accepts, identified by the SHA-256 of its contents. [name] is the file as
+ * its publisher names it, so the user can tell which one to download. [maxBytes] is at least its
+ * size: a copy is stopped past the largest one, so a wrong file never fills the storage. For the
+ * language models it is their exact size, which also recognises one imported by earlier builds.
  */
-internal data class KnownModel(val name: String, val sizeBytes: Long, val sha256: String)
+internal data class KnownModel(val name: String, val maxBytes: Long, val sha256: String)
 
 /**
- * Ministral 3 3B Instruct (Apache 2.0), from huggingface.co/mistralai/Ministral-3-3B-Instruct-2512-GGUF.
+ * The language models: Ministral 3 3B Instruct (Apache 2.0), from huggingface.co/mistralai/Ministral-3-3B-Instruct-2512-GGUF.
  * Only these exact files load, so a swapped or corrupted model never reaches the native parser.
  * Compare a hash with the one on that page before adding a model.
  */

@@ -41,6 +41,8 @@ internal fun Composer(
     actions: ComposerActions,
     enterToSend: Boolean,
     scheduled: List<ScheduledMessage>,
+    /** A speech model is there, so a recording can become text. */
+    canDictate: Boolean,
     modifier: Modifier = Modifier
 ) {
     val motion = MaterialTheme.motionScheme
@@ -78,7 +80,12 @@ internal fun Composer(
                 transitionSpec = { fadeIn(fade) togetherWith fadeOut(fade) }
             ) { recording ->
                 if (recording) {
-                    RecordingRow(state.recording.orEmpty(), actions.onCancelRecording, actions.onSendRecording)
+                    RecordingRow(
+                        levels = state.recording.orEmpty(),
+                        onCancel = actions.onCancelRecording,
+                        onSend = actions.onSendRecording,
+                        onDictate = actions.onDictateRecording.takeIf { canDictate }
+                    )
                 } else {
                     InputRow(state, actions, enterToSend)
                 }

@@ -3,6 +3,7 @@ package org.phalanx.android.ui.screens.room
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -44,15 +45,23 @@ import org.phalanx.android.ui.theme.Symbols
 private const val EVENING_HOUR = 20
 private const val MORNING_HOUR = 9
 
-/** When to send the message being typed: a few one-tap choices, or any date and time. */
+/**
+ * A time in the future: a few one-tap choices, or any date and time. When to send the message
+ * being typed, or when to be reminded of one, as [title] says.
+ */
 @Composable
-internal fun ScheduleSheet(exact: Boolean, onDismiss: () -> Unit, onPick: (Long) -> Unit) {
+internal fun ScheduleSheet(
+    exact: Boolean,
+    onDismiss: () -> Unit,
+    onPick: (Long) -> Unit,
+    @StringRes title: Int = R.string.schedule_title
+) {
     val zone = ZoneId.systemDefault()
     val now = ZonedDateTime.now(zone)
     var picking by remember { mutableStateOf(false) }
     ModalSheet(onDismissRequest = onDismiss) {
         Text(
-            text = stringResource(R.string.schedule_title),
+            text = stringResource(title),
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(start = 24.dp, bottom = 8.dp)
         )

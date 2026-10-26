@@ -112,7 +112,7 @@ private fun Content(
             )
             body.caption?.let { Caption(it, message.isEdited, actions.onOpenProfile, onLongPress, textPadding) }
         }
-        is MessageBody.Audio -> AudioContent(message.id, body, actions.resolveFile)
+        is MessageBody.Audio -> AudioContent(message.id, message.eventId ?: message.id, body, actions.resolveFile)
         is MessageBody.File -> FileContent(body, actions.onOpenFile, onLongPress)
         is MessageBody.Location -> LocationContent(body, onLongPress)
         MessageBody.Redacted, MessageBody.Undecryptable, is MessageBody.Unsupported -> Text(

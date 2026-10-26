@@ -3,8 +3,8 @@ package org.phalanx.android.core.ai
 /** One message of the conversation to sum up; [eventId] lets a point of the summary lead back to it. */
 data class SummaryLine(val sender: String, val text: String, val eventId: String? = null)
 
-/** The two messages sent to the model. */
-internal open class Prompt(val system: String, val user: String)
+/** The two messages sent to the model, and the GBNF [grammar] its reply must follow, if any. */
+internal open class Prompt(val system: String, val user: String, val grammar: String? = null)
 
 /**
  * A conversation for the model, each kept line numbered so the summary can cite it: line n is

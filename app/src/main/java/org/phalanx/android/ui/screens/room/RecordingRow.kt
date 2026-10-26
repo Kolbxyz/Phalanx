@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -29,9 +30,12 @@ import org.phalanx.android.ui.theme.Symbols
 private const val MILLIS_PER_SAMPLE = 100L
 private const val VISIBLE_BARS = 48
 
-/** Replaces the text field while a voice message is recorded: discard, live waveform, send. */
+/**
+ * Replaces the text field while a voice message is recorded: discard, live waveform, send, and with
+ * a speech model, write it out as text instead.
+ */
 @Composable
-internal fun RecordingRow(levels: List<Float>, onCancel: () -> Unit, onSend: () -> Unit) {
+internal fun RecordingRow(levels: List<Float>, onCancel: () -> Unit, onSend: () -> Unit, onDictate: (() -> Unit)?) {
     val colors = MaterialTheme.colorScheme
     val recording = stringResource(R.string.composer_recording)
     Row(
@@ -66,6 +70,11 @@ internal fun RecordingRow(levels: List<Float>, onCancel: () -> Unit, onSend: () 
                 progress = 1f,
                 modifier = Modifier.weight(1f).height(32.dp)
             )
+        }
+        if (onDictate != null) {
+            FilledTonalIconButton(onClick = onDictate, modifier = Modifier.size(48.dp)) {
+                Icon(Symbols.SpeechToText, contentDescription = stringResource(R.string.composer_record_dictate))
+            }
         }
         FilledIconButton(onClick = onSend, modifier = Modifier.size(48.dp)) {
             Icon(Symbols.Send, contentDescription = stringResource(R.string.composer_record_send))

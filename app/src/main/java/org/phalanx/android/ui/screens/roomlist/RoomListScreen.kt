@@ -57,6 +57,7 @@ fun RoomListScreen(
     onOpenMessage: (roomId: String, eventId: String) -> Unit,
     onOpenDetails: (String) -> Unit,
     onOpenAccount: () -> Unit,
+    onOpenCatchUp: () -> Unit,
     viewModel: RoomListViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -64,6 +65,7 @@ fun RoomListScreen(
     val avatar by viewModel.avatar.collectAsStateWithLifecycle()
     val actionFailed by viewModel.actionFailed.collectAsStateWithLifecycle()
     val drafts by viewModel.drafts.collectAsStateWithLifecycle()
+    val canCatchUp by viewModel.canCatchUp.collectAsStateWithLifecycle()
     var menuFor by remember { mutableStateOf<RoomSummary?>(null) }
     var leaving by remember { mutableStateOf<RoomSummary?>(null) }
     var searching by rememberSaveable { mutableStateOf(false) }
@@ -106,6 +108,11 @@ fun RoomListScreen(
                         }
                     },
                     actions = {
+                        if (canCatchUp) {
+                            IconButton(onClick = onOpenCatchUp) {
+                                Icon(Symbols.Summarize, contentDescription = stringResource(R.string.catch_up_open))
+                            }
+                        }
                         IconButton(onClick = { searching = true }) {
                             Icon(Symbols.Search, contentDescription = stringResource(R.string.search_open))
                         }

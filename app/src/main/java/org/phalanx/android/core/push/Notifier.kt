@@ -242,6 +242,9 @@ internal class Notifier @Inject constructor(@ApplicationContext private val cont
 
     companion object {
         const val EXTRA_ROOM_ID = "org.phalanx.android.ROOM_ID"
+
+        /** With [EXTRA_ROOM_ID]: the message to open the conversation on. */
+        const val EXTRA_EVENT_ID = "org.phalanx.android.EVENT_ID"
         const val ACTION_MARK_READ = "org.phalanx.android.MARK_READ"
         const val ACTION_REPLY = "org.phalanx.android.REPLY"
         const val KEY_REPLY = "reply"

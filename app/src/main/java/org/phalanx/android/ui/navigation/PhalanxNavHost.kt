@@ -23,6 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import org.phalanx.android.ui.screens.account.AccountScreen
 import org.phalanx.android.ui.screens.bridges.BridgesScreen
+import org.phalanx.android.ui.screens.catchup.CatchUpScreen
 import org.phalanx.android.ui.screens.deleted.DeletedMessagesScreen
 import org.phalanx.android.ui.screens.details.GalleryScreen
 import org.phalanx.android.ui.screens.details.RoomDetailsScreen
@@ -37,14 +38,14 @@ import org.phalanx.android.ui.share.SharePicker
 
 /**
  * Shared-axis transitions on the theme's motion scheme, so reduced motion shortens them too.
- * [openRoom] is a room a tapped notification asked for; it opens over the room list.
+ * [openRoom] is a room a tapped notification asked for, maybe on one message; it opens over the room list.
  */
 @Composable
-fun PhalanxNavHost(openRoom: String?, onRoomOpened: () -> Unit) {
+fun PhalanxNavHost(openRoom: RoomRoute?, onRoomOpened: () -> Unit) {
     val navController = rememberNavController()
     LaunchedEffect(openRoom) {
         if (openRoom == null) return@LaunchedEffect
-        navController.navigate(RoomRoute(openRoom)) {
+        navController.navigate(openRoom) {
             popUpTo(RoomListRoute)
             launchSingleTop = true
         }
@@ -76,7 +77,14 @@ fun PhalanxNavHost(openRoom: String?, onRoomOpened: () -> Unit) {
                         onOpenRoom = { navController.from(entry) { navigate(RoomRoute(it)) } },
                         onOpenMessage = { roomId, eventId -> navController.from(entry) { jumpTo(roomId, eventId) } },
                         onOpenDetails = { navController.from(entry) { navigate(RoomDetailsRoute(it)) } },
-                        onOpenAccount = { navController.from(entry) { navigate(SettingsRoute) } }
+                        onOpenAccount = { navController.from(entry) { navigate(SettingsRoute) } },
+                        onOpenCatchUp = { navController.from(entry) { navigate(CatchUpRoute) } }
+                    )
+                }
+                screen<CatchUpRoute> { entry ->
+                    CatchUpScreen(
+                        onBack = { navController.from(entry) { popBackStack() } },
+                        onOpenRoom = { navController.from(entry) { navigate(RoomRoute(it)) } }
                     )
                 }
                 screen<RoomRoute>(
