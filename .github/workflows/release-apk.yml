@@ -18,7 +18,8 @@ jobs:
   attach:
     name: Build & Attach Release APK
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    # A release build has no ccache, and Marian, Bergamot's engine, compiles for about ten minutes.
+    timeout-minutes: 60
     env:
       GH_TOKEN: ${{ github.token }}
 
@@ -36,8 +37,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ steps.tag.outputs.name }}
-          # llama.cpp, built into the app, is a submodule.
+          # llama.cpp, whisper.cpp, bergamot-translator and pcre2, built into the app, are submodules.
           submodules: true
+
+      - name: Fetch Bergamot's nested submodules
+        run: .github/scripts/init-bergamot.sh
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
