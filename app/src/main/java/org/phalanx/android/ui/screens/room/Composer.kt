@@ -69,6 +69,9 @@ internal fun Composer(
             ) {
                 AttachmentStrip(state.attachments, actions.onRemoveAttachment, actions.onEditAttachment)
             }
+            if (state.attachments.isEmpty() && state.mode !is ComposerMode.Edit) {
+                KitchenMerge(state.draft, actions.onSendMix)
+            }
             val fade = motion.defaultEffectsSpec<Float>()
             AnimatedContent(
                 targetState = state.recording != null,

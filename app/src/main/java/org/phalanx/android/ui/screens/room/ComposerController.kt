@@ -91,6 +91,8 @@ internal class ComposerController(
         )
     }
 
+    fun clearDraft() = update { it.withDraft("").copy(mentions = emptyList(), suggestions = emptyList()) }
+
     fun reply(message: TimelineEntry.Message) = update { it.copy(mode = ComposerMode.Reply(message)) }
 
     /** Puts the message's text in the field; sending then replaces it instead of posting anew. */

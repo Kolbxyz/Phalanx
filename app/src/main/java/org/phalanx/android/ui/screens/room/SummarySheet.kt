@@ -46,7 +46,10 @@ internal fun SummarySheet(state: SummaryState, onDismiss: () -> Unit) {
                 }
                 is SummaryState.Done -> {
                     Text(
-                        stringResource(R.string.summary_scope, state.count),
+                        stringResource(
+                            if (state.sinceRead) R.string.summary_scope_unread else R.string.summary_scope,
+                            state.count
+                        ),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

@@ -30,20 +30,29 @@ class SummariesUnsupportedException : Exception("Unsupported device")
 class LocalSummarizer @Inject constructor(private val models: ModelStore) {
     private val lock = Mutex()
 
-    /** Calls [onText] with the whole reply so far, as it grows. */
+    // The last few replies by model and exact prompt, so asking again with nothing new runs no
+    // inference. Kept in memory only, under [lock]: a summary is room content and never hits disk.
+    private val cache = object : LinkedHashMap<String, String>(CACHE_SIZE, LOAD_FACTOR, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, String>?) = size > CACHE_SIZE
+    }
+
+    /** Calls [onText] with the whole reply so far, as it grows; a cached reply comes back at once. */
     suspend fun summarize(lines: List<SummaryLine>, onText: (String) -> Unit): Result<String> {
         val path = models.path()
         return when {
             !LlamaNative.isAvailable -> Result.failure(SummariesUnsupportedException())
             path == null -> Result.failure(ModelMissingException())
             else -> lock.withLock {
+                val prompt = SummaryPrompt.of(lines)
+                val key = listOf(path, prompt.system, prompt.user).joinToString("\u0000")
+                cache[key]?.let { return@withLock Result.success(it) }
                 withContext(Dispatchers.Default) {
                     try {
-                        Result.success(run(path, SummaryPrompt.of(lines), onText))
+                        Result.success(run(path, prompt, onText))
                     } catch (e: IllegalStateException) {
                         Result.failure(e)
                     }
-                }
+                }.onSuccess { cache[key] = it }
             }
         }
     }
@@ -79,8 +88,12 @@ class LocalSummarizer @Inject constructor(private val models: ModelStore) {
     }
 
     private companion object {
-        const val CONTEXT_TOKENS = 2048
-        const val MAX_NEW_TOKENS = 200
+        // Room for SummaryPrompt's budget plus the reply; Ministral 3 takes far more, but the KV
+        // cache grows with it and a phone has little memory to spare.
+        const val CONTEXT_TOKENS = 6144
+        const val MAX_NEW_TOKENS = 400
+        const val CACHE_SIZE = 8
+        const val LOAD_FACTOR = 0.75f
         // The big cores of an 8-core phone; more threads fight over memory bandwidth for no gain.
         val THREADS = (Runtime.getRuntime().availableProcessors() / 2).coerceIn(2, 4)
     }

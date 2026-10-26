@@ -28,8 +28,6 @@ import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.model.ScheduledMessage
 import org.phalanx.android.data.model.KitchenMix
-import org.phalanx.android.data.model.Sticker
-import org.phalanx.android.data.model.StickerPack
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.model.UserTrust
 import org.phalanx.android.data.repository.BlockedUsersRepository
@@ -156,16 +154,14 @@ class RoomViewModel @Inject constructor(
         }
     }
 
-    suspend fun stickerPacks(): List<StickerPack> = stickers.packs()
-
     fun sendMix(mix: KitchenMix) {
-        viewModelScope.launch { stickers.sendKitchen(roomId, mix).onFailure { notify(R.string.composer_send_failed) } }
+        viewModelScope.launch { stickers.send(roomId, mix).onFailure { notify(R.string.composer_send_failed) } }
     }
 
-    fun sendSticker(sticker: Sticker) {
-        viewModelScope.launch {
-            stickers.send(roomId, sticker).onFailure { notify(R.string.composer_send_failed) }
-        }
+    /** Sends the mix the draft's two emoji make, in place of the draft. */
+    fun sendDraftMix(mix: KitchenMix) {
+        composer.clearDraft()
+        sendMix(mix)
     }
 
     fun setMuted(userId: String, muted: Boolean) {

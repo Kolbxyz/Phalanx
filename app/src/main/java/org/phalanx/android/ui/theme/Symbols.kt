@@ -98,7 +98,7 @@ internal object Symbols {
     val PushPin: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_keep)
     val Summarize: ImageVector
-        @Composable get() = ImageVector.vectorResource(R.drawable.sym_sparkle)
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_auto_awesome)
     val Sticker: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_sticker)
     val PhotoLibrary: ImageVector
