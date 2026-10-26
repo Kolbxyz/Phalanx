@@ -54,6 +54,18 @@ data class AppSettings(
     val keepDeletedMessages: Boolean = false,
     /** On: a conversation can be summed up by a language model that runs on this phone only. */
     val aiSummaries: Boolean = false,
+    /**
+     * On: what the AI writes (transcripts, for now) is kept sealed on this phone, so it is not
+     * written again. Turning it off, or signing out, deletes it.
+     */
+    val aiOnDisk: Boolean = false,
+    /** On: voice messages are written out as they come into view, once a speech model is imported. */
+    val autoTranscribe: Boolean = false,
+    /**
+     * On, with [aiOnDisk]: photos in the user's rooms are described while the phone charges and
+     * sits idle, so search finds them by what they show. Turning it off erases the descriptions.
+     */
+    val photoSearch: Boolean = false,
     /** On: opening the app asks for a fingerprint, face or the phone's PIN. */
     val appLock: Boolean = false,
     val lockTimeout: LockTimeout = LockTimeout.OneMinute,

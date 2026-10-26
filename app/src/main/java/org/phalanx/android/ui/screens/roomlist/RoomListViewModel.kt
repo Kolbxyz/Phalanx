@@ -23,6 +23,7 @@ import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.repository.AccountProfile
 import org.phalanx.android.data.repository.AccountRepository
 import org.phalanx.android.data.repository.DraftsRepository
+import org.phalanx.android.data.repository.ReminderRepository
 import org.phalanx.android.data.repository.RoomActionsRepository
 import org.phalanx.android.data.repository.RoomListRepository
 import org.phalanx.android.ui.components.decodeAvatar
@@ -33,8 +34,13 @@ class RoomListViewModel @Inject constructor(
     account: AccountRepository,
     drafts: DraftsRepository,
     private val actions: RoomActionsRepository,
-    settings: SettingsStore
+    settings: SettingsStore,
+    reminders: ReminderRepository
 ) : ViewModel() {
+    /** How many reminders are still to come, shown in the side panel. */
+    val reminderCount: StateFlow<Int> = reminders.reminders.map { it.size }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), 0)
+
     /** Offered with on-device AI on and something unread to catch up on. */
     val canCatchUp: StateFlow<Boolean> = combine(settings.settings, roomList.rooms) { current, rooms ->
         current.aiSummaries && rooms.orEmpty().any { it.hasUnread && !it.isMuted && !it.isLowPriority }

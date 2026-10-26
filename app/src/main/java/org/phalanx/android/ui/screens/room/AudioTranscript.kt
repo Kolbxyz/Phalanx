@@ -25,15 +25,17 @@ import org.phalanx.android.ui.theme.Symbols
 private const val MUTED = 0.7f
 
 /**
- * Under a voice message: a button to write it out, then the text as it is written. Shown only
- * once a speech model is imported; the text stays on this phone.
+ * Under a voice message: a button to write it out, or straight away when the user asked for that,
+ * then the text as it is written. Shown only once a speech model is imported; the text stays on
+ * this phone.
  */
 @Composable
 internal fun AudioTranscript(key: String, body: MessageBody.Audio) {
     val transcripts = LocalTranscripts.current ?: return
     val available by transcripts.available.collectAsStateWithLifecycle()
     val states by transcripts.states.collectAsStateWithLifecycle()
-    LaunchedEffect(key) { transcripts.restore(key) }
+    val auto by transcripts.auto.collectAsStateWithLifecycle()
+    LaunchedEffect(key, auto) { if (auto) transcripts.transcribeOnSight(key, body) else transcripts.restore(key) }
     val padding = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 8.dp)
     when (val state = states[key]) {
         null -> if (available) {

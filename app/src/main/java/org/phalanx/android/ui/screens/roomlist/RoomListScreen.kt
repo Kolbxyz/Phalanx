@@ -4,15 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,22 +24,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.ui.components.RoomListPlaceholder
-import org.phalanx.android.ui.components.SegmentGap
-import org.phalanx.android.ui.components.segmentedShape
 import org.phalanx.android.ui.screens.search.SearchOverlay
 import org.phalanx.android.ui.theme.Symbols
 
@@ -58,6 +45,8 @@ fun RoomListScreen(
     onOpenDetails: (String) -> Unit,
     onOpenAccount: () -> Unit,
     onOpenCatchUp: () -> Unit,
+    onOpenReminders: () -> Unit,
+    onOpenPeople: () -> Unit,
     viewModel: RoomListViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -66,6 +55,7 @@ fun RoomListScreen(
     val actionFailed by viewModel.actionFailed.collectAsStateWithLifecycle()
     val drafts by viewModel.drafts.collectAsStateWithLifecycle()
     val canCatchUp by viewModel.canCatchUp.collectAsStateWithLifecycle()
+    val reminders by viewModel.reminderCount.collectAsStateWithLifecycle()
     var menuFor by remember { mutableStateOf<RoomSummary?>(null) }
     var leaving by remember { mutableStateOf<RoomSummary?>(null) }
     var searching by rememberSaveable { mutableStateOf(false) }
@@ -88,6 +78,15 @@ fun RoomListScreen(
         onSelect = { source ->
             viewModel.setSource(source)
             scope.launch { drawer.close() }
+        },
+        reminders = reminders,
+        onOpenReminders = {
+            scope.launch { drawer.close() }
+            onOpenReminders()
+        },
+        onOpenPeople = {
+            scope.launch { drawer.close() }
+            onOpenPeople()
         }
     ) {
         Scaffold(
@@ -178,81 +177,3 @@ fun RoomListScreen(
         )
     }
 }
-
-@Composable
-private fun RoomList(
-    state: RoomListUiState.Loaded,
-    drafts: Map<String, String>,
-    padding: PaddingValues,
-    onFilter: (RoomFilter) -> Unit,
-    onClearSource: () -> Unit,
-    onOpenRoom: (String) -> Unit,
-    onLongClick: (RoomSummary) -> Unit
-) {
-    val motion = MaterialTheme.motionScheme
-    val rooms = state.rooms
-    // Rows composed in the list's first moments get the staggered entrance; later ones don't.
-    var intro by remember { mutableStateOf(true) }
-    LaunchedEffect(Unit) {
-        delay(INTRO_MILLIS)
-        intro = false
-    }
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = 16.dp,
-            end = 16.dp,
-            top = padding.calculateTopPadding() + 4.dp,
-            bottom = padding.calculateBottomPadding() + 16.dp
-        ),
-        verticalArrangement = Arrangement.spacedBy(SegmentGap)
-    ) {
-        item(key = FILTERS_KEY, contentType = FILTERS_KEY) {
-            RoomFilterRow(state.filter, state.archivedCount, onFilter, state.source, onClearSource)
-        }
-        if (rooms.isEmpty()) {
-            item(key = EMPTY_KEY, contentType = EMPTY_KEY) {
-                Text(
-                    text = stringResource(
-                        if (state.filter == RoomFilter.All && state.source == RoomSource.All) {
-                            R.string.roomlist_empty
-                        } else {
-                            R.string.roomlist_filter_empty
-                        }
-                    ),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(top = 64.dp).animateItem(
-                        fadeInSpec = motion.defaultEffectsSpec(),
-                        placementSpec = motion.defaultSpatialSpec(),
-                        fadeOutSpec = motion.defaultEffectsSpec()
-                    )
-                )
-            }
-        }
-        itemsIndexed(rooms, key = { _, room -> room.id }, contentType = { _, _ -> ROOM_ROW }) { index, room ->
-            RoomRow(
-                room,
-                draft = drafts[room.id],
-                shape = segmentedShape(index, rooms.size),
-                onClick = { onOpenRoom(room.id) },
-                onLongClick = { onLongClick(room) },
-                // A room that gets a new message slides to the top instead of jumping there, and
-                // switching filters fades rooms out and in while the rest slide into place.
-                modifier = Modifier
-                    .animateItem(
-                        fadeInSpec = motion.defaultEffectsSpec(),
-                        placementSpec = motion.defaultSpatialSpec(),
-                        fadeOutSpec = motion.defaultEffectsSpec()
-                    )
-                    .listEntrance(index, intro)
-            )
-        }
-    }
-}
-
-private const val ROOM_ROW = 0
-private const val FILTERS_KEY = "filters"
-private const val EMPTY_KEY = "empty"
-private const val INTRO_MILLIS = 600L

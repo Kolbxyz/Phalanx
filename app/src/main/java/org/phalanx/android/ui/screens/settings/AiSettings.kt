@@ -50,6 +50,18 @@ internal fun AiSettings(
                 SwitchSetting(
                     Symbols.Summarize, R.string.settings_ai_switch, R.string.settings_ai_switch_summary,
                     current.aiSummaries, viewModel::setAiSummaries
+                ),
+                SwitchSetting(
+                    Symbols.SpeechToText, R.string.settings_auto_transcribe, R.string.settings_auto_transcribe_summary,
+                    current.autoTranscribe, viewModel::setAutoTranscribe
+                ),
+                SwitchSetting(
+                    Symbols.Lock, R.string.settings_ai_on_disk, R.string.settings_ai_on_disk_summary,
+                    current.aiOnDisk, viewModel::setAiOnDisk
+                ),
+                SwitchSetting(
+                    Symbols.PhotoLibrary, R.string.settings_photo_search, R.string.settings_photo_search_summary,
+                    current.photoSearch, viewModel::setPhotoSearch
                 )
             )
         )
@@ -88,6 +100,7 @@ internal fun AiSettings(
         )
         SpeechSettingsSection()
         TranslationSettingsSection()
+        VisionSettingsSection()
     }
 }
 

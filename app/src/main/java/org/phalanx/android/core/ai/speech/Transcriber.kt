@@ -18,6 +18,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+import org.phalanx.android.core.ai.AiDisk
 import org.phalanx.android.core.ai.CpuCores
 import org.phalanx.android.core.ai.LoadedNative
 import org.phalanx.android.core.matrix.ActiveClient
@@ -30,6 +32,7 @@ class SpeechModelMissingException : Exception("No speech model")
 class SpeechUnsupportedException : Exception("Unsupported device")
 
 /** A voice message as text, in [language] (a code such as "fr"); [partial] when only its start was read. */
+@Serializable
 data class Transcript(val text: String, val language: String, val partial: Boolean)
 
 /**
@@ -42,7 +45,8 @@ class Transcriber @Inject internal constructor(
     private val models: SpeechModelStore,
     @ApplicationContext private val context: Context,
     @ApplicationScope scope: CoroutineScope,
-    active: ActiveClient
+    active: ActiveClient,
+    private val disk: AiDisk
 ) {
     private val loaded = LoadedNative(
         models.installed,
@@ -53,8 +57,8 @@ class Transcriber @Inject internal constructor(
     )
     private val lock = Mutex()
 
-    // The last transcripts by message, so showing one again runs nothing. In memory only, under
-    // [lock]: a transcript is room content and never hits disk.
+    // The last transcripts by message, so showing one again runs nothing. Under [lock]. On disk
+    // too, sealed, only while the user keeps AI results (see [AiDisk]).
     private val cache = object : LinkedHashMap<String, Transcript>(CACHE_SIZE, LOAD_FACTOR, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Transcript>?) = size > CACHE_SIZE
     }
@@ -65,7 +69,10 @@ class Transcriber @Inject internal constructor(
     }
 
     /** The transcript of [key] if it was already written, without running anything. */
-    suspend fun cached(key: String): Transcript? = lock.withLock { cache[key] }
+    suspend fun cached(key: String): Transcript? = lock.withLock { cachedLocked(key) }
+
+    private suspend fun cachedLocked(key: String): Transcript? =
+        cache[key] ?: disk.read(disk.transcripts, key)?.also { cache[key] = it }
 
     /**
      * Writes out the audio at [audio], known as [key] (its event, say). Calls [onText] with the text
@@ -77,7 +84,7 @@ class Transcriber @Inject internal constructor(
             !WhisperNative.isAvailable -> Result.failure(SpeechUnsupportedException())
             path == null -> Result.failure(SpeechModelMissingException())
             else -> lock.withLock {
-                cache[key]?.let { return@withLock Result.success(it) }
+                cachedLocked(key)?.let { return@withLock Result.success(it) }
                 withContext(Dispatchers.Default) {
                     try {
                         val decoded = decodeAudio(context, audio)
@@ -87,7 +94,10 @@ class Transcriber @Inject internal constructor(
                     } catch (e: IllegalStateException) {
                         Result.failure(e)
                     }
-                }.onSuccess { cache[key] = it }
+                }.onSuccess {
+                    cache[key] = it
+                    disk.keep(disk.transcripts, key, it)
+                }
             }
         }
     }
