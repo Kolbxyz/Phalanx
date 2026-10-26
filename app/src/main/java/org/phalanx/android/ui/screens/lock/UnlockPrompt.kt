@@ -32,13 +32,14 @@ internal fun rememberUnlockPrompt(onResult: (Boolean) -> Unit): () -> Unit {
     val context = LocalContext.current
     val report by rememberUpdatedState(onResult)
     val title = stringResource(R.string.lock_prompt_title)
-    // Before Android 9 there is no BiometricPrompt: the keyguard's own confirmation screen does it.
+    // Before Android 10, BiometricPrompt can't fall back to the PIN: the keyguard's own
+    // confirmation screen does it all.
     val legacy = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         report(it.resultCode == Activity.RESULT_OK)
     }
     return remember(context, title) {
         {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 prompt(context, title) { report(it) }
             } else {
                 val intent = context.getSystemService(KeyguardManager::class.java)
@@ -49,7 +50,7 @@ internal fun rememberUnlockPrompt(onResult: (Boolean) -> Unit): () -> Unit {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.P)
+@RequiresApi(Build.VERSION_CODES.Q)
 private fun prompt(context: Context, title: String, onResult: (Boolean) -> Unit) {
     val builder = BiometricPrompt.Builder(context).setTitle(title)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
