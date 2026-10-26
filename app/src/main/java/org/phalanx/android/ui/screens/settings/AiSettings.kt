@@ -87,6 +87,7 @@ internal fun AiSettings(
             leading = { Icon(Symbols.Info, contentDescription = null) }
         )
         SpeechSettingsSection()
+        TranslationSettingsSection()
     }
 }
 

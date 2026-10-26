@@ -199,6 +199,11 @@
     <string name="settings_speech_model_rejected">That file is not a supported speech model, so it was not kept.</string>
     <string name="settings_speech_hint_title">Getting the speech model</string>
     <string name="settings_speech_hint">Download ggml-small-q5_1.bin (190 MB, quick) or ggml-large-v3-turbo-q5_0.bin (574 MB, most accurate) from whisper.cpp’s page on Hugging Face, then pick it here. Voice messages in French, English and about a hundred other languages can then be written out, on this phone only.</string>
+    <string name="settings_translation_section">Offline translation</string>
+    <string name="settings_translation_import">Add a language pair</string>
+    <string name="settings_translation_rejected">That file is not a supported translation model, so it was not kept.</string>
+    <string name="settings_translation_hint_title">Getting a language pair</string>
+    <string name="settings_translation_hint">Download a pair’s files from Mozilla’s Firefox translation models (the model, its lex shortlist and its vocabulary, unpacked), then pick them here together. Messages in that language are then translated in about a second, on this phone only; other languages still go to the language model.</string>
     <string name="transcript_action">Transcribe</string>
     <string name="transcript_writing">Transcribing…</string>
     <string name="transcript_empty">No speech heard</string>

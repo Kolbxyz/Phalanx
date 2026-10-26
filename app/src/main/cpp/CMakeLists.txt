@@ -42,3 +42,15 @@ add_library(phalanx_stt SHARED
 target_include_directories(phalanx_stt PRIVATE whisper.cpp/include whisper.cpp/src llama.cpp/ggml/include)
 target_compile_definitions(phalanx_stt PRIVATE WHISPER_VERSION="1.9.5")
 target_link_libraries(phalanx_stt PRIVATE ggml)
+
+# Offline translation: Bergamot, the engine of Firefox's translations, from its pinned submodule
+# (nested submodules: .github/scripts/init-bergamot.sh). Static, with the Arm int8 kernels (ruy);
+# only what phalanx_mt links is built, none of Marian's tools or tests.
+set(BUILD_SHARED_LIBS OFF)
+set(COMPILE_TESTS OFF CACHE BOOL "" FORCE)
+set(GIT_SUBMODULE OFF CACHE BOOL "" FORCE)
+set(SSPLIT_USE_INTERNAL_PCRE2 ON CACHE BOOL "" FORCE)
+set(BUILD_ARCH armv8-a CACHE STRING "" FORCE)
+add_subdirectory(bergamot-translator EXCLUDE_FROM_ALL)
+add_library(phalanx_mt SHARED phalanx_mt.cpp)
+target_link_libraries(phalanx_mt PRIVATE bergamot-translator)

@@ -4,3 +4,6 @@
 [submodule "app/src/main/cpp/whisper.cpp"]
 	path = app/src/main/cpp/whisper.cpp
 	url = https://github.com/ggml-org/whisper.cpp
+[submodule "app/src/main/cpp/bergamot-translator"]
+	path = app/src/main/cpp/bergamot-translator
+	url = https://github.com/browsermt/bergamot-translator
