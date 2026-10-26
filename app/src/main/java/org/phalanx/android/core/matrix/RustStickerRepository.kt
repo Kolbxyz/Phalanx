@@ -1,6 +1,8 @@
 package org.phalanx.android.core.matrix
 
 import android.graphics.BitmapFactory
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
@@ -13,8 +15,6 @@ import org.phalanx.android.core.media.EmojiKitchen
 import org.phalanx.android.data.model.KitchenMix
 import org.phalanx.android.data.repository.StickerRepository
 import org.phalanx.android.data.repository.TimelineUnavailableException
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Uploads the mix's image, then sends the `m.sticker` event through the SDK, which encrypts it in

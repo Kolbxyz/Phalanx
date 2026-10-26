@@ -20,13 +20,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.phalanx.android.R
-import org.phalanx.android.data.model.MessageVersion
-import org.phalanx.android.ui.components.ModalSheet
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import org.phalanx.android.R
+import org.phalanx.android.data.model.MessageVersion
+import org.phalanx.android.ui.components.ModalSheet
 
 /** Every version of an edited message, the original first, each with when it was made. */
 @Composable

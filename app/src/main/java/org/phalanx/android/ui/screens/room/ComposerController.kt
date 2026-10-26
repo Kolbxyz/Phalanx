@@ -2,6 +2,7 @@ package org.phalanx.android.ui.screens.room
 
 import android.net.Uri
 import androidx.compose.ui.text.input.TextFieldValue
+import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,8 +16,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
-import org.phalanx.android.ui.components.Notice
-import org.phalanx.android.ui.components.NoticeKind
 import org.phalanx.android.core.media.AttachmentPreparer
 import org.phalanx.android.core.media.ImageEdits
 import org.phalanx.android.core.media.VoiceRecorder
@@ -24,7 +23,8 @@ import org.phalanx.android.data.model.OutgoingMedia
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.ScheduleRepository
 import org.phalanx.android.data.repository.TimelineSession
-import java.util.UUID
+import org.phalanx.android.ui.components.Notice
+import org.phalanx.android.ui.components.NoticeKind
 
 /**
  * The room's composer: text, reply or edit target, attachments and voice recording. Owned by
@@ -136,13 +136,19 @@ internal class ComposerController(
 
     /** Replaces the picture with its edited copy; the unedited file goes once the copy is ready. */
     fun editAttachment(id: String, edits: ImageEdits) {
-        val original = mutableState.value.attachments.firstOrNull { it.id == id }?.media as? OutgoingMedia.Image ?: return
+        val original = mutableState.value.attachments.firstOrNull {
+            it.id == id
+        }?.media as? OutgoingMedia.Image ?: return
         if (edits.isUnchanged) return
         scope.launch {
             preparer.edit(original, edits).fold(
                 onSuccess = { edited ->
                     update { state ->
-                        state.copy(attachments = state.attachments.map { if (it.id == id) it.copy(media = edited) else it })
+                        state.copy(
+                            attachments = state.attachments.map {
+                                if (it.id == id) it.copy(media = edited) else it
+                            }
+                        )
                     }
                     preparer.discard(original)
                 },

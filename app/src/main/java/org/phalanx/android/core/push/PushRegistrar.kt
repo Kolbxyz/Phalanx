@@ -3,6 +3,10 @@ package org.phalanx.android.core.push
 import android.content.Context
 import android.content.pm.PackageManager
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.net.URI
+import java.net.URISyntaxException
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,10 +29,6 @@ import org.phalanx.android.di.ApplicationScope
 import org.unifiedpush.android.connector.FailedReason
 import org.unifiedpush.android.connector.UnifiedPush
 import org.unifiedpush.android.connector.data.ResolvedDistributor
-import java.net.URI
-import java.net.URISyntaxException
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Keeps one UnifiedPush registration for the signed-in account. It registers again every time the

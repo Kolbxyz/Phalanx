@@ -11,8 +11,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Tab
@@ -46,15 +46,19 @@ internal fun ReactorsSheet(reactors: Reactors, onDismiss: () -> Unit) {
             modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
         )
         val reactions = reactors.reactions
-        val pager = rememberPagerState(initialPage = reactions.indexOfFirst { it.key == reactors.initialKey }.coerceAtLeast(0)) {
-            reactions.size
-        }
+        val initialPage = reactions.indexOfFirst { it.key == reactors.initialKey }.coerceAtLeast(0)
+        val pager = rememberPagerState(initialPage = initialPage) { reactions.size }
         val scope = rememberCoroutineScope()
         val spatial = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
-        PrimaryScrollableTabRow(selectedTabIndex = pager.currentPage, edgePadding = 16.dp, containerColor = Color.Transparent) {
+        PrimaryScrollableTabRow(
+            selectedTabIndex = pager.currentPage,
+            edgePadding = 16.dp,
+            containerColor = Color.Transparent
+        ) {
             reactions.forEachIndexed { index, reaction ->
                 val name = reactionName(reaction)
-                val description = pluralStringResource(R.plurals.timeline_reactors_title, reaction.count, name, reaction.count)
+                val description =
+                    pluralStringResource(R.plurals.timeline_reactors_title, reaction.count, name, reaction.count)
                 Tab(
                     selected = pager.currentPage == index,
                     onClick = { scope.launch { pager.animateScrollToPage(index, animationSpec = spatial) } },

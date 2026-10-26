@@ -1,5 +1,7 @@
 package org.phalanx.android.core.matrix
 
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -13,8 +15,6 @@ import org.phalanx.android.data.repository.TimelineRepository
 import org.phalanx.android.data.repository.TimelineSession
 import org.phalanx.android.data.repository.TimelineUnavailableException
 import org.phalanx.android.di.ApplicationScope
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Keeps the most recently opened timelines alive, so going back into a room shows it at once

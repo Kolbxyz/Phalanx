@@ -8,17 +8,17 @@ import android.os.Environment
 import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
+import java.io.IOException
+import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.matrix.rustcomponents.sdk.ClientException
 import org.matrix.rustcomponents.sdk.use
 import org.phalanx.android.data.model.MediaRef
 import org.phalanx.android.data.repository.MediaRepository
-import java.io.File
-import java.io.IOException
-import java.util.UUID
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 internal class RustMediaRepository @Inject constructor(

@@ -37,16 +37,16 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import org.phalanx.android.R
 import org.phalanx.android.data.model.SendState
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.components.MatrixAvatar
 import org.phalanx.android.ui.theme.LocalReducedMotion
 import org.phalanx.android.ui.theme.Symbols
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 private val LargeRadius = 24.dp
 private val SeamRadius = 6.dp

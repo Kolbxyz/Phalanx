@@ -3,6 +3,7 @@ package org.phalanx.android.ui.screens.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +14,6 @@ import org.phalanx.android.core.matrix.OidcCallbacks
 import org.phalanx.android.data.model.AuthException
 import org.phalanx.android.data.model.AuthFailure
 import org.phalanx.android.data.repository.AuthRepository
-import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
@@ -76,7 +76,9 @@ class LoginViewModel @Inject constructor(
         mutableState.update { it.copy(busy = true, failure = null) }
         viewModelScope.launch {
             auth.startOidc().fold(
-                onSuccess = { url -> mutableState.update { it.copy(busy = false, browserUrl = url, awaitingBrowser = true) } },
+                onSuccess = { url ->
+                    mutableState.update { it.copy(busy = false, browserUrl = url, awaitingBrowser = true) }
+                },
                 onFailure = { fail(it) }
             )
         }

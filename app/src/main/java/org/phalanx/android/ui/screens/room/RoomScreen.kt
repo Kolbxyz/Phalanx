@@ -26,11 +26,11 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.phalanx.android.R
 import org.phalanx.android.data.model.OutgoingMedia
-import org.phalanx.android.ui.screens.imageedit.ImageEditor
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.components.OpenFileEffect
 import org.phalanx.android.ui.components.TimelinePlaceholder
 import org.phalanx.android.ui.components.TopNoticeHost
+import org.phalanx.android.ui.screens.imageedit.ImageEditor
 
 @Composable
 fun RoomScreen(

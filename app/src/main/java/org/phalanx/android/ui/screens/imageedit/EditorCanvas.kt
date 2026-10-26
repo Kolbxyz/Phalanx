@@ -16,20 +16,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import kotlin.math.min
 import org.phalanx.android.core.media.ImageEdits
 import org.phalanx.android.core.media.Mark
 import org.phalanx.android.core.media.UnitPoint
 import org.phalanx.android.core.media.UnitRect
-import kotlin.math.min
 
 private val HandleRadius = 9.dp
 private val GrabSlop = 28.dp
@@ -110,8 +110,10 @@ internal fun EditorCanvas(
 private fun DrawScope.drawLive(points: List<UnitPoint>, fit: Fit, tool: EditorTool, color: Color) {
     if (points.isEmpty()) return
     val path = Path().apply {
-        moveTo(fit.left + points.first().x * fit.width, fit.top + points.first().y * fit.height)
-        if (points.size == 1) lineTo(fit.left + points.first().x * fit.width + 0.1f, fit.top + points.first().y * fit.height)
+        val startX = fit.left + points.first().x * fit.width
+        val startY = fit.top + points.first().y * fit.height
+        moveTo(startX, startY)
+        if (points.size == 1) lineTo(startX + 0.1f, startY)
         points.drop(1).forEach { lineTo(fit.left + it.x * fit.width, fit.top + it.y * fit.height) }
     }
     val blur = tool == EditorTool.Blur

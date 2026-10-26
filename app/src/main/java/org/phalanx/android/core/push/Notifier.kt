@@ -21,13 +21,13 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.concurrent.atomic.AtomicReference
+import javax.inject.Inject
+import javax.inject.Singleton
 import org.phalanx.android.MainActivity
 import org.phalanx.android.R
 import org.phalanx.android.data.model.IncomingMessage
 import org.phalanx.android.ui.screens.room.summaryOf
-import java.util.concurrent.atomic.AtomicReference
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * One notification per room, tagged with its ID, that grows into a conversation as messages
@@ -132,7 +132,8 @@ internal class Notifier @Inject constructor(@ApplicationContext private val cont
     fun refresh(roomId: String, repliedWith: String? = null) {
         if (!allowed()) return
         val shown = shownFor(roomId) ?: return
-        val style = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(shown.notification) ?: return
+        val style = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(shown.notification)
+            ?: return
         repliedWith?.let { style.addMessage(it, System.currentTimeMillis(), self) }
         manager.notify(
             roomId,
@@ -213,7 +214,8 @@ internal class Notifier @Inject constructor(@ApplicationContext private val cont
                 .setAction(action)
                 .setData("phalanx-$action:$roomId".toUri())
                 .putExtra(EXTRA_ROOM_ID, roomId),
-            PendingIntent.FLAG_UPDATE_CURRENT or if (mutable) PendingIntent.FLAG_MUTABLE else PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or
+                if (mutable) PendingIntent.FLAG_MUTABLE else PendingIntent.FLAG_IMMUTABLE
         )
 
     private fun publicVersion(): Notification = NotificationCompat.Builder(context, CHANNEL_MESSAGES)

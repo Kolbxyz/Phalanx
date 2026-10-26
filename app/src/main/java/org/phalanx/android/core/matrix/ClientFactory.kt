@@ -2,6 +2,11 @@ package org.phalanx.android.core.matrix
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
+import java.util.Base64
+import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
 import org.matrix.rustcomponents.sdk.Client
 import org.matrix.rustcomponents.sdk.ClientBuilder
 import org.matrix.rustcomponents.sdk.ClientSessionDelegate
@@ -9,11 +14,6 @@ import org.matrix.rustcomponents.sdk.CrossProcessLockConfig
 import org.matrix.rustcomponents.sdk.RequestConfig
 import org.matrix.rustcomponents.sdk.Session
 import org.matrix.rustcomponents.sdk.SqliteStoreBuilder
-import java.io.File
-import java.util.Base64
-import java.util.UUID
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /** Where one account's SDK stores live. Data survives cache clearing; cache does not. */
 internal data class SessionPaths(val data: File, val cache: File)

@@ -3,12 +3,12 @@ package org.phalanx.android.ui.screens.room
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.phalanx.android.data.repository.RoomActionsRepository
-import javax.inject.Inject
 
 /** Starts or finds the direct chat with someone whose profile is open. */
 @HiltViewModel

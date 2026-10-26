@@ -24,8 +24,8 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.phalanx.android.data.model.SessionState
-import org.phalanx.android.ui.screens.login.LoginScreen
 import org.phalanx.android.ui.navigation.PhalanxNavHost
+import org.phalanx.android.ui.screens.login.LoginScreen
 
 /** [openRoom]: a room a tapped notification asked for; [onRoomOpened] once it is shown. */
 @Composable

@@ -1,6 +1,9 @@
 package org.phalanx.android.core.matrix
 
 import android.os.Build
+import java.util.Locale
+import javax.inject.Inject
+import javax.inject.Singleton
 import org.matrix.rustcomponents.sdk.Client
 import org.matrix.rustcomponents.sdk.ClientException
 import org.matrix.rustcomponents.sdk.HttpPusherData
@@ -8,9 +11,6 @@ import org.matrix.rustcomponents.sdk.PushFormat
 import org.matrix.rustcomponents.sdk.PusherIdentifiers
 import org.matrix.rustcomponents.sdk.PusherKind
 import org.phalanx.android.BuildConfig
-import java.util.Locale
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /** The homeserver's record of where to send this device's pushes. */
 @Singleton

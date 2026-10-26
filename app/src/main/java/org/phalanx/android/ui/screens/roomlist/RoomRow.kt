@@ -42,16 +42,16 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import org.phalanx.android.R
-import org.phalanx.android.data.model.RoomSummary
-import org.phalanx.android.ui.components.MatrixAvatar
-import org.phalanx.android.ui.screens.room.summaryOf
-import org.phalanx.android.ui.theme.Symbols
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import org.phalanx.android.R
+import org.phalanx.android.data.model.RoomSummary
+import org.phalanx.android.ui.components.MatrixAvatar
+import org.phalanx.android.ui.screens.room.summaryOf
+import org.phalanx.android.ui.theme.Symbols
 
 /** One chat. Unread ones stand out in weight and colour; a long press opens its menu. */
 @OptIn(ExperimentalFoundationApi::class)

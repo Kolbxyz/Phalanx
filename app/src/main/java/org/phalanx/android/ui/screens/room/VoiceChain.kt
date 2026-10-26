@@ -4,9 +4,9 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.setValue
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry

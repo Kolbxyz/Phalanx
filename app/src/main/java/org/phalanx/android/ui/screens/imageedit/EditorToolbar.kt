@@ -90,7 +90,11 @@ private fun Swatch(color: Color, selected: Boolean, onClick: () -> Unit) {
         Modifier
             .size(32.dp)
             .background(color, CircleShape)
-            .border(if (selected) 3.dp else 1.dp, if (selected) ring else MaterialTheme.colorScheme.outline, CircleShape)
+            .border(
+                if (selected) 3.dp else 1.dp,
+                if (selected) ring else MaterialTheme.colorScheme.outline,
+                CircleShape
+            )
             .clickable(role = Role.RadioButton, onClickLabel = label, onClick = onClick)
     ) {}
 }

@@ -1,5 +1,6 @@
 package org.phalanx.android.core.matrix
 
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -40,7 +41,6 @@ import org.phalanx.android.data.model.OutgoingMedia
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.NotForwardableException
 import org.phalanx.android.data.repository.TimelineSession
-import java.util.concurrent.ConcurrentHashMap
 
 internal class RustTimelineSession private constructor(
     private val room: Room,

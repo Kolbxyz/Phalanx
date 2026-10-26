@@ -2,15 +2,15 @@ package org.phalanx.android.core.push
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
-import org.phalanx.android.core.security.SecretBox
 import java.io.File
 import java.io.IOException
 import java.security.GeneralSecurityException
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import org.phalanx.android.core.security.SecretBox
 
 /** The pusher this device last gave the homeserver, so a changed endpoint can replace it. */
 @Serializable

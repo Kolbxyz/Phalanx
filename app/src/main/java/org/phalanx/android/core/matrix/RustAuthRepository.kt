@@ -1,5 +1,9 @@
 package org.phalanx.android.core.matrix
 
+import java.security.SecureRandom
+import java.util.Base64
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -19,10 +23,6 @@ import org.phalanx.android.data.model.LoginMethods
 import org.phalanx.android.data.model.SessionState
 import org.phalanx.android.data.repository.AuthRepository
 import uniffi.matrix_sdk.OAuthAuthorizationData
-import java.security.SecureRandom
-import java.util.Base64
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 internal class RustAuthRepository @Inject constructor(
@@ -188,7 +188,8 @@ private fun ClientBuildException.toFailure(): AuthFailure = when (this) {
 
 private fun ClientException.toFailure(): AuthFailure = when (this) {
     is ClientException.MatrixApi -> when (kind) {
-        is ErrorKind.Forbidden, is ErrorKind.InvalidUsername, is ErrorKind.Unauthorized -> AuthFailure.InvalidCredentials
+        is ErrorKind.Forbidden, is ErrorKind.InvalidUsername, is ErrorKind.Unauthorized ->
+            AuthFailure.InvalidCredentials
         is ErrorKind.UserDeactivated, is ErrorKind.UserLocked, is ErrorKind.UserSuspended -> AuthFailure.AccountDisabled
         is ErrorKind.LimitExceeded -> AuthFailure.RateLimited
         is ErrorKind.ConnectionFailed, is ErrorKind.ConnectionTimeout -> AuthFailure.ServerUnreachable

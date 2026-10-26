@@ -34,7 +34,8 @@ fun Bitmap.withEdits(edits: ImageEdits): Bitmap {
     val marked = copy(Bitmap.Config.ARGB_8888, true)
     val canvas = Canvas(marked)
     drawBlurs(canvas, this, edits.marks.filter { it.kind == Mark.Kind.Blur })
-    edits.marks.filter { it.kind == Mark.Kind.Ink }.forEach { canvas.drawPath(it.path(width, height), it.paint(width, height)) }
+    edits.marks.filter { it.kind == Mark.Kind.Ink }
+        .forEach { canvas.drawPath(it.path(width, height), it.paint(width, height)) }
     val matrix = Matrix().apply {
         postRotate(edits.turns * 90f)
         if (edits.mirrored) postScale(-1f, 1f)

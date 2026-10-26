@@ -14,6 +14,10 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.UUID
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
@@ -22,10 +26,6 @@ import kotlinx.coroutines.sync.withLock
 import org.phalanx.android.core.matrix.ScheduledSender
 import org.phalanx.android.data.model.ScheduledMessage
 import org.phalanx.android.data.repository.ScheduleRepository
-import java.util.UUID
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Two triggers per message, so one lost trigger never loses the message:

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,7 +13,6 @@ import kotlinx.coroutines.launch
 import org.phalanx.android.data.model.MessageVersion
 import org.phalanx.android.data.repository.EditHistoryRepository
 import org.phalanx.android.ui.navigation.RoomRoute
-import javax.inject.Inject
 
 sealed interface EditHistoryState {
     data object Loading : EditHistoryState

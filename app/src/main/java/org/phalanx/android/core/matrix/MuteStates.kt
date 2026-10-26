@@ -1,10 +1,10 @@
 package org.phalanx.android.core.matrix
 
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * The mute choices made on this device, by room. The SDK's cached notification mode on a room only

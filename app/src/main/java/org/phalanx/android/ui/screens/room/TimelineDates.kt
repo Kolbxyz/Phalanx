@@ -27,14 +27,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
-import org.phalanx.android.R
-import org.phalanx.android.data.model.TimelineEntry
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import org.phalanx.android.R
+import org.phalanx.android.data.model.TimelineEntry
 
 private const val WEEK_DAYS = 6L
 private const val HIDE_AFTER_MILLIS = 1_000L

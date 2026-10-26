@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,7 +22,6 @@ import org.phalanx.android.data.repository.AccountProfile
 import org.phalanx.android.data.repository.AccountRepository
 import org.phalanx.android.data.repository.BlockedUsersRepository
 import org.phalanx.android.ui.components.decodeAvatar
-import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(

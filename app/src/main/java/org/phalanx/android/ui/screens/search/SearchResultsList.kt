@@ -108,7 +108,9 @@ internal fun SearchResultsList(
                         rowMotion().fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        row.forEach { hit -> MediaTile(hit, Modifier.weight(1f)) { onOpenMessage(hit.roomId, hit.eventId) } }
+                        row.forEach { hit ->
+                            MediaTile(hit, Modifier.weight(1f)) { onOpenMessage(hit.roomId, hit.eventId) }
+                        }
                         repeat(COLUMNS - row.size) { Spacer(Modifier.weight(1f)) }
                     }
                 }

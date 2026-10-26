@@ -1,5 +1,8 @@
 package org.phalanx.android.core.matrix
 
+import java.io.IOException
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -29,9 +32,6 @@ import org.phalanx.android.data.repository.SecurityRepository
 import org.phalanx.android.data.repository.SecurityStatus
 import org.phalanx.android.data.repository.VerificationStep
 import org.phalanx.android.di.ApplicationScope
-import java.io.IOException
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Singleton

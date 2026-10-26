@@ -1,5 +1,7 @@
 package org.phalanx.android.core.matrix
 
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.matrix.rustcomponents.sdk.ClientException
@@ -8,8 +10,6 @@ import org.matrix.rustcomponents.sdk.use
 import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.model.ScheduledMessage
 import org.phalanx.android.data.repository.TimelineUnavailableException
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /** What a notification's buttons do to a room, from the background and without opening the app. */
 @Singleton

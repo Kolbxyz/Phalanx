@@ -9,14 +9,14 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStoreFile
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import org.phalanx.android.data.model.AppSettings
 import org.phalanx.android.data.model.TextSize
 import org.phalanx.android.data.model.ThemeMode
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * App preferences in a DataStore file. Nothing here is secret, so it is not encrypted; it is still

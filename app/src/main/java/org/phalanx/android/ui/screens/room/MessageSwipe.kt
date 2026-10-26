@@ -30,11 +30,11 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.phalanx.android.ui.theme.LocalReducedMotion
 import org.phalanx.android.ui.theme.Symbols
-import kotlin.math.roundToInt
 
 private val ReplyThreshold = 64.dp
 private val RevealWidth = 72.dp

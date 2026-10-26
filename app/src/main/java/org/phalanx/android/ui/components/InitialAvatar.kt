@@ -34,7 +34,12 @@ internal fun InitialAvatar(
     Surface(shape = shape, color = container, contentColor = content, modifier = modifier.size(size)) {
         if (image != null) {
             // Decorative: the name is always next to the avatar or in its button's description.
-            Image(bitmap = image, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+            Image(
+                bitmap = image,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
         } else {
             Box(contentAlignment = Alignment.Center) {
                 Text(text = initialOf(name), style = textStyle)

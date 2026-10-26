@@ -1,5 +1,7 @@
 package org.phalanx.android.core.matrix
 
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.collectLatest
@@ -7,8 +9,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.phalanx.android.data.model.SessionState
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 class SyncController @Inject internal constructor(private val active: ActiveClient) {

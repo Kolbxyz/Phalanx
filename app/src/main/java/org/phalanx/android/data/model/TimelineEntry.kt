@@ -43,8 +43,8 @@ data class ReplyPreview(
     val eventId: String? = null
 )
 
-@Immutable
 /** [senderIds] in the order they reacted. [image] when the key is a custom emote (an `mxc://` URL). */
+@Immutable
 data class ReactionSummary(
     val key: String,
     val count: Int,

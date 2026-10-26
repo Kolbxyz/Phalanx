@@ -1,12 +1,12 @@
 package org.phalanx.android.core.matrix
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** Direct client-server API calls, for the few endpoints the SDK bindings do not cover. */
 @Singleton

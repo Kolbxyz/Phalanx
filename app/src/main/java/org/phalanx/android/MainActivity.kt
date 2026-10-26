@@ -15,6 +15,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.phalanx.android.core.matrix.OidcCallbacks
@@ -26,7 +27,6 @@ import org.phalanx.android.ui.PhalanxApp
 import org.phalanx.android.ui.share.ShareInbox
 import org.phalanx.android.ui.share.sharedContent
 import org.phalanx.android.ui.theme.PhalanxTheme
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

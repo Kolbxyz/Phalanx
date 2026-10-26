@@ -5,6 +5,10 @@ import android.media.MediaRecorder
 import android.os.Build
 import android.os.SystemClock
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
+import java.io.IOException
+import javax.inject.Inject
+import kotlin.math.sqrt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -13,10 +17,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.phalanx.android.data.model.OutgoingMedia
-import java.io.File
-import java.io.IOException
-import javax.inject.Inject
-import kotlin.math.sqrt
 
 /**
  * Records one voice message at a time: Ogg/Opus where the platform has it (what other Matrix

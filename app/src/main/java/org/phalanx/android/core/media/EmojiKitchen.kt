@@ -2,17 +2,17 @@ package org.phalanx.android.core.media
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
-import org.phalanx.android.data.model.KitchenMix
 import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import org.phalanx.android.data.model.KitchenMix
 
 /**
  * Emoji Kitchen: which pairs of emoji mix, from an index bundled with the app (see

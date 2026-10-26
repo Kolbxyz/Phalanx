@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +25,6 @@ import org.phalanx.android.data.repository.RoomListRepository
 import org.phalanx.android.data.repository.TimelineRepository
 import org.phalanx.android.data.repository.TimelineSession
 import org.phalanx.android.ui.navigation.RoomRoute
-import javax.inject.Inject
 
 sealed interface SummaryState {
     data object Idle : SummaryState

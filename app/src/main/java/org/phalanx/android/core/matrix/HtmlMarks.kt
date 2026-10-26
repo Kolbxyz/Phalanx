@@ -1,7 +1,7 @@
 package org.phalanx.android.core.matrix
 
-import org.phalanx.android.data.model.TextMarks
 import java.net.URLDecoder
+import org.phalanx.android.data.model.TextMarks
 
 /**
  * Turns what the HTML renderer cannot show into [TextMarks] annotations: mention pills, code (it

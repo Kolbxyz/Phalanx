@@ -1,5 +1,9 @@
 package org.phalanx.android.core.ai
 
+import java.io.ByteArrayOutputStream
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
@@ -11,10 +15,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /** No model has been imported. */
 class ModelMissingException : Exception("No model")
@@ -94,6 +94,7 @@ class LocalSummarizer @Inject constructor(private val models: ModelStore) {
         const val MAX_NEW_TOKENS = 400
         const val CACHE_SIZE = 8
         const val LOAD_FACTOR = 0.75f
+
         // The big cores of an 8-core phone; more threads fight over memory bandwidth for no gain.
         val THREADS = (Runtime.getRuntime().availableProcessors() / 2).coerceIn(2, 4)
     }

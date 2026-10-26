@@ -1,5 +1,8 @@
 package org.phalanx.android.core.matrix
 
+import java.io.IOException
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
@@ -12,9 +15,6 @@ import org.matrix.rustcomponents.sdk.Client
 import org.matrix.rustcomponents.sdk.ClientException
 import org.matrix.rustcomponents.sdk.IgnoredUsersListener
 import org.phalanx.android.data.repository.BlockedUsersRepository
-import java.io.IOException
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 internal class RustBlockedUsersRepository @Inject constructor(

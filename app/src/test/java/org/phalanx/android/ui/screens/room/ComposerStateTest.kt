@@ -1,5 +1,6 @@
 package org.phalanx.android.ui.screens.room
 
+import java.io.File
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -7,7 +8,6 @@ import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.OutgoingMedia
 import org.phalanx.android.data.model.SendState
 import org.phalanx.android.data.model.TimelineEntry
-import java.io.File
 
 class ComposerStateTest {
     private val image = OutgoingMedia.Image(File("a.jpg"), "image/jpeg", 1, 1)

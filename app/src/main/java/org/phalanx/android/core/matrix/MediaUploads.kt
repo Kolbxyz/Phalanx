@@ -1,5 +1,6 @@
 package org.phalanx.android.core.matrix
 
+import java.time.Duration
 import org.matrix.rustcomponents.sdk.AudioInfo
 import org.matrix.rustcomponents.sdk.FileInfo
 import org.matrix.rustcomponents.sdk.FormattedBody
@@ -12,7 +13,6 @@ import org.matrix.rustcomponents.sdk.UploadParameters
 import org.matrix.rustcomponents.sdk.UploadSource
 import org.matrix.rustcomponents.sdk.VideoInfo
 import org.phalanx.android.data.model.OutgoingMedia
-import java.time.Duration
 
 /**
  * Queues [media] for upload through the SDK's send queue, which shows it in the timeline at once

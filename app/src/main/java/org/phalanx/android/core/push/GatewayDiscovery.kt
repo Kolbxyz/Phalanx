@@ -1,17 +1,17 @@
 package org.phalanx.android.core.push
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URISyntaxException
 import java.net.URL
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 /**
  * Picks the Matrix push gateway for a distributor endpoint. A homeserver cannot push to a

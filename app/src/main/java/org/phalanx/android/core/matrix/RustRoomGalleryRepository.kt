@@ -1,5 +1,7 @@
 package org.phalanx.android.core.matrix
 
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -11,8 +13,6 @@ import org.phalanx.android.data.repository.RoomGallery
 import org.phalanx.android.data.repository.RoomGalleryRepository
 import org.phalanx.android.data.repository.TimelineUnavailableException
 import org.phalanx.android.di.ApplicationScope
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /** Keeps one room's gallery open at a time: the details screen and the viewer it opens share it. */
 @Singleton

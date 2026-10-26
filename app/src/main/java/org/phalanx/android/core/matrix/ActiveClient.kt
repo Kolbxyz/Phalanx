@@ -1,5 +1,7 @@
 package org.phalanx.android.core.matrix
 
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -12,8 +14,6 @@ import org.matrix.rustcomponents.sdk.SyncService
 import org.matrix.rustcomponents.sdk.TaskHandle
 import org.phalanx.android.data.model.SessionState
 import uniffi.matrix_sdk.SearchBackfillStrategy
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Owns the one open SDK client and its sync service. Opening, closing, starting and stopping all
@@ -25,6 +25,7 @@ internal class ActiveClient @Inject constructor(
     private val sessionStore: SessionStore
 ) {
     private val lock = Mutex()
+
     @Volatile
     private var client: Client? = null
     private var sync: SyncService? = null

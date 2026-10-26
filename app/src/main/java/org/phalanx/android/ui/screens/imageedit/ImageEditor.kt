@@ -29,6 +29,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import java.io.File
+import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.phalanx.android.R
@@ -36,8 +38,6 @@ import org.phalanx.android.core.media.ImageEdits
 import org.phalanx.android.core.media.decodeImageFile
 import org.phalanx.android.core.media.withEdits
 import org.phalanx.android.ui.theme.Symbols
-import java.io.File
-import java.io.IOException
 
 // Editing a scaled copy keeps every stroke instant; the full picture is edited once, on Done.
 private const val PREVIEW_SIDE = 1280

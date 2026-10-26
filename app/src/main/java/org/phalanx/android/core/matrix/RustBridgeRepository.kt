@@ -1,5 +1,9 @@
 package org.phalanx.android.core.matrix
 
+import java.io.IOException
+import java.net.URLEncoder
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -15,10 +19,6 @@ import org.phalanx.android.data.model.BridgeStatus
 import org.phalanx.android.data.repository.BridgeRepository
 import org.phalanx.android.data.repository.RoomActionsRepository
 import org.phalanx.android.data.repository.TimelineUnavailableException
-import java.io.IOException
-import java.net.URLEncoder
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Finds the homeserver's bridge bots by asking for their profiles, which only exist where the

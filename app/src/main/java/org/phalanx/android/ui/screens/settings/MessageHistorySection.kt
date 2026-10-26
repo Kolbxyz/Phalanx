@@ -30,12 +30,16 @@ internal fun MessageHistorySection(
         Column(verticalArrangement = Arrangement.spacedBy(SegmentGap)) {
             SwitchGroup(
                 listOf(
-                    SwitchSetting(Symbols.History, R.string.settings_edit_history,
+                    SwitchSetting(
+                        Symbols.History, R.string.settings_edit_history,
                         R.string.settings_edit_history_summary, current.showEditHistory,
-                        viewModel::setShowEditHistory),
-                    SwitchSetting(Symbols.DeleteHistory, R.string.settings_keep_deleted,
+                        viewModel::setShowEditHistory
+                    ),
+                    SwitchSetting(
+                        Symbols.DeleteHistory, R.string.settings_keep_deleted,
                         R.string.settings_keep_deleted_summary, current.keepDeletedMessages,
-                        viewModel::setKeepDeletedMessages)
+                        viewModel::setKeepDeletedMessages
+                    )
                 )
             )
         }

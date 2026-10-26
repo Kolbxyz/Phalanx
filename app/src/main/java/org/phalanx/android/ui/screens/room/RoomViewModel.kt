@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,11 +24,11 @@ import org.phalanx.android.core.media.AttachmentPreparer
 import org.phalanx.android.core.media.VoiceRecorder
 import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.model.AppSettings
+import org.phalanx.android.data.model.KitchenMix
 import org.phalanx.android.data.model.MediaRef
 import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.model.ScheduledMessage
-import org.phalanx.android.data.model.KitchenMix
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.model.UserTrust
 import org.phalanx.android.data.repository.BlockedUsersRepository
@@ -45,7 +46,6 @@ import org.phalanx.android.ui.components.NoticeKind
 import org.phalanx.android.ui.components.OpenRequest
 import org.phalanx.android.ui.navigation.RoomRoute
 import org.phalanx.android.ui.share.ShareInbox
-import javax.inject.Inject
 
 @HiltViewModel
 class RoomViewModel @Inject constructor(
@@ -130,12 +130,12 @@ class RoomViewModel @Inject constructor(
         }
     }
 
-    /** Where the camera app should write a new photo or video before it is attached. */
     /** While the conversation is on screen, its messages need no notification. */
     fun onShown() = push.startViewing(roomId)
 
     fun onHidden() = push.stopViewing(roomId)
 
+    /** Where the camera app should write a new photo or video before it is attached. */
     fun captureUri(video: Boolean): Uri = preparer.captureUri(video)
 
     fun toggleReaction(message: TimelineEntry.Message, key: String) = act { it.toggleReaction(message, key) }
@@ -185,7 +185,9 @@ class RoomViewModel @Inject constructor(
         viewModelScope.launch {
             val members = current.members(message.reactions.flatMap { it.senderIds }.distinct())
             // Unless the user closed it, or opened another, while the names loaded.
-            mutableReactors.update { if (it === opened) opened.copy(members = members.associateBy { m -> m.userId }) else it }
+            mutableReactors.update {
+                if (it === opened) opened.copy(members = members.associateBy { m -> m.userId }) else it
+            }
         }
     }
 

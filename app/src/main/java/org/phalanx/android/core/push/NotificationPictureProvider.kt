@@ -8,11 +8,11 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.ParcelFileDescriptor
 import android.util.LruCache
-import org.phalanx.android.BuildConfig
-import org.phalanx.android.data.model.NotificationPicture
 import java.io.FileNotFoundException
 import java.util.UUID
 import kotlin.concurrent.thread
+import org.phalanx.android.BuildConfig
+import org.phalanx.android.data.model.NotificationPicture
 
 /**
  * Hands the system the photos shown in message notifications. They stay in this process's memory

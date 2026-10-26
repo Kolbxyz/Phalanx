@@ -123,7 +123,11 @@ internal fun DeactivateDialog(
                 enabled = draft.canConfirm,
                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
             ) {
-                if (draft.busy) LoadingIndicator(Modifier.size(20.dp)) else Text(stringResource(R.string.account_deactivate_confirm))
+                if (draft.busy) {
+                    LoadingIndicator(Modifier.size(20.dp))
+                } else {
+                    Text(stringResource(R.string.account_deactivate_confirm))
+                }
             }
         },
         dismissButton = {
@@ -145,7 +149,11 @@ internal fun SignOutDialog(signingOut: Boolean, onConfirm: () -> Unit, onDismiss
                 enabled = !signingOut,
                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
             ) {
-                if (signingOut) LoadingIndicator(Modifier.size(20.dp)) else Text(stringResource(R.string.account_sign_out))
+                if (signingOut) {
+                    LoadingIndicator(Modifier.size(20.dp))
+                } else {
+                    Text(stringResource(R.string.account_sign_out))
+                }
             }
         },
         dismissButton = {

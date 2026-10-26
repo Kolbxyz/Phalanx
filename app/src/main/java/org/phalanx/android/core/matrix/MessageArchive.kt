@@ -2,6 +2,12 @@ package org.phalanx.android.core.matrix
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
+import java.io.IOException
+import java.security.GeneralSecurityException
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -20,12 +26,6 @@ import org.phalanx.android.data.model.ArchivedKind
 import org.phalanx.android.data.model.DeletedMessage
 import org.phalanx.android.data.repository.DeletedMessagesRepository
 import org.phalanx.android.di.ApplicationScope
-import java.io.File
-import java.io.IOException
-import java.security.GeneralSecurityException
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Serializable
 internal data class ArchivedMessage(

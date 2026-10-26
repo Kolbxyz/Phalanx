@@ -18,7 +18,7 @@ import org.phalanx.android.R
  */
 
 /** How far up the font's 0–100 `ROND` axis titles sit; full roundness on bold weights eats letterforms. */
-private const val TitleRoundness = 65f
+private const val TITLE_ROUNDNESS = 65f
 
 private fun flexFont(weight: FontWeight, roundness: Float) = Font(
     resId = R.font.google_sans_flex,
@@ -29,11 +29,12 @@ private fun flexFont(weight: FontWeight, roundness: Float) = Font(
     )
 )
 
-private val weights = listOf(FontWeight.Normal, FontWeight.Medium, FontWeight.SemiBold, FontWeight.Bold, FontWeight.ExtraBold)
+private val weights =
+    listOf(FontWeight.Normal, FontWeight.Medium, FontWeight.SemiBold, FontWeight.Bold, FontWeight.ExtraBold)
 
 internal val PhalanxBodyFontFamily = FontFamily(weights.map { flexFont(it, roundness = 0f) })
 
-internal val PhalanxRoundedFontFamily = FontFamily(weights.map { flexFont(it, TitleRoundness) })
+internal val PhalanxRoundedFontFamily = FontFamily(weights.map { flexFont(it, TITLE_ROUNDNESS) })
 
 /**
  * Compose trims the line box to the requested `lineHeight` by default, and Material's `Tab`
