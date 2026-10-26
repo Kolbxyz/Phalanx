@@ -1,7 +1,7 @@
 package org.phalanx.android.ui.screens.lock
 
-import android.app.Activity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
@@ -38,7 +37,7 @@ internal fun LockScreen(onAuthenticating: () -> Unit, onResult: (Boolean) -> Uni
     }
     LaunchedEffect(Unit) { ask() }
     // Back leaves the app, as from its first screen, instead of reaching the screens underneath.
-    val activity = LocalContext.current as? Activity
+    val activity = LocalActivity.current
     BackHandler { activity?.moveTaskToBack(true) }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
         Column(
