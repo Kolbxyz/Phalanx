@@ -1,6 +1,7 @@
 package org.phalanx.android.core.ai
 
 import java.io.ByteArrayOutputStream
+import java.time.ZonedDateTime
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,6 +17,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.phalanx.android.core.ai.actions.MessageAction
+import org.phalanx.android.core.ai.actions.actionsOf
+import org.phalanx.android.core.ai.actions.actionsPrompt
 import org.phalanx.android.core.matrix.ActiveClient
 import org.phalanx.android.di.ApplicationScope
 
@@ -70,6 +74,18 @@ class LocalSummarizer @Inject internal constructor(
     suspend fun translate(text: String, language: String, onText: (String) -> Unit): Result<String> =
         complete(translatePrompt(text, language), TRANSLATION_TOKENS, onText)
 
+    /**
+     * What [message] plans or asks that another app could take over: events, alarms, timers,
+     * reminders, tasks, places, numbers and tracking codes. [before] is context only; relative dates
+     * are read from [sentAt].
+     */
+    suspend fun findActions(
+        message: SummaryLine,
+        before: List<SummaryLine>,
+        sentAt: ZonedDateTime
+    ): Result<List<MessageAction>> =
+        complete(actionsPrompt(message, before, sentAt), ACTIONS_TOKENS) {}.map(::actionsOf)
+
     /** One long message in a few points, as it is written. */
     suspend fun summarizeMessage(text: String, onText: (String) -> Unit): Result<String> =
         complete(messageSummaryPrompt(text), SUMMARY_TOKENS, onText)
@@ -80,7 +96,8 @@ class LocalSummarizer @Inject internal constructor(
             !LlamaNative.isAvailable -> Result.failure(SummariesUnsupportedException())
             path == null -> Result.failure(ModelMissingException())
             else -> lock.withLock {
-                val key = listOf(path, prompt.system, prompt.user).joinToString("\u0000")
+                val key = listOf(path, prompt.system, prompt.user, prompt.grammar.orEmpty())
+                    .joinToString("\u0000")
                 cache[key]?.let { return@withLock Result.success(it) }
                 withContext(Dispatchers.Default) {
                     try {
@@ -110,7 +127,12 @@ class LocalSummarizer @Inject internal constructor(
             try {
                 val reply = ByteArrayOutputStream()
                 LlamaNative.complete(
-                    handle, prompt.system.toByteArray(), prompt.user.toByteArray(), CONTEXT_TOKENS, maxTokens
+                    handle,
+                    prompt.system.toByteArray(),
+                    prompt.user.toByteArray(),
+                    CONTEXT_TOKENS,
+                    maxTokens,
+                    prompt.grammar?.toByteArray()
                 ) { piece ->
                     reply.write(piece)
                     onText(reply.toString(Charsets.UTF_8.name()))
@@ -132,6 +154,9 @@ class LocalSummarizer @Inject internal constructor(
         const val SUMMARY_TOKENS = 400
         const val REPLIES_TOKENS = 120
         const val TRANSLATION_TOKENS = 1_600
+
+        // Four items of about eighty tokens each, with room to close the array.
+        const val ACTIONS_TOKENS = 400
         const val CACHE_SIZE = 8
         const val LOAD_FACTOR = 0.75f
     }

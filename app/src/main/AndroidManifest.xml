@@ -11,6 +11,8 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Scheduled messages go out on the minute; without it they may be a few minutes late. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Lets an alarm found in a message be handed to the clock app, which shows it before saving. -->
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
 
     <!--
       allowBackup=false disables cloud backup on every supported version, which is why no

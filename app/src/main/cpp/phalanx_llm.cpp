@@ -121,11 +121,12 @@ JNIEXPORT void JNICALL Java_org_phalanx_android_core_ai_LlamaNative_free(JNIEnv 
     delete engine;
 }
 
-// Streams the reply to [sink] piece by piece. Returns true if it ran to its end, false if it was
-// cancelled, by cancel() or by the sink returning false.
+// Streams the reply to [sink] piece by piece, held to [grammar] (GBNF, rule "root") unless it is
+// null. Returns true if it ran to its end, false if it was cancelled, by cancel() or by the sink
+// returning false.
 JNIEXPORT jboolean JNICALL Java_org_phalanx_android_core_ai_LlamaNative_complete(
         JNIEnv *env, jobject, jlong handle, jbyteArray systemBytes, jbyteArray userBytes,
-        jint contextSize, jint maxNewTokens, jobject sink) {
+        jint contextSize, jint maxNewTokens, jbyteArray grammar, jobject sink) {
     auto *engine = reinterpret_cast<Engine *>(handle);
     engine->cancelled.store(false);
     try {
@@ -158,6 +159,18 @@ JNIEXPORT jboolean JNICALL Java_org_phalanx_android_core_ai_LlamaNative_complete
         }
         llama_set_abort_callback(context, isCancelled, &engine->cancelled);
         llama_sampler *sampler = llama_sampler_chain_init(llama_sampler_chain_default_params());
+        // A grammar (GBNF) keeps the reply to the shape asked for, such as JSON: tokens that would
+        // break it are never picked, whatever the model would rather write.
+        if (grammar != nullptr) {
+            llama_sampler *rules = llama_sampler_init_grammar(vocab, textOf(env, grammar).c_str(), "root");
+            if (rules == nullptr) {
+                llama_sampler_free(sampler);
+                llama_free(context);
+                fail(env, "The grammar could not be read");
+                return JNI_FALSE;
+            }
+            llama_sampler_chain_add(sampler, rules);
+        }
         llama_sampler_chain_add(sampler, llama_sampler_init_greedy());
 
         const jmethodID onToken = env->GetMethodID(env->GetObjectClass(sink), "onToken", "([B)Z");
