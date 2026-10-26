@@ -334,6 +334,9 @@
     <string name="remind_title">Remind me</string>
     <string name="remind_done">I’ll remind you then</string>
     <string name="remind_failed">The reminder couldn’t be saved</string>
+    <string name="reminders_title">Reminders</string>
+    <string name="reminders_empty">No reminders to come. Set one from a message’s menu or from Catch me up.</string>
+    <string name="reminders_cancel">Cancel reminder</string>
     <string name="notification_channel_reminders">Reminders</string>
     <string name="reminder_title">%1$s in %2$s</string>
     <string name="reminder_title_hidden">Reminder</string>
