@@ -96,7 +96,7 @@ private fun Point(point: SummaryPoint, onJump: (String) -> Unit) {
                 modifier = Modifier.weight(1f)
             )
             if (eventId != null) {
-                Icon(Symbols.ChevronRight, contentDescription = stringResource(R.string.summary_point_jump))
+                Icon(Symbols.KeyboardArrowRight, contentDescription = stringResource(R.string.summary_point_jump))
             }
         }
     }
