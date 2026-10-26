@@ -21,8 +21,9 @@ import org.phalanx.android.data.model.SessionState
 import org.phalanx.android.di.ApplicationScope
 
 /**
- * AI results kept on this phone while "Keep AI results" is on, so a transcript is not written
- * twice. Sealed like the session; turning the setting off or signing out deletes them all.
+ * AI results kept on this phone while "Keep AI results" is on, so a transcript or a room's
+ * catch-up is not written twice. Sealed like the session; turning the setting off or signing out
+ * deletes them all.
  */
 @Singleton
 class AiDisk @Inject internal constructor(
@@ -40,7 +41,10 @@ class AiDisk @Inject internal constructor(
     internal val transcripts =
         shelf("transcripts", Transcript.serializer(), TRANSCRIPTS, TimeUnit.DAYS.toMillis(TRANSCRIPT_DAYS))
 
-    private val shelves = listOf(transcripts)
+    // A catch-up goes stale fast: by the next day the user has read the room or more came in.
+    internal val catchUps = shelf("catch_ups", CatchUp.serializer(), CATCH_UPS, TimeUnit.DAYS.toMillis(1))
+
+    private val shelves = listOf(transcripts, catchUps)
 
     fun start() {
         scope.launch {
@@ -77,5 +81,6 @@ class AiDisk @Inject internal constructor(
         const val DIR_NAME = "ai_results"
         const val TRANSCRIPTS = 2_000
         const val TRANSCRIPT_DAYS = 30L
+        const val CATCH_UPS = 200
     }
 }

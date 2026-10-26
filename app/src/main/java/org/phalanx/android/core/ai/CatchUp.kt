@@ -8,6 +8,7 @@ import kotlinx.serialization.json.Json
  * One room, caught up on: what matters in what the user missed, what is waiting on them, and what
  * they said they would do. [waiting] and [promised] are null when there is none.
  */
+@Serializable
 data class CatchUp(val points: List<String>, val waiting: String?, val promised: String?)
 
 /** What the model writes, held to this shape by [CATCH_UP_GRAMMAR]. */
