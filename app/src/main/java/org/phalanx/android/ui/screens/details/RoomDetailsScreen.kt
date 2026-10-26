@@ -40,6 +40,7 @@ import org.phalanx.android.ui.components.SegmentedRow
 import org.phalanx.android.ui.components.SegmentedSection
 import org.phalanx.android.ui.components.segmentedShape
 import org.phalanx.android.ui.screens.room.BlockUserDialog
+import org.phalanx.android.ui.screens.room.ProtectedRoomScreen
 import org.phalanx.android.ui.screens.roomlist.LeaveRoomDialog
 import org.phalanx.android.ui.theme.Symbols
 
@@ -60,6 +61,8 @@ fun RoomDetailsScreen(
     val notice by viewModel.notice.collectAsStateWithLifecycle()
     val openRequest by viewModel.openRequest.collectAsStateWithLifecycle()
     val left by viewModel.left.collectAsStateWithLifecycle()
+    val prefs by viewModel.prefs.collectAsStateWithLifecycle()
+    ProtectedRoomScreen()
     var leaving by remember { mutableStateOf(false) }
     var blocking by remember { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
@@ -112,6 +115,7 @@ fun RoomDetailsScreen(
             pinnedSection(pinned) { eventId -> onJumpTo(viewModel.roomId, eventId) }
             membersSection(members, showAllMembers) { showAllMembers = true }
             mediaSections(media, hasMore, onShowAll = { files -> onShowAll(viewModel.roomId, files) }, onOpen = open)
+            item { DetailsPrivacySection(prefs, viewModel) }
             item {
                 SegmentedSection(stringResource(R.string.details_manage)) {
                     val dmUser = current.dmUserId

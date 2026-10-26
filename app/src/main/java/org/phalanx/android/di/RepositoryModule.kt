@@ -6,6 +6,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import org.phalanx.android.core.matrix.MessageArchive
 import org.phalanx.android.core.matrix.PushRulesMutedUsersRepository
+import org.phalanx.android.core.matrix.ReactionPushRule
 import org.phalanx.android.core.matrix.RustAccountRepository
 import org.phalanx.android.core.matrix.RustAuthRepository
 import org.phalanx.android.core.matrix.RustBlockedUsersRepository
@@ -32,6 +33,7 @@ import org.phalanx.android.data.repository.EditHistoryRepository
 import org.phalanx.android.data.repository.MediaRepository
 import org.phalanx.android.data.repository.MutedUsersRepository
 import org.phalanx.android.data.repository.PushRepository
+import org.phalanx.android.data.repository.ReactionPushRepository
 import org.phalanx.android.data.repository.RoomActionsRepository
 import org.phalanx.android.data.repository.RoomGalleryRepository
 import org.phalanx.android.data.repository.RoomListRepository
@@ -88,6 +90,9 @@ internal abstract class RepositoryModule {
 
     @Binds
     abstract fun mutedUsersRepository(impl: PushRulesMutedUsersRepository): MutedUsersRepository
+
+    @Binds
+    abstract fun reactionPushRepository(impl: ReactionPushRule): ReactionPushRepository
 
     @Binds
     abstract fun searchRepository(impl: RustSearchRepository): SearchRepository

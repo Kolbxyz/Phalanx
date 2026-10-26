@@ -78,6 +78,7 @@ fun SettingsCategoryScreen(
                 SettingsCategory.Media -> MediaSettings(current, viewModel)
                 SettingsCategory.Privacy -> {
                     PrivacySettings(current, viewModel)
+                    ScreenPrivacySection(current, viewModel)
                     MessageHistorySection(current, viewModel, onOpenDeletedMessages)
                     BlockedUsersSection(blocked, viewModel::unblock)
                 }

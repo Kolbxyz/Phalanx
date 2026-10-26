@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import org.phalanx.android.data.model.AppSettings
+import org.phalanx.android.data.model.LockTimeout
 import org.phalanx.android.data.model.TextSize
 import org.phalanx.android.data.model.ThemeMode
 
@@ -62,6 +63,16 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
 
     suspend fun setAiSummaries(enabled: Boolean) = store.edit { it[AI_SUMMARIES] = enabled }
 
+    suspend fun setAppLock(enabled: Boolean) = store.edit { it[APP_LOCK] = enabled }
+
+    suspend fun setLockTimeout(timeout: LockTimeout) = store.edit { it[LOCK_TIMEOUT] = timeout.name }
+
+    suspend fun setBlockScreenshots(enabled: Boolean) = store.edit { it[BLOCK_SCREENSHOTS] = enabled }
+
+    suspend fun setIncognitoKeyboard(enabled: Boolean) = store.edit { it[INCOGNITO_KEYBOARD] = enabled }
+
+    suspend fun setReactionNotifications(enabled: Boolean) = store.edit { it[REACTION_NOTIFICATIONS] = enabled }
+
     /** Null goes back to finding the gateway automatically. */
     suspend fun setPushGateway(url: String?) = store.edit {
         if (url == null) it.remove(PUSH_GATEWAY) else it[PUSH_GATEWAY] = url
@@ -86,6 +97,11 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
             showEditHistory = this[SHOW_EDIT_HISTORY] ?: defaults.showEditHistory,
             keepDeletedMessages = this[KEEP_DELETED] ?: defaults.keepDeletedMessages,
             aiSummaries = this[AI_SUMMARIES] ?: defaults.aiSummaries,
+            appLock = this[APP_LOCK] ?: defaults.appLock,
+            lockTimeout = LockTimeout.entries.firstOrNull { it.name == this[LOCK_TIMEOUT] } ?: defaults.lockTimeout,
+            blockScreenshots = this[BLOCK_SCREENSHOTS] ?: defaults.blockScreenshots,
+            incognitoKeyboard = this[INCOGNITO_KEYBOARD] ?: defaults.incognitoKeyboard,
+            reactionNotifications = this[REACTION_NOTIFICATIONS] ?: defaults.reactionNotifications,
             pushGateway = this[PUSH_GATEWAY]
         )
     }
@@ -108,5 +124,10 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
         val SHOW_EDIT_HISTORY = booleanPreferencesKey("show_edit_history")
         val KEEP_DELETED = booleanPreferencesKey("keep_deleted_messages")
         val AI_SUMMARIES = booleanPreferencesKey("ai_summaries")
+        val APP_LOCK = booleanPreferencesKey("app_lock")
+        val LOCK_TIMEOUT = stringPreferencesKey("lock_timeout")
+        val BLOCK_SCREENSHOTS = booleanPreferencesKey("block_screenshots")
+        val INCOGNITO_KEYBOARD = booleanPreferencesKey("incognito_keyboard")
+        val REACTION_NOTIFICATIONS = booleanPreferencesKey("reaction_notifications")
     }
 }

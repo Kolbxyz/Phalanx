@@ -45,6 +45,7 @@ fun RoomScreen(
     reactorsModel: ReactorsViewModel = hiltViewModel()
 ) {
     val kitchen: KitchenViewModel = hiltViewModel()
+    ProtectedRoomScreen()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val composerState by viewModel.composer.state.collectAsStateWithLifecycle()
     val notice by viewModel.notice.collectAsStateWithLifecycle()

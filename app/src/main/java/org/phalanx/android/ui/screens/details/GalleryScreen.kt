@@ -40,6 +40,7 @@ import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.components.BackButton
 import org.phalanx.android.ui.components.OpenFileEffect
 import org.phalanx.android.ui.components.segmentedShape
+import org.phalanx.android.ui.screens.room.ProtectedRoomScreen
 
 private const val COLUMNS = 3
 
@@ -53,6 +54,7 @@ fun GalleryScreen(
     onOpenMedia: (roomId: String, entryId: String) -> Unit,
     viewModel: GalleryViewModel = hiltViewModel()
 ) {
+    ProtectedRoomScreen()
     val items by viewModel.items.collectAsStateWithLifecycle()
     val hasMore by viewModel.hasMore.collectAsStateWithLifecycle()
     val pages by viewModel.pages.collectAsStateWithLifecycle()

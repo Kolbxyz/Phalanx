@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.io.IOException
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,8 +21,10 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
+import org.phalanx.android.core.prefs.RoomPrefsStore
 import org.phalanx.android.data.model.MediaRef
 import org.phalanx.android.data.model.Participant
+import org.phalanx.android.data.model.RoomPrefs
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.model.UserTrust
@@ -44,7 +47,8 @@ class RoomDetailsViewModel @Inject constructor(
     private val actions: RoomActionsRepository,
     private val blockedUsers: BlockedUsersRepository,
     private val media: MediaRepository,
-    private val security: SecurityRepository
+    private val security: SecurityRepository,
+    private val roomPrefs: RoomPrefsStore
 ) : ViewModel() {
     val roomId: String = savedStateHandle.toRoute<RoomDetailsRoute>().roomId
 
@@ -52,6 +56,11 @@ class RoomDetailsViewModel @Inject constructor(
     val room: StateFlow<RoomSummary?> = roomList.rooms
         .map { rooms -> rooms?.firstOrNull { it.id == roomId } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, roomList.rooms.value?.firstOrNull { it.id == roomId })
+
+    /** What was chosen on this phone for the room: screen protection and alerts. */
+    val prefs: StateFlow<RoomPrefs> = roomPrefs.prefs
+        .map { it?.get(roomId) ?: RoomPrefs() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, roomPrefs.prefs.value?.get(roomId) ?: RoomPrefs())
 
     /** For a one-to-one chat, whether the other person is verified; null for a group or until known. */
     val trust: StateFlow<UserTrust?> = room
@@ -109,6 +118,12 @@ class RoomDetailsViewModel @Inject constructor(
 
     fun setMuted(muted: Boolean) = act { actions.setMuted(roomId, muted) }
 
+    fun setProtectScreen(enabled: Boolean) = editPrefs { it.copy(protectScreen = enabled) }
+
+    fun setTypingAlerts(enabled: Boolean) = editPrefs { it.copy(typingAlerts = enabled) }
+
+    fun setReadAlerts(enabled: Boolean) = editPrefs { it.copy(readAlerts = enabled) }
+
     fun leave() = act { actions.leave(roomId).onSuccess { mutableLeft.value = true } }
 
     fun block(userId: String) = act { blockedUsers.block(userId) }
@@ -132,6 +147,16 @@ class RoomDetailsViewModel @Inject constructor(
 
     fun dismissNotice() {
         mutableNotice.value = null
+    }
+
+    private fun editPrefs(transform: (RoomPrefs) -> RoomPrefs) {
+        viewModelScope.launch {
+            try {
+                roomPrefs.update(roomId, transform)
+            } catch (_: IOException) {
+                notify(R.string.timeline_action_failed)
+            }
+        }
     }
 
     private fun act(block: suspend () -> Result<Unit>) {

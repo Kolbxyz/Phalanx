@@ -63,7 +63,8 @@ private fun EventTimelineItem.toMessage(id: String, context: MappingContext): Ti
             is EventSendState.SendingFailed -> SendState.Failed
         },
         canReply = canBeRepliedTo,
-        canEdit = isEditable
+        canEdit = isEditable,
+        readBy = readReceipts.keys - context.ownUserId
     )
 }
 

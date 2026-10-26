@@ -26,7 +26,9 @@ sealed interface TimelineEntry {
         val isEdited: Boolean,
         val sendState: SendState,
         val canReply: Boolean,
-        val canEdit: Boolean
+        val canEdit: Boolean,
+        /** The other members whose public read receipt sits on this message: it is where they stopped. */
+        val readBy: Set<String> = emptySet()
     ) : TimelineEntry
 }
 

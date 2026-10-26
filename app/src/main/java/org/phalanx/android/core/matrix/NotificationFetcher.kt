@@ -37,14 +37,16 @@ internal class NotificationFetcher @Inject constructor(
         active.restore()
         val client = active.client() ?: return Result.success(null)
         val sync = active.syncService.value ?: return Result.success(null)
-        val pictures = settings.current().autoLoadMedia
+        val current = settings.current()
+        val pictures = current.autoLoadMedia
+        val reactions = current.reactionNotifications
         if (isMuted(client, roomId)) return Result.success(null)
         return try {
             // Not destroyed: SingleProcess borrows the sync service, which the active client owns.
             val setup = NotificationProcessSetup.SingleProcess(sync)
             val message = client.notificationClient(setup).use { notifications ->
                 when (val status = notifications.getNotification(roomId, eventId)) {
-                    is NotificationStatus.Event -> status.item.toIncoming(roomId, eventId)
+                    is NotificationStatus.Event -> incomingOf(client, roomId, eventId, status.item, reactions)
                         ?.let {
                             it.copy(
                                 senderAvatar = client.avatarBitmap(status.item.senderInfo.avatarUrl),
@@ -61,6 +63,18 @@ internal class NotificationFetcher @Inject constructor(
         } catch (e: ClientException) {
             Result.failure(e)
         }
+    }
+
+    // A reaction notifies only when the user asked for it here, and only for their own messages.
+    private suspend fun incomingOf(
+        client: Client,
+        roomId: String,
+        eventId: String,
+        item: NotificationItem,
+        reactions: Boolean
+    ): IncomingMessage? {
+        val reaction = item.reaction() ?: return item.toIncoming(roomId, eventId)
+        return if (reactions) client.reactionToOwn(roomId, eventId, item, reaction) else null
     }
 
     /** A room muted here, or by the account's push rules elsewhere, never notifies on this device. */

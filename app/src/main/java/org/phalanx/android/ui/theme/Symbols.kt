@@ -171,4 +171,14 @@ internal object Symbols {
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_history)
     val DeleteHistory: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_delete_history)
+    val Fingerprint: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_fingerprint)
+    val NoPhotography: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_no_photography)
+    val AddReaction: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_add_reaction)
+    val Visibility: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_visibility)
+    val Incognito: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_domino_mask)
 }

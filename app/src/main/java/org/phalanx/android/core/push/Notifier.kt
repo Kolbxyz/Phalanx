@@ -68,8 +68,13 @@ internal class Notifier @Inject constructor(@ApplicationContext private val cont
     @SuppressLint("MissingPermission") // Checked by allowed().
     fun show(message: IncomingMessage) {
         if (!allowed() || message.roomId == viewing.get()) return
-        val text = message.body?.let { summaryOf(it, context::getString) }
-            ?: context.getString(R.string.notification_invite, message.senderName)
+        val summary = message.body?.let { summaryOf(it, context::getString) }
+        val text = when {
+            summary == null -> context.getString(R.string.notification_invite, message.senderName)
+            message.reaction == "" -> context.getString(R.string.notification_reaction_unknown, summary)
+            message.reaction != null -> context.getString(R.string.notification_reaction, message.reaction, summary)
+            else -> summary
+        }
         val style: NotificationCompat.MessagingStyle =
             existingStyle(message.roomId) ?: NotificationCompat.MessagingStyle(self)
         style.setConversationTitle(if (message.isDirect) null else message.roomName)
@@ -157,6 +162,8 @@ internal class Notifier @Inject constructor(@ApplicationContext private val cont
     fun stopViewing(roomId: String) {
         viewing.compareAndSet(roomId, null)
     }
+
+    fun isViewing(roomId: String): Boolean = viewing.get() == roomId
 
     fun dismissAll() = manager.cancelAll()
 

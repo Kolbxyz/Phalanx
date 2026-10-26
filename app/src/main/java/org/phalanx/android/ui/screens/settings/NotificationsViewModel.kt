@@ -8,17 +8,24 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.model.PushDistributor
 import org.phalanx.android.data.model.PushStatus
 import org.phalanx.android.data.repository.PushRepository
+import org.phalanx.android.data.repository.ReactionPushRepository
 
 /** The gateway dialog's state: closed, open, or open after a rejected address. */
 enum class GatewayEditing { Closed, Open, Invalid }
 
 @HiltViewModel
-class NotificationsViewModel @Inject constructor(private val push: PushRepository) : ViewModel() {
+class NotificationsViewModel @Inject constructor(
+    private val push: PushRepository,
+    private val settings: SettingsStore,
+    private val reactionRule: ReactionPushRepository
+) : ViewModel() {
     val status: StateFlow<PushStatus> = push.status
 
     /** Null: automatic. */
@@ -30,6 +37,27 @@ class NotificationsViewModel @Inject constructor(private val push: PushRepositor
 
     private val mutableEditing = MutableStateFlow(GatewayEditing.Closed)
     val editing: StateFlow<GatewayEditing> = mutableEditing.asStateFlow()
+
+    /** Null until the settings are read. */
+    val reactions: StateFlow<Boolean?> = settings.settings.map { it.reactionNotifications }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), null)
+
+    /** Set when the server did not take the change; the switch then stays as it was. */
+    private val mutableReactionsFailed = MutableStateFlow(false)
+    val reactionsFailed: StateFlow<Boolean> = mutableReactionsFailed.asStateFlow()
+
+    /** The push rule changes first: the switch only moves once the server agreed. */
+    fun setReactions(enabled: Boolean) {
+        viewModelScope.launch {
+            reactionRule.setNotify(enabled).fold(
+                onSuccess = {
+                    mutableReactionsFailed.value = false
+                    settings.setReactionNotifications(enabled)
+                },
+                onFailure = { mutableReactionsFailed.value = true }
+            )
+        }
+    }
 
     /** On every return to the page: the user may have just installed or removed a distributor. */
     fun refreshDistributors() {
