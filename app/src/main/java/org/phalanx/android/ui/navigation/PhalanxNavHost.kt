@@ -37,14 +37,14 @@ import org.phalanx.android.ui.share.SharePicker
 
 /**
  * Shared-axis transitions on the theme's motion scheme, so reduced motion shortens them too.
- * [openRoom] is a room a tapped notification asked for; it opens over the room list.
+ * [openRoom] is a room a tapped notification asked for, maybe on one message; it opens over the room list.
  */
 @Composable
-fun PhalanxNavHost(openRoom: String?, onRoomOpened: () -> Unit) {
+fun PhalanxNavHost(openRoom: RoomRoute?, onRoomOpened: () -> Unit) {
     val navController = rememberNavController()
     LaunchedEffect(openRoom) {
         if (openRoom == null) return@LaunchedEffect
-        navController.navigate(RoomRoute(openRoom)) {
+        navController.navigate(openRoom) {
             popUpTo(RoomListRoute)
             launchSingleTop = true
         }

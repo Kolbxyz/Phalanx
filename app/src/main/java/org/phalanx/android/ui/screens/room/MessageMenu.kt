@@ -19,6 +19,7 @@ import org.phalanx.android.R
 import org.phalanx.android.data.model.AppSettings
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
+import org.phalanx.android.ui.components.NoticeKind
 
 /** The long-press sheet for [message], and the delete confirmation it can lead to. */
 @Composable
@@ -27,7 +28,8 @@ internal fun MessageMenu(
     onDismiss: () -> Unit,
     viewModel: RoomViewModel,
     kitchen: KitchenViewModel = hiltViewModel(),
-    assist: AssistViewModel = hiltViewModel()
+    assist: AssistViewModel = hiltViewModel(),
+    reminder: ReminderViewModel = hiltViewModel()
 ) {
     val clipboard = LocalClipboard.current
     val context = LocalContext.current
@@ -37,6 +39,7 @@ internal fun MessageMenu(
     var forwarding by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     var versionsOf by remember { mutableStateOf<String?>(null) }
     var mixingFor by remember { mutableStateOf<TimelineEntry.Message?>(null) }
+    var remindingOf by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     val kitchenOn by kitchen.enabled.collectAsStateWithLifecycle()
     val muted by viewModel.muted.collectAsStateWithLifecycle()
     val header by viewModel.header.collectAsStateWithLifecycle()
@@ -69,6 +72,7 @@ internal fun MessageMenu(
             onCopyLink = { link -> then { copy(link) }() },
             onShareLink = { link -> then { shareText(context, link) }() },
             onForward = then { forwarding = message },
+            onRemind = message.eventId?.let { then { remindingOf = message } },
             pinned = message.eventId in header?.pinnedEventIds.orEmpty(),
             onTogglePin = then { viewModel.setPinned(message, message.eventId !in header?.pinnedEventIds.orEmpty()) },
             onDelete = then { deleting = message },
@@ -89,6 +93,23 @@ internal fun MessageMenu(
         )
     }
     versionsOf?.let { eventId -> EditHistorySheet(eventId, onDismiss = { versionsOf = null }) }
+    remindingOf?.let { target ->
+        ScheduleSheet(
+            exact = viewModel.canScheduleExactly(),
+            onDismiss = { remindingOf = null },
+            onPick = { at ->
+                remindingOf = null
+                reminder.remind(target, at) { saved ->
+                    if (saved) {
+                        viewModel.notify(R.string.remind_done, NoticeKind.Scheduled)
+                    } else {
+                        viewModel.notify(R.string.remind_failed)
+                    }
+                }
+            },
+            title = R.string.remind_title
+        )
+    }
     val assistState by assist.state.collectAsStateWithLifecycle()
     AssistSheet(assistState, onDismiss = assist::dismiss)
     mixingFor?.let { target ->

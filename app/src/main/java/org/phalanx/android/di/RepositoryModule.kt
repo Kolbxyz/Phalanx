@@ -23,6 +23,7 @@ import org.phalanx.android.core.matrix.RustStickerRepository
 import org.phalanx.android.core.matrix.RustTimelineRepository
 import org.phalanx.android.core.push.PushRegistrar
 import org.phalanx.android.core.schedule.MessageScheduler
+import org.phalanx.android.core.schedule.Reminders
 import org.phalanx.android.data.repository.AccountRepository
 import org.phalanx.android.data.repository.AuthRepository
 import org.phalanx.android.data.repository.BlockedUsersRepository
@@ -34,6 +35,7 @@ import org.phalanx.android.data.repository.MediaRepository
 import org.phalanx.android.data.repository.MutedUsersRepository
 import org.phalanx.android.data.repository.PushRepository
 import org.phalanx.android.data.repository.ReactionPushRepository
+import org.phalanx.android.data.repository.ReminderRepository
 import org.phalanx.android.data.repository.RoomActionsRepository
 import org.phalanx.android.data.repository.RoomGalleryRepository
 import org.phalanx.android.data.repository.RoomListRepository
@@ -78,6 +80,9 @@ internal abstract class RepositoryModule {
 
     @Binds
     abstract fun scheduleRepository(impl: MessageScheduler): ScheduleRepository
+
+    @Binds
+    abstract fun reminderRepository(impl: Reminders): ReminderRepository
 
     @Binds
     abstract fun securityRepository(impl: RustSecurityRepository): SecurityRepository

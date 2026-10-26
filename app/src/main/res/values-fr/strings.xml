@@ -303,6 +303,14 @@
     <string name="schedule_exact">Envoyer à la minute près</string>
     <string name="schedule_exact_summary">Android peut retarder les messages programmés de quelques minutes si vous n’autorisez pas les alarmes exactes</string>
     <string name="schedule_done">Message programmé. Votre téléphone l’enverra, gardez-le allumé.</string>
+    <string name="action_remind">Me le rappeler</string>
+    <string name="remind_title">Me le rappeler</string>
+    <string name="remind_done">Je vous le rappellerai</string>
+    <string name="remind_failed">Le rappel n’a pas pu être enregistré</string>
+    <string name="notification_channel_reminders">Rappels</string>
+    <string name="reminder_title">%1$s dans %2$s</string>
+    <string name="reminder_title_hidden">Rappel</string>
+    <string name="reminder_text_hidden">Un message dont vous avez demandé un rappel</string>
     <string name="schedule_at">Envoi %1$s</string>
     <string name="schedule_failed">Échec de l’envoi</string>
     <string name="schedule_send_now">Envoyer maintenant</string>

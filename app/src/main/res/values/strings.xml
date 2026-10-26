@@ -301,6 +301,14 @@
     <string name="schedule_exact">Send on the minute</string>
     <string name="schedule_exact_summary">Android may delay scheduled messages by a few minutes unless you allow exact alarms</string>
     <string name="schedule_done">Message scheduled. Your phone sends it, so keep it on.</string>
+    <string name="action_remind">Remind me</string>
+    <string name="remind_title">Remind me</string>
+    <string name="remind_done">I’ll remind you then</string>
+    <string name="remind_failed">The reminder couldn’t be saved</string>
+    <string name="notification_channel_reminders">Reminders</string>
+    <string name="reminder_title">%1$s in %2$s</string>
+    <string name="reminder_title_hidden">Reminder</string>
+    <string name="reminder_text_hidden">A message you asked to be reminded of</string>
     <string name="schedule_at">Sends %1$s</string>
     <string name="schedule_failed">Couldn’t send</string>
     <string name="schedule_send_now">Send now</string>

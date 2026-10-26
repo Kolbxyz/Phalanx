@@ -25,11 +25,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.phalanx.android.data.model.SessionState
 import org.phalanx.android.ui.navigation.PhalanxNavHost
+import org.phalanx.android.ui.navigation.RoomRoute
 import org.phalanx.android.ui.screens.login.LoginScreen
 
 /** [openRoom]: a room a tapped notification asked for; [onRoomOpened] once it is shown. */
 @Composable
-fun PhalanxApp(openRoom: String?, onRoomOpened: () -> Unit, viewModel: AppViewModel = hiltViewModel()) {
+fun PhalanxApp(openRoom: RoomRoute?, onRoomOpened: () -> Unit, viewModel: AppViewModel = hiltViewModel()) {
     val sessionState by viewModel.sessionState.collectAsStateWithLifecycle()
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
         Crossfade(

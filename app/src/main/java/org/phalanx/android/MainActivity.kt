@@ -36,6 +36,7 @@ import org.phalanx.android.ui.components.IncognitoInput
 import org.phalanx.android.ui.components.LocalIncognitoKeyboard
 import org.phalanx.android.ui.components.LocalSecureScreens
 import org.phalanx.android.ui.components.SecureScreens
+import org.phalanx.android.ui.navigation.RoomRoute
 import org.phalanx.android.ui.screens.lock.LockScreen
 import org.phalanx.android.ui.share.ShareInbox
 import org.phalanx.android.ui.share.sharedContent
@@ -61,7 +62,7 @@ class MainActivity : ComponentActivity() {
     private val secureScreens = SecureScreens()
 
     /** The room a tapped notification asked for, until the navigation opens it. */
-    private val pendingRoom = MutableStateFlow<String?>(null)
+    private val pendingRoom = MutableStateFlow<RoomRoute?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -154,7 +155,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleIntent(intent: Intent) {
-        intent.getStringExtra(Notifier.EXTRA_ROOM_ID)?.let { pendingRoom.value = it }
+        intent.getStringExtra(Notifier.EXTRA_ROOM_ID)?.let {
+            pendingRoom.value = RoomRoute(it, focusEventId = intent.getStringExtra(Notifier.EXTRA_EVENT_ID))
+        }
         sharedContent(intent)?.let { shareInbox.offer(it) }
         val uri = intent.data ?: return
         if (intent.action == Intent.ACTION_VIEW && uri.scheme == BuildConfig.OAUTH_REDIRECT_SCHEME) {

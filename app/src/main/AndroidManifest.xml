@@ -66,6 +66,10 @@
             android:exported="false" />
 
         <receiver
+            android:name=".core.schedule.ReminderAlarmReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".core.push.NotificationActionReceiver"
             android:exported="false" />
 
