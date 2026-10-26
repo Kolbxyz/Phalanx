@@ -1,8 +1,5 @@
 package org.phalanx.android.ui.screens.media
 
-import android.content.ActivityNotFoundException
-import android.content.ClipData
-import android.content.Intent
 import android.text.format.DateUtils
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -42,9 +39,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.phalanx.android.R
+import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.components.OpenFileEffect
-import org.phalanx.android.ui.components.OpenRequest
 import org.phalanx.android.ui.components.TopNoticeHost
 import org.phalanx.android.ui.screens.room.ForwardSheet
 import org.phalanx.android.ui.screens.room.ProtectedRoomScreen
@@ -161,6 +158,10 @@ private fun ViewerTopBar(
     val context = LocalContext.current
     var info by rememberSaveable { mutableStateOf(false) }
     var forwarding by rememberSaveable { mutableStateOf(false) }
+    val describer: PhotoDescribeViewModel = hiltViewModel()
+    val canDescribe by describer.ready.collectAsStateWithLifecycle()
+    val described by describer.state.collectAsStateWithLifecycle()
+    described?.let { DescribeSheet(it, describer::dismiss) }
     if (info) {
         MediaInfoSheet(
             entry = entry,
@@ -175,7 +176,13 @@ private fun ViewerTopBar(
                     forwarding = true
                 }
             },
-            onJumpTo = onJumpTo
+            onJumpTo = onJumpTo,
+            onDescribe = (entry.body as? MessageBody.Image)?.takeIf { canDescribe }?.let { image ->
+                {
+                    info = false
+                    describer.describe(image)
+                }
+            }
         )
     }
     if (forwarding) {
@@ -235,25 +242,4 @@ private fun ViewerTopBar(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = CHROME_ALPHA)
         )
     )
-}
-
-/** Hands [request] to the system share sheet, with read access to that one file only. */
-@Composable
-private fun ShareEffect(request: OpenRequest?, onShared: () -> Unit) {
-    val context = LocalContext.current
-    LaunchedEffect(request) {
-        if (request == null) return@LaunchedEffect
-        val send = Intent(Intent.ACTION_SEND)
-            .setType(request.mimeType ?: "*/*")
-            .putExtra(Intent.EXTRA_STREAM, request.uri)
-            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        // The grant only reaches the chosen app through the chooser when the URI is also clip data.
-        send.clipData = ClipData.newRawUri(null, request.uri)
-        try {
-            context.startActivity(Intent.createChooser(send, null))
-        } catch (_: ActivityNotFoundException) {
-            // A chooser always resolves; nothing to tell the user if a broken system has none.
-        }
-        onShared()
-    }
 }
