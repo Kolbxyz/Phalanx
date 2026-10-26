@@ -7,3 +7,6 @@
 [submodule "app/src/main/cpp/bergamot-translator"]
 	path = app/src/main/cpp/bergamot-translator
 	url = https://github.com/browsermt/bergamot-translator
+[submodule "app/src/main/cpp/pcre2"]
+	path = app/src/main/cpp/pcre2
+	url = https://github.com/PCRE2Project/pcre2
