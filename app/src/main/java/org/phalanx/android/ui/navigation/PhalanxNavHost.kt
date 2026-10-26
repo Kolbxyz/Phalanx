@@ -147,6 +147,9 @@ fun PhalanxNavHost(openRoom: RoomRoute?, onRoomOpened: () -> Unit) {
                         },
                         onShowAll = { roomId, files ->
                             navController.from(entry) { navigate(RoomGalleryRoute(roomId, files)) }
+                        },
+                        onOpenRoom = { roomId ->
+                            navController.from(entry) { navigate(RoomRoute(roomId)) { popUpTo(RoomListRoute) } }
                         }
                     )
                 }

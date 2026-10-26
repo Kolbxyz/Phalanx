@@ -357,6 +357,7 @@
     <string name="people_not_same">Not them</string>
     <string name="people_unlink">Unlink</string>
     <string name="people_failed">This couldn’t be saved</string>
+    <string name="details_also_on">Also on</string>
     <string name="notification_channel_reminders">Reminders</string>
     <string name="reminder_title">%1$s in %2$s</string>
     <string name="reminder_title_hidden">Reminder</string>

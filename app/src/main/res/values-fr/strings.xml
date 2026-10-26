@@ -360,6 +360,7 @@
     <string name="people_not_same">Pas la même</string>
     <string name="people_unlink">Délier</string>
     <string name="people_failed">Impossible d’enregistrer</string>
+    <string name="details_also_on">Aussi sur</string>
     <string name="notification_channel_reminders">Rappels</string>
     <string name="reminder_title">%1$s dans %2$s</string>
     <string name="reminder_title_hidden">Rappel</string>
