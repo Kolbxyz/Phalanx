@@ -42,26 +42,38 @@ jobs:
           chmod +x ktlint
           ./ktlint --relative "app/src/**/*.kt"
 
-      - name: Static Analysis (detekt)
-        run: ./gradlew :app:detekt
-
-      - name: Run Unit Tests
-        run: ./gradlew :app:testDebugUnitTest
-
-      - name: Coverage Floor (Kover)
-        run: ./gradlew :app:koverVerifyDebug
-
-      - name: Run Android Lint
+      # llama.cpp is the slowest part of the build: ccache reuses its objects across runs. CMake
+      # picks the launcher up from these variables, which Gradle passes through to it.
+      - name: Set up ccache
         run: |
-          ./gradlew :app:lintDebug || {
-            for report in app/build/reports/lint-results-debug.txt; do
-              if [ -f "$report" ]; then
-                echo "=== $report ==="
-                cat "$report"
-              fi
-            done
+          sudo apt-get install -y --no-install-recommends ccache
+          echo "CMAKE_C_COMPILER_LAUNCHER=ccache" >> "$GITHUB_ENV"
+          echo "CMAKE_CXX_COMPILER_LAUNCHER=ccache" >> "$GITHUB_ENV"
+          echo "CCACHE_DIR=$HOME/.ccache" >> "$GITHUB_ENV"
+          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+          echo "CCACHE_COMPILERCHECK=content" >> "$GITHUB_ENV"
+
+      - name: Restore ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ runner.os }}-${{ github.sha }}
+          restore-keys: ccache-${{ runner.os }}-
+
+      # One Gradle invocation, so independent tasks run in parallel and the APK reuses the
+      # compilation already done for tests and lint.
+      - name: Detekt, Unit Tests, Coverage, Lint & Debug APK
+        run: |
+          ./gradlew :app:detekt :app:testDebugUnitTest :app:koverVerifyDebug :app:lintDebug \
+            :app:assembleDebug --continue || {
+            report=app/build/reports/lint-results-debug.txt
+            if [ -f "$report" ]; then
+              echo "=== $report ==="
+              cat "$report"
+            fi
             exit 1
           }
 
-      - name: Build Debug APK
-        run: ./gradlew :app:assembleDebug
+      - name: ccache Stats
+        if: always()
+        run: ccache --show-stats

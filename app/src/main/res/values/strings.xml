@@ -463,10 +463,4 @@
     <string name="bridges_chatting">Set up: open the bridge chat to manage it</string>
     <string name="bridges_connect">Connect</string>
     <string name="bridges_open">Open</string>
-    <string name="bridge_whatsapp" translatable="false">WhatsApp</string>
-    <string name="bridge_discord" translatable="false">Discord</string>
-    <string name="bridge_instagram" translatable="false">Instagram</string>
-    <string name="bridge_messenger" translatable="false">Messenger</string>
-    <string name="bridge_telegram" translatable="false">Telegram</string>
-    <string name="bridge_signal" translatable="false">Signal</string>
 </resources>
