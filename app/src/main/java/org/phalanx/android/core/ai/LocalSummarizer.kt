@@ -61,7 +61,7 @@ class LocalSummarizer @Inject internal constructor(
 
     /** Three short replies the user, named [you] in [lines], could send next. */
     suspend fun suggestReplies(lines: List<SummaryLine>, you: String): Result<List<String>> =
-        complete(repliesPrompt(SummaryPrompt.of(lines), you), REPLIES_TOKENS) {}.map(::repliesOf)
+        complete(repliesPrompt(SummaryPrompt.of(lines), you), REPLIES_TOKENS) {}.map { repliesOf(it, you) }
 
     /**
      * [text] in [language], an English name such as "French", as it is written. Only the first
