@@ -5,6 +5,7 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,7 +30,6 @@ import org.phalanx.android.data.repository.SearchRepository
 import org.phalanx.android.ui.components.Notice
 import org.phalanx.android.ui.components.NoticeKind
 import org.phalanx.android.ui.components.OpenRequest
-import javax.inject.Inject
 
 enum class SearchCategory(@StringRes val label: Int) {
     All(R.string.search_all),

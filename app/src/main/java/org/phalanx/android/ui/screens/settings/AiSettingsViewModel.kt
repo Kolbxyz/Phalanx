@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,7 +12,6 @@ import kotlinx.coroutines.launch
 import org.phalanx.android.core.ai.LlamaNative
 import org.phalanx.android.core.ai.ModelRejectedException
 import org.phalanx.android.core.ai.ModelStore
-import javax.inject.Inject
 
 sealed interface ModelImport {
     data object Idle : ModelImport

@@ -1,5 +1,8 @@
 package org.phalanx.android.core.matrix
 
+import java.io.IOException
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonArray
@@ -13,9 +16,6 @@ import org.phalanx.android.core.format.OutgoingMessage
 import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.model.ScheduledMessage
 import org.phalanx.android.data.repository.TimelineUnavailableException
-import java.io.IOException
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Sends a scheduled message from the background, without sync: the SDK encrypts it for the room

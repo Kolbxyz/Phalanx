@@ -1,8 +1,8 @@
 package org.phalanx.android.ui.screens.imageedit
 
+import kotlin.math.abs
 import org.phalanx.android.core.media.UnitPoint
 import org.phalanx.android.core.media.UnitRect
-import kotlin.math.abs
 
 private const val MIN_SIDE = 0.1f
 

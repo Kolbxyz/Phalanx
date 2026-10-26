@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,7 +25,6 @@ import org.phalanx.android.data.repository.RoomGallery
 import org.phalanx.android.data.repository.RoomGalleryRepository
 import org.phalanx.android.ui.components.OpenRequest
 import org.phalanx.android.ui.navigation.RoomGalleryRoute
-import javax.inject.Inject
 
 /** Every photo and video, or every file, of a room; older pages load only as the end comes into view. */
 @OptIn(ExperimentalCoroutinesApi::class)

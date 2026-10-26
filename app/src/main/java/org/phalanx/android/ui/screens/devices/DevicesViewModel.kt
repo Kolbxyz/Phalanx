@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +14,6 @@ import org.phalanx.android.data.model.AccountException
 import org.phalanx.android.data.model.AccountFailure
 import org.phalanx.android.data.model.Device
 import org.phalanx.android.data.repository.AccountRepository
-import javax.inject.Inject
 
 @Immutable
 data class DevicesUiState(
@@ -43,7 +43,9 @@ class DevicesViewModel @Inject constructor(private val account: AccountRepositor
             account.devices().fold(
                 // This device first, then the most recently active.
                 onSuccess = { list ->
-                    val sorted = list.sortedWith(compareByDescending<Device> { it.isCurrent }.thenByDescending { it.lastSeenMillis ?: 0L })
+                    val order = compareByDescending<Device> { it.isCurrent }
+                        .thenByDescending { it.lastSeenMillis ?: 0L }
+                    val sorted = list.sortedWith(order)
                     mutableState.update { it.copy(devices = sorted) }
                 },
                 onFailure = { mutableState.update { it.copy(loadFailed = true) } }
@@ -55,7 +57,9 @@ class DevicesViewModel @Inject constructor(private val account: AccountRepositor
         it.copy(removing = device, password = "", wrongPassword = false, removeFailed = false)
     }
 
-    fun onPassword(value: String) = mutableState.update { it.copy(password = value, wrongPassword = false, removeFailed = false) }
+    fun onPassword(value: String) = mutableState.update {
+        it.copy(password = value, wrongPassword = false, removeFailed = false)
+    }
 
     fun dismissRemove() {
         if (mutableState.value.busy) return

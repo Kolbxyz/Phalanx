@@ -3,6 +3,7 @@ package org.phalanx.android.ui.screens.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +13,6 @@ import kotlinx.coroutines.launch
 import org.phalanx.android.data.model.PushDistributor
 import org.phalanx.android.data.model.PushStatus
 import org.phalanx.android.data.repository.PushRepository
-import javax.inject.Inject
 
 /** The gateway dialog's state: closed, open, or open after a rejected address. */
 enum class GatewayEditing { Closed, Open, Invalid }

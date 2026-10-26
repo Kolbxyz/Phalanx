@@ -33,6 +33,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import org.phalanx.android.R
 import org.phalanx.android.data.model.Device
 import org.phalanx.android.ui.components.BackButton
@@ -40,10 +44,6 @@ import org.phalanx.android.ui.components.SegmentGap
 import org.phalanx.android.ui.components.SegmentedRow
 import org.phalanx.android.ui.components.segmentedShape
 import org.phalanx.android.ui.theme.Symbols
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 @Composable
 fun DevicesScreen(onBack: () -> Unit, viewModel: DevicesViewModel = hiltViewModel()) {
@@ -161,7 +161,11 @@ private fun RemoveDialog(
                 enabled = state.password.isNotEmpty() && !state.busy,
                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
             ) {
-                if (state.busy) LoadingIndicator(Modifier.size(20.dp)) else Text(stringResource(R.string.devices_remove))
+                if (state.busy) {
+                    LoadingIndicator(Modifier.size(20.dp))
+                } else {
+                    Text(stringResource(R.string.devices_remove))
+                }
             }
         },
         dismissButton = {

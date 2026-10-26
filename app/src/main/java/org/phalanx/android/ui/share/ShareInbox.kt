@@ -1,10 +1,10 @@
 package org.phalanx.android.ui.share
 
 import android.net.Uri
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /** What another app shared to Phalanx: text, files, or both. */
 data class SharedContent(val text: String?, val uris: List<Uri>)

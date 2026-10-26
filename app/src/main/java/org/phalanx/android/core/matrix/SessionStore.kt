@@ -2,14 +2,14 @@ package org.phalanx.android.core.matrix
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
-import org.phalanx.android.core.security.SecretBox
 import java.io.File
 import java.io.IOException
 import java.security.GeneralSecurityException
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import org.phalanx.android.core.security.SecretBox
 
 /**
  * The one signed-in account, kept in a single file sealed by [SecretBox]. Calls are synchronized

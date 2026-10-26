@@ -93,7 +93,8 @@ private fun InReplyToDetails.toPreview(replyEventId: String?, context: MappingCo
             ReplyPreview(senderName = null, body = null, eventId = eventId())
         }
         EmbeddedEventDetails.Pending -> ReplyPreview(senderName = null, body = null, eventId = eventId())
-        is EmbeddedEventDetails.Error -> ReplyPreview(senderName = null, body = null, isUnavailable = true, eventId = eventId())
+        is EmbeddedEventDetails.Error ->
+            ReplyPreview(senderName = null, body = null, isUnavailable = true, eventId = eventId())
     }
 
 private fun Reaction.toSummary(ownUserId: String) =

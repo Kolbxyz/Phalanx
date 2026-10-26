@@ -20,8 +20,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.currentStateAsState
-import org.phalanx.android.data.model.MessageBody
 import java.io.IOException
+import org.phalanx.android.data.model.MessageBody
 
 /**
  * A bridged GIF playing in its bubble: silent, looping, and only while at least half of it is on

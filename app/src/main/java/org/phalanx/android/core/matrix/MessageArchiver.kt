@@ -1,5 +1,7 @@
 package org.phalanx.android.core.matrix
 
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -23,8 +25,6 @@ import org.phalanx.android.data.model.SessionState
 import org.phalanx.android.data.repository.RoomListRepository
 import org.phalanx.android.di.ApplicationScope
 import uniffi.ruma_events.MessageLikeEventType
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Feeds [MessageArchive] while "Keep deleted messages" is on: every joined room's messages, as

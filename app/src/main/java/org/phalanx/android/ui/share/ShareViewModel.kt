@@ -2,10 +2,10 @@ package org.phalanx.android.ui.share
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.StateFlow
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.repository.RoomListRepository
-import javax.inject.Inject
 
 /** The conversations a share from another app can go to. */
 @HiltViewModel

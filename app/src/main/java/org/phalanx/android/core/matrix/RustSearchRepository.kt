@@ -1,5 +1,7 @@
 package org.phalanx.android.core.matrix
 
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,8 +20,6 @@ import org.phalanx.android.data.repository.MessageHit
 import org.phalanx.android.data.repository.MessageSearch
 import org.phalanx.android.data.repository.SearchRepository
 import uniffi.matrix_sdk_ui.SearchServicePaginationState
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 internal class RustSearchRepository @Inject constructor(private val active: ActiveClient) : SearchRepository {

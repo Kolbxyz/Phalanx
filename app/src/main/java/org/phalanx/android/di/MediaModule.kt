@@ -11,12 +11,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.phalanx.android.core.matrix.ActiveClient
 import org.phalanx.android.core.matrix.MediaRequestKeyer
 import org.phalanx.android.core.matrix.SdkMediaFetcher
-import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)

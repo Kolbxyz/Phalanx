@@ -5,12 +5,12 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.RemoteInput
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import org.phalanx.android.core.matrix.NotificationActions
 import org.phalanx.android.di.ApplicationScope
-import javax.inject.Inject
 
 /** The "Mark as read" and "Reply" buttons of a message notification. */
 @AndroidEntryPoint

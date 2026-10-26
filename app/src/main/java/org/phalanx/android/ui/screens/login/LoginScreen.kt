@@ -88,7 +88,11 @@ private fun ServerStep(state: LoginUiState, viewModel: LoginViewModel) {
         supportingText = { Text(stringResource(R.string.login_server_supporting)) },
         singleLine = true,
         isError = state.failure != null,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go, autoCorrectEnabled = false),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Uri,
+            imeAction = ImeAction.Go,
+            autoCorrectEnabled = false
+        ),
         keyboardActions = KeyboardActions(onGo = { viewModel.continueWithServer() })
     )
     ActionButton(R.string.login_continue, state.canContinue, state.busy, viewModel::continueWithServer)
@@ -132,7 +136,11 @@ private fun BrowserSignIn(state: LoginUiState, viewModel: LoginViewModel) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         OutlinedButton(onClick = viewModel::cancelBrowser, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) {
-            if (state.busy) LoadingIndicator(modifier = Modifier.size(24.dp)) else Text(stringResource(R.string.login_oidc_cancel))
+            if (state.busy) {
+                LoadingIndicator(modifier = Modifier.size(24.dp))
+            } else {
+                Text(stringResource(R.string.login_oidc_cancel))
+            }
         }
     } else {
         ActionButton(R.string.login_oidc_continue, state.canUseBrowser, state.busy, viewModel::signInWithBrowser)
@@ -148,7 +156,11 @@ private fun PasswordFields(state: LoginUiState, viewModel: LoginViewModel) {
         label = { Text(stringResource(R.string.login_username)) },
         singleLine = true,
         isError = state.failure != null,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next, autoCorrectEnabled = false)
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Email,
+            imeAction = ImeAction.Next,
+            autoCorrectEnabled = false
+        )
     )
     OutlinedTextField(
         value = state.password,
@@ -158,13 +170,21 @@ private fun PasswordFields(state: LoginUiState, viewModel: LoginViewModel) {
         singleLine = true,
         isError = state.failure != null,
         visualTransformation = PasswordVisualTransformation(),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Go, autoCorrectEnabled = false),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            imeAction = ImeAction.Go,
+            autoCorrectEnabled = false
+        ),
         keyboardActions = KeyboardActions(onGo = { viewModel.signIn() })
     )
     // A secondary button when the browser route is offered too, so only one action reads as primary.
     if (state.methods.oidc) {
         OutlinedButton(onClick = viewModel::signIn, enabled = state.canSignIn, modifier = Modifier.fillMaxWidth()) {
-            if (state.busy) LoadingIndicator(modifier = Modifier.size(24.dp)) else Text(stringResource(R.string.login_sign_in))
+            if (state.busy) {
+                LoadingIndicator(modifier = Modifier.size(24.dp))
+            } else {
+                Text(stringResource(R.string.login_sign_in))
+            }
         }
     } else {
         ActionButton(R.string.login_sign_in, state.canSignIn, state.busy, viewModel::signIn)

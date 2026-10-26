@@ -1,5 +1,7 @@
 package org.phalanx.android.core.matrix
 
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.matrix.rustcomponents.sdk.ClientException
@@ -12,8 +14,6 @@ import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.MessageVersion
 import org.phalanx.android.data.repository.EditHistoryRepository
 import org.phalanx.android.data.repository.TimelineUnavailableException
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * An edit never overwrites a Matrix message: each is its own `m.replace` event, which the server

@@ -42,10 +42,14 @@ internal fun MediaSettings(current: AppSettings, viewModel: SettingsViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(SegmentGap)) {
         SwitchGroup(
             listOf(
-                SwitchSetting(Symbols.Image, R.string.settings_auto_load_media,
-                    R.string.settings_auto_load_media_summary, current.autoLoadMedia, viewModel::setAutoLoadMedia),
-                SwitchSetting(Symbols.HighQuality, R.string.settings_full_quality,
-                    R.string.settings_full_quality_summary, current.fullQualityImages, viewModel::setFullQualityImages)
+                SwitchSetting(
+                    Symbols.Image, R.string.settings_auto_load_media,
+                    R.string.settings_auto_load_media_summary, current.autoLoadMedia, viewModel::setAutoLoadMedia
+                ),
+                SwitchSetting(
+                    Symbols.HighQuality, R.string.settings_full_quality,
+                    R.string.settings_full_quality_summary, current.fullQualityImages, viewModel::setFullQualityImages
+                )
             )
         )
     }
@@ -56,15 +60,21 @@ internal fun PrivacySettings(current: AppSettings, viewModel: SettingsViewModel)
     Column(verticalArrangement = Arrangement.spacedBy(SegmentGap)) {
         SwitchGroup(
             listOf(
-                SwitchSetting(Symbols.DoneAll, R.string.settings_read_receipts,
+                SwitchSetting(
+                    Symbols.DoneAll, R.string.settings_read_receipts,
                     R.string.settings_read_receipts_summary, current.publicReadReceipts,
-                    viewModel::setPublicReadReceipts),
-                SwitchSetting(Symbols.Keyboard, R.string.settings_send_typing,
+                    viewModel::setPublicReadReceipts
+                ),
+                SwitchSetting(
+                    Symbols.Keyboard, R.string.settings_send_typing,
                     R.string.settings_send_typing_summary, current.sendTypingNotices,
-                    viewModel::setSendTypingNotices),
-                SwitchSetting(Symbols.Sticker, R.string.settings_emoji_kitchen,
+                    viewModel::setSendTypingNotices
+                ),
+                SwitchSetting(
+                    Symbols.Sticker, R.string.settings_emoji_kitchen,
                     R.string.settings_emoji_kitchen_summary, current.emojiKitchen,
-                    viewModel::setEmojiKitchen)
+                    viewModel::setEmojiKitchen
+                )
             )
         )
     }
@@ -96,13 +106,25 @@ internal fun AppearanceSettings(current: AppSettings, viewModel: SettingsViewMod
             buildList {
                 // Wallpaper colours exist from Android 12; below that the switch would do nothing.
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    add(SwitchSetting(Symbols.Palette, R.string.settings_dynamic_color,
-                        R.string.settings_dynamic_color_summary, current.dynamicColor, viewModel::setDynamicColor))
+                    add(
+                        SwitchSetting(
+                            Symbols.Palette, R.string.settings_dynamic_color,
+                            R.string.settings_dynamic_color_summary, current.dynamicColor, viewModel::setDynamicColor
+                        )
+                    )
                 }
-                add(SwitchSetting(Symbols.Contrast, R.string.settings_amoled,
-                    R.string.settings_amoled_summary, current.amoledBlack, viewModel::setAmoledBlack))
-                add(SwitchSetting(Symbols.Animation, R.string.settings_reduce_motion,
-                    R.string.settings_reduce_motion_summary, current.reduceMotion, viewModel::setReduceMotion))
+                add(
+                    SwitchSetting(
+                        Symbols.Contrast, R.string.settings_amoled,
+                        R.string.settings_amoled_summary, current.amoledBlack, viewModel::setAmoledBlack
+                    )
+                )
+                add(
+                    SwitchSetting(
+                        Symbols.Animation, R.string.settings_reduce_motion,
+                        R.string.settings_reduce_motion_summary, current.reduceMotion, viewModel::setReduceMotion
+                    )
+                )
             }
         )
     }
@@ -124,10 +146,14 @@ internal fun ConversationSettings(current: AppSettings, viewModel: SettingsViewM
         )
         SwitchGroup(
             listOf(
-                SwitchSetting(Symbols.KeyboardReturn, R.string.settings_enter_to_send,
-                    R.string.settings_enter_to_send_summary, current.enterToSend, viewModel::setEnterToSend),
-                SwitchSetting(Symbols.FormatBold, R.string.settings_markdown,
-                    R.string.settings_markdown_summary, current.markdown, viewModel::setMarkdown)
+                SwitchSetting(
+                    Symbols.KeyboardReturn, R.string.settings_enter_to_send,
+                    R.string.settings_enter_to_send_summary, current.enterToSend, viewModel::setEnterToSend
+                ),
+                SwitchSetting(
+                    Symbols.FormatBold, R.string.settings_markdown,
+                    R.string.settings_markdown_summary, current.markdown, viewModel::setMarkdown
+                )
             )
         )
     }

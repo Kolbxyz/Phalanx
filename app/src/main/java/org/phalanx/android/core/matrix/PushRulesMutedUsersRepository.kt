@@ -1,5 +1,9 @@
 package org.phalanx.android.core.matrix
 
+import java.io.IOException
+import java.net.URLEncoder
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,10 +19,6 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.phalanx.android.data.repository.MutedUsersRepository
 import org.phalanx.android.di.ApplicationScope
-import java.io.IOException
-import java.net.URLEncoder
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * A muted user is a `sender` push rule with no actions (the spec's way to silence one sender). The

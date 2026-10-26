@@ -47,8 +47,10 @@ internal fun AiSettings(
         }
         SwitchGroup(
             listOf(
-                SwitchSetting(Symbols.Summarize, R.string.settings_ai_switch, R.string.settings_ai_switch_summary,
-                    current.aiSummaries, viewModel::setAiSummaries)
+                SwitchSetting(
+                    Symbols.Summarize, R.string.settings_ai_switch, R.string.settings_ai_switch_summary,
+                    current.aiSummaries, viewModel::setAiSummaries
+                )
             )
         )
         Spacer(Modifier.height(8.dp))

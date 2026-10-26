@@ -3,6 +3,7 @@ package org.phalanx.android.ui.screens.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,7 +12,6 @@ import kotlinx.coroutines.launch
 import org.phalanx.android.data.repository.SecurityRepository
 import org.phalanx.android.data.repository.SecurityStatus
 import org.phalanx.android.data.repository.VerificationStep
-import javax.inject.Inject
 
 /** What the security page shows besides the SDK's own state: dialogs and work in progress. */
 data class SecurityUi(

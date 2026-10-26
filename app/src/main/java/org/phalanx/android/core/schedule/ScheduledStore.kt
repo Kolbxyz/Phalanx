@@ -2,6 +2,11 @@ package org.phalanx.android.core.schedule
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
+import java.io.IOException
+import java.security.GeneralSecurityException
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,11 +17,6 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import org.phalanx.android.core.security.SecretBox
 import org.phalanx.android.data.model.ScheduledMessage
-import java.io.File
-import java.io.IOException
-import java.security.GeneralSecurityException
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * The scheduled messages, sealed with the Keystore key like the session: they are message text,

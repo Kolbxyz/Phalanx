@@ -1,5 +1,10 @@
 package org.phalanx.android.core.matrix
 
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URLEncoder
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -9,11 +14,6 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
 import org.phalanx.android.data.model.Device
-import java.io.IOException
-import java.net.HttpURLConnection
-import java.net.URLEncoder
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * The client-server `/devices` endpoints, called directly: the SDK bindings have no device list.
@@ -48,7 +48,9 @@ internal class DevicesApi @Inject constructor(private val api: ClientServerApi) 
         val first = api.call("DELETE", path, body = "{}")
         if (first.code == HttpURLConnection.HTTP_OK) return DeleteResult.Deleted
         if (first.code != HttpURLConnection.HTTP_UNAUTHORIZED) throw IOException("HTTP ${first.code}")
-        val authSession = json.parseToJsonElement(first.body).let { (it as JsonObject)["session"]?.jsonPrimitive?.content }
+        val authSession = json.parseToJsonElement(first.body).let {
+            (it as JsonObject)["session"]?.jsonPrimitive?.content
+        }
         val auth = buildJsonObject {
             putJsonObject("auth") {
                 put("type", "m.login.password")

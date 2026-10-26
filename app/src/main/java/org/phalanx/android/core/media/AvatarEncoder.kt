@@ -5,12 +5,12 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.core.graphics.scale
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.min
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Turns a picked image into an avatar upload: centre-cropped square, at most [MAX_SIDE] px, JPEG.

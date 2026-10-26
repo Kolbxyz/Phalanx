@@ -1,5 +1,7 @@
 package org.phalanx.android.core.matrix
 
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -7,14 +9,15 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.matrix.rustcomponents.sdk.ClientException
+import org.matrix.rustcomponents.sdk.ReceiptThread
+import org.matrix.rustcomponents.sdk.ReceiptType
+import org.matrix.rustcomponents.sdk.use
 import org.phalanx.android.core.media.AttachmentPreparer
 import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.repository.TimelineRepository
 import org.phalanx.android.data.repository.TimelineSession
 import org.phalanx.android.data.repository.TimelineUnavailableException
 import org.phalanx.android.di.ApplicationScope
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Keeps the most recently opened timelines alive, so going back into a room shows it at once
@@ -51,6 +54,23 @@ internal class RustTimelineRepository @Inject constructor(
             } catch (e: ClientException) {
                 Result.failure(TimelineUnavailableException(e))
             }
+        }
+    }
+
+    override suspend fun readUpTo(roomId: String): Result<Set<String>> = withContext(Dispatchers.IO) {
+        val room = active.room(roomId) ?: return@withContext Result.failure(TimelineUnavailableException())
+        try {
+            room.use {
+                val me = room.ownUserId()
+                val receipts = listOf(ReceiptType.READ, ReceiptType.READ_PRIVATE).flatMap { type ->
+                    listOf(ReceiptThread.Unthreaded, ReceiptThread.Main).mapNotNull { thread ->
+                        room.loadUserReceipt(type, thread, me)?.eventId
+                    }
+                }
+                Result.success(receipts.toSet())
+            }
+        } catch (e: ClientException) {
+            Result.failure(e)
         }
     }
 

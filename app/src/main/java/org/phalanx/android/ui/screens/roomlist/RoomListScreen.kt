@@ -137,7 +137,7 @@ fun RoomListScreen(
                     )
                 }
             }
-    }
+        }
     }
 
     SearchReveal(searching) {

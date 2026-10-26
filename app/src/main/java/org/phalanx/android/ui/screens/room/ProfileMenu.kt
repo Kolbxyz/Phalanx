@@ -59,8 +59,8 @@ internal fun ProfileMenu(
     val muted by viewModel.muted.collectAsStateWithLifecycle()
     if (userId != null) {
         // The ID stands in for the name until the room says who they are.
-        val member by produceState(Member(userId, userId, null), userId) { value = viewModel.member(userId) }
-        val trust by produceState<UserTrust?>(null, userId) { value = viewModel.trustOf(userId) }
+        val member by produceState(Member(userId, userId, null), userId) { value = profiles.member(userId) }
+        val trust by produceState<UserTrust?>(null, userId) { value = profiles.trustOf(userId) }
         ProfileSheet(
             member = member,
             trust = trust,

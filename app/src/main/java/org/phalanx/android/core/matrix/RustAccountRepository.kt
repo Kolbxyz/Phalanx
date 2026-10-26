@@ -1,5 +1,8 @@
 package org.phalanx.android.core.matrix
 
+import java.io.IOException
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -35,9 +38,6 @@ import org.phalanx.android.data.repository.AccountPage
 import org.phalanx.android.data.repository.AccountProfile
 import org.phalanx.android.data.repository.AccountRepository
 import org.phalanx.android.di.ApplicationScope
-import java.io.IOException
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 internal class RustAccountRepository @Inject constructor(
@@ -165,7 +165,11 @@ internal class RustAccountRepository @Inject constructor(
 }
 
 private fun ClientException.toAccountFailure(): AccountFailure =
-    if (this is ClientException.MatrixApi && kind is ErrorKind.Forbidden) AccountFailure.WrongPassword else AccountFailure.Unknown
+    if (this is ClientException.MatrixApi && kind is ErrorKind.Forbidden) {
+        AccountFailure.WrongPassword
+    } else {
+        AccountFailure.Unknown
+    }
 
 /**
  * The last known profile first, so the name shows without waiting for the network (and stays

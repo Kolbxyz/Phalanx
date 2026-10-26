@@ -1,9 +1,9 @@
 package org.phalanx.android.core.matrix
 
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Carries the OAuth redirect from the activity that receives it to the login screen. A state flow

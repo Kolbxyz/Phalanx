@@ -78,7 +78,11 @@ internal fun ReactionKey(reaction: ReactionSummary, imageSize: Dp, style: TextSt
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
         // Decorative: the chip's or tab's description names the reaction.
-        AsyncImage(model = MediaRequest(image, EMOTE_PX), contentDescription = null, modifier = Modifier.size(imageSize))
+        AsyncImage(
+            model = MediaRequest(image, EMOTE_PX),
+            contentDescription = null,
+            modifier = Modifier.size(imageSize)
+        )
         if (suffix != null) Text(" $suffix", style = style)
     }
 }

@@ -27,6 +27,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import org.phalanx.android.R
 import org.phalanx.android.data.model.ArchivedKind
 import org.phalanx.android.data.model.DeletedMessage
@@ -35,10 +39,6 @@ import org.phalanx.android.ui.components.SegmentGap
 import org.phalanx.android.ui.components.SegmentedRow
 import org.phalanx.android.ui.components.segmentedShape
 import org.phalanx.android.ui.theme.Symbols
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 @Composable
 fun DeletedMessagesScreen(onBack: () -> Unit, viewModel: DeletedMessagesViewModel = hiltViewModel()) {

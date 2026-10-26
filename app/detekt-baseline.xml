@@ -1,0 +1,51 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:CropGrab.kt:grab.left || grab.top || grab.right || grab.bottom</ID>
+    <ID>ComplexCondition:InlineRenderer.kt:InlineRenderer$lone &amp;&amp; bounded &amp;&amp; trimmed &amp;&amp; text[close - 1] != '\\'</ID>
+    <ID>CyclomaticComplexMethod:InlineRenderer.kt:InlineRenderer$private fun wrap: Int</ID>
+    <ID>CyclomaticComplexMethod:Markdown.kt:Markdown$fun render: Rendered</ID>
+    <ID>CyclomaticComplexMethod:MessageContentMapper.kt:internal fun MessageType.toBody: MessageBody</ID>
+    <ID>CyclomaticComplexMethod:MessageSummary.kt:@StringRes internal fun kindLabel: Int</ID>
+    <ID>CyclomaticComplexMethod:RustSearchRepository.kt:RustMessageSearch$private fun apply</ID>
+    <ID>CyclomaticComplexMethod:SettingsStore.kt:SettingsStore$private fun Preferences.toSettings: AppSettings</ID>
+    <ID>DestructuringDeclarationWithTooManyEntries:SummaryMarkdown.kt:val (bold, under, star, italic, code) = match.destructured</ID>
+    <ID>ExplicitItLambdaMultipleParameters:DetailsMembersSection.kt:{ _, it -&gt; "member-${it.member.userId}" }</ID>
+    <ID>LoopWithTooManyJumpStatements:HtmlMarks.kt:HtmlMarks$while</ID>
+    <ID>LoopWithTooManyJumpStatements:MessageText.kt:while</ID>
+    <ID>LoopWithTooManyJumpStatements:ModelStore.kt:ModelStore$while</ID>
+    <ID>MagicNumber:ImageEditRenderer.kt:0.1f</ID>
+    <ID>MatchingDeclarationName:EditorToolbar.kt:EditorTool</ID>
+    <ID>MatchingDeclarationName:TimelineMapper.kt:MappingContext</ID>
+    <ID>MaxLineLength:AttachmentPreparer.kt:AttachmentPreparer$/** [image] with the user's [edits] applied to the file as sent; the original file is left for the caller to discard. */</ID>
+    <ID>MaxLineLength:SessionData.kt:SessionData$/** Everything needed to reopen a signed-in account. Only ever stored sealed by [org.phalanx.android.core.security.SecretBox]. */</ID>
+    <ID>ReturnCount:HtmlSanitizer.kt:HtmlSanitizer$fun stripPlainReplyFallback: String</ID>
+    <ID>ReturnCount:InlineRenderer.kt:InlineRenderer$private fun mentionAt: Int</ID>
+    <ID>ReturnCount:InlineRenderer.kt:InlineRenderer$private fun url: Int</ID>
+    <ID>ReturnCount:InlineRenderer.kt:InlineRenderer$private fun wrap: Int</ID>
+    <ID>ReturnCount:LinkPaste.kt:internal fun TextFieldValue.asLinkPasteOver: TextFieldValue?</ID>
+    <ID>ReturnCount:MediaContent.kt:private fun ratioOf: Float</ID>
+    <ID>ReturnCount:MentionCompletion.kt:MentionCompletion$private fun wordAt: Word?</ID>
+    <ID>ReturnCount:NotificationFetcher.kt:NotificationFetcher$suspend fun fetch: Result&lt;IncomingMessage?&gt;</ID>
+    <ID>ReturnCount:Notifier.kt:Notifier$@SuppressLint("MissingPermission") // Checked by allowed(). fun refresh</ID>
+    <ID>ReturnCount:PushRulesMutedUsersRepository.kt:PushRulesMutedUsersRepository$private suspend fun load</ID>
+    <ID>ReturnCount:PushWorker.kt:PushWorker$override suspend fun doWork: Result</ID>
+    <ID>ReturnCount:RoomFilter.kt:internal fun RoomSummary.isArchived: Boolean</ID>
+    <ID>ReturnCount:RustTimelineRepository.kt:RustTimelineRepository$override suspend fun forward: Result&lt;Unit&gt;</ID>
+    <ID>ReturnCount:SharedMedia.kt:@Composable internal fun Modifier.sharedMedia: Modifier</ID>
+    <ID>ReturnCount:TimelineMapper.kt:internal fun nameOf: String</ID>
+    <ID>ThrowsCount:RustMediaRepository.kt:RustMediaRepository$override suspend fun saveToGallery: Result&lt;Unit&gt;</ID>
+    <ID>TooManyFunctions:ActiveClient.kt:ActiveClient</ID>
+    <ID>TooManyFunctions:AttachmentPreparer.kt:AttachmentPreparer</ID>
+    <ID>TooManyFunctions:ComposerController.kt:ComposerController</ID>
+    <ID>TooManyFunctions:MessageScheduler.kt:MessageScheduler : ScheduleRepository</ID>
+    <ID>TooManyFunctions:Notifier.kt:Notifier</ID>
+    <ID>TooManyFunctions:PushRegistrar.kt:PushRegistrar : PushRepository</ID>
+    <ID>TooManyFunctions:RepositoryModule.kt:RepositoryModule</ID>
+    <ID>TooManyFunctions:RustAccountRepository.kt:RustAccountRepository : AccountRepository</ID>
+    <ID>TooManyFunctions:RustTimelineSession.kt:RustTimelineSession : TimelineSession</ID>
+    <ID>TooManyFunctions:SettingsStore.kt:SettingsStore</ID>
+    <ID>TooManyFunctions:TimelineRepository.kt:TimelineSession</ID>
+  </CurrentIssues>
+</SmellBaseline>

@@ -1,5 +1,8 @@
 package org.phalanx.android.core.matrix
 
+import java.util.concurrent.ConcurrentHashMap
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,9 +14,6 @@ import org.matrix.rustcomponents.sdk.ClientException
 import org.matrix.rustcomponents.sdk.use
 import org.phalanx.android.data.repository.DraftsRepository
 import org.phalanx.android.di.ApplicationScope
-import java.util.concurrent.ConcurrentHashMap
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /** Mirrors the drafts the SDK keeps in its store; [RustTimelineSession] reports each one it saves. */
 @Singleton

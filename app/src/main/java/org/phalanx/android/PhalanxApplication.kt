@@ -6,10 +6,10 @@ import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import dagger.Lazy
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 import org.phalanx.android.core.matrix.MessageArchiver
 import org.phalanx.android.core.matrix.SdkRuntime
 import org.phalanx.android.core.push.PushRegistrar
-import javax.inject.Inject
 
 @HiltAndroidApp
 class PhalanxApplication : Application(), SingletonImageLoader.Factory {

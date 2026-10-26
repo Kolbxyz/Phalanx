@@ -1,6 +1,8 @@
 package org.phalanx.android.core.matrix
 
 import android.graphics.BitmapFactory
+import javax.inject.Inject
+import javax.inject.Singleton
 import org.matrix.rustcomponents.sdk.Client
 import org.matrix.rustcomponents.sdk.ClientException
 import org.matrix.rustcomponents.sdk.MediaSource
@@ -18,8 +20,6 @@ import org.phalanx.android.data.model.IncomingMessage
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.NotificationPicture
 import org.phalanx.android.data.model.UnsupportedKind
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /** Turns a push's event ID into a message, through the SDK's short notification sync and local decryption. */
 @Singleton

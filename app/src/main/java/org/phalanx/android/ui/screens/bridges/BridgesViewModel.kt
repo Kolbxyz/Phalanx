@@ -3,6 +3,7 @@ package org.phalanx.android.ui.screens.bridges
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -12,7 +13,6 @@ import kotlinx.coroutines.launch
 import org.phalanx.android.data.model.BridgeNetwork
 import org.phalanx.android.data.model.BridgeStatus
 import org.phalanx.android.data.repository.BridgeRepository
-import javax.inject.Inject
 
 @HiltViewModel
 class BridgesViewModel @Inject constructor(private val bridges: BridgeRepository) : ViewModel() {

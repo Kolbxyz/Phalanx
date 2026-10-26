@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,7 +30,6 @@ import org.phalanx.android.ui.components.Notice
 import org.phalanx.android.ui.components.NoticeKind
 import org.phalanx.android.ui.components.OpenRequest
 import org.phalanx.android.ui.navigation.MediaViewerRoute
-import javax.inject.Inject
 
 /** A video page's file: downloading, ready to play, or failed. */
 @Immutable

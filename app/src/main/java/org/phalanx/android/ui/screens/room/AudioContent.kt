@@ -34,13 +34,13 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import java.io.IOException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.data.model.MediaRef
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.ui.theme.Symbols
-import java.io.IOException
 
 private const val PROGRESS_TICK_MILLIS = 100L
 private const val MIN_BAR = 0.08f

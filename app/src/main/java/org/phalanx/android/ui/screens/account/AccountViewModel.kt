@@ -5,6 +5,8 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.io.IOException
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,8 +26,6 @@ import org.phalanx.android.data.repository.AccountPage
 import org.phalanx.android.data.repository.AccountProfile
 import org.phalanx.android.data.repository.AccountRepository
 import org.phalanx.android.ui.components.decodeAvatar
-import java.io.IOException
-import javax.inject.Inject
 
 @HiltViewModel
 class AccountViewModel @Inject constructor(

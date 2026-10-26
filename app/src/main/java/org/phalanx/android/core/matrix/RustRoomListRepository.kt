@@ -1,5 +1,7 @@
 package org.phalanx.android.core.matrix
 
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -23,8 +25,6 @@ import org.matrix.rustcomponents.sdk.SyncService
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.repository.RoomListRepository
 import org.phalanx.android.di.ApplicationScope
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 internal class RustRoomListRepository @Inject constructor(
@@ -38,7 +38,13 @@ internal class RustRoomListRepository @Inject constructor(
     override val rooms: StateFlow<List<RoomSummary>?> = active.syncService
         .flatMapLatest { service -> service?.roomSummaries() ?: flowOf(null) }
         .combine(mutes.byRoom) { rooms, muted ->
-            if (muted.isEmpty()) rooms else rooms?.map { room -> muted[room.id]?.let { room.copy(isMuted = it) } ?: room }
+            if (muted.isEmpty()) {
+                rooms
+            } else {
+                rooms?.map { room ->
+                    muted[room.id]?.let { room.copy(isMuted = it) } ?: room
+                }
+            }
         }
         .stateIn(scope, SharingStarted.Eagerly, null)
 }

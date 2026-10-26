@@ -14,6 +14,13 @@ class NotForwardableException : Exception("Not forwardable")
 interface TimelineRepository {
     suspend fun open(roomId: String): Result<TimelineSession>
 
+    /**
+     * The events this account's read receipts in [roomId] point at, public and private, from any
+     * of its devices: the latest of them in the timeline is where the user stopped reading. Empty
+     * when none is known.
+     */
+    suspend fun readUpTo(roomId: String): Result<Set<String>>
+
     /** Sends a copy of [eventId] from [fromRoomId] to [toRoomId]; media is not uploaded again. */
     suspend fun forward(fromRoomId: String, eventId: String, toRoomId: String): Result<Unit>
 }
@@ -64,7 +71,6 @@ interface TimelineSession {
     suspend fun toggleReaction(message: TimelineEntry.Message, key: String): Result<Unit>
 
     suspend fun redact(message: TimelineEntry.Message): Result<Unit>
-
 
     /** Pins or unpins [message] for everyone in the room; needs the right to change pins. */
 

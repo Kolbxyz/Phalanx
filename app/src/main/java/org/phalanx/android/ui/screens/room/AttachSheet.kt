@@ -43,17 +43,27 @@ internal fun AttachSheet(
             modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Choice(Symbols.PhotoLibrary, R.string.composer_attach_gallery, MaterialShapes.Cookie9Sided.toShape(),
-                colors.primaryContainer, colors.onPrimaryContainer, onGallery)
-            Choice(Symbols.PhotoCamera, R.string.composer_attach_camera, MaterialShapes.Sunny.toShape(),
-                colors.secondaryContainer, colors.onSecondaryContainer, onPhoto)
-            Choice(Symbols.Videocam, R.string.composer_attach_video, MaterialShapes.Pill.toShape(),
-                colors.tertiaryContainer, colors.onTertiaryContainer, onVideo)
-            Choice(Symbols.InsertDriveFile, R.string.composer_attach_file,
-                MaterialShapes.Clover4Leaf.toShape(), colors.surfaceContainerHighest, colors.onSurface, onFile)
+            Choice(
+                Symbols.PhotoLibrary, R.string.composer_attach_gallery, MaterialShapes.Cookie9Sided.toShape(),
+                colors.primaryContainer, colors.onPrimaryContainer, onGallery
+            )
+            Choice(
+                Symbols.PhotoCamera, R.string.composer_attach_camera, MaterialShapes.Sunny.toShape(),
+                colors.secondaryContainer, colors.onSecondaryContainer, onPhoto
+            )
+            Choice(
+                Symbols.Videocam, R.string.composer_attach_video, MaterialShapes.Pill.toShape(),
+                colors.tertiaryContainer, colors.onTertiaryContainer, onVideo
+            )
+            Choice(
+                Symbols.InsertDriveFile, R.string.composer_attach_file,
+                MaterialShapes.Clover4Leaf.toShape(), colors.surfaceContainerHighest, colors.onSurface, onFile
+            )
             if (onSticker != null) {
-                Choice(Symbols.Sticker, R.string.composer_attach_sticker, MaterialShapes.Puffy.toShape(),
-                    colors.errorContainer, colors.onErrorContainer, onSticker)
+                Choice(
+                    Symbols.Sticker, R.string.composer_attach_sticker, MaterialShapes.Puffy.toShape(),
+                    colors.errorContainer, colors.onErrorContainer, onSticker
+                )
             }
         }
     }

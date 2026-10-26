@@ -1,5 +1,7 @@
 package org.phalanx.android.core.matrix
 
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.matrix.rustcomponents.sdk.ClientException
@@ -14,8 +16,6 @@ import org.matrix.rustcomponents.sdk.use
 import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.repository.RoomActionsRepository
 import org.phalanx.android.data.repository.TimelineUnavailableException
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 internal class RustRoomActionsRepository @Inject constructor(

@@ -13,16 +13,29 @@ private const val SEEK_WAIT_MILLIS = 10_000L
  * Pages back through history until [eventId] is loaded. Returns its entry ID, or null when the
  * start of the room, a failed page or the page limit came first.
  */
-internal suspend fun TimelineSession.seek(eventId: String): String? {
-    for (page in 0..MAX_SEEK_PAGES) {
-        entries.value.firstOrNull { (it as? TimelineEntry.Message)?.eventId == eventId }?.let { return it.id }
-        if (page == MAX_SEEK_PAGES || !hasMoreHistory.value) break
-        val before = entries.value.size
-        if (loadOlder().isFailure) break
-        // The list may be paging already, in which case this call returned at once: wait for that page.
-        if (entries.value.size == before) {
-            withTimeoutOrNull(SEEK_WAIT_MILLIS) { entries.first { it.size != before } } ?: break
-        }
+internal suspend fun TimelineSession.seek(eventId: String): String? = seekAny(setOf(eventId))
+
+/**
+ * Pages back until one of [eventIds] is loaded and returns the entry ID of the newest one loaded,
+ * or null as [seek] does. Paging goes newest to oldest, so the first one found is the newest.
+ */
+internal suspend fun TimelineSession.seekAny(eventIds: Set<String>): String? {
+    var found = newestOf(eventIds)
+    var pages = 0
+    while (found == null && pages++ < MAX_SEEK_PAGES && loadPage()) {
+        found = newestOf(eventIds)
     }
-    return null
+    return found
+}
+
+private fun TimelineSession.newestOf(eventIds: Set<String>): String? = entries.value
+    .lastOrNull { entry -> (entry as? TimelineEntry.Message)?.eventId?.let { it in eventIds } == true }?.id
+
+/** One more page of history; false at the start of the room, or when the page failed or never came. */
+private suspend fun TimelineSession.loadPage(): Boolean {
+    val before = entries.value.size
+    if (!hasMoreHistory.value || loadOlder().isFailure) return false
+    // The list may be paging already, in which case this call returned at once: wait for that page.
+    return entries.value.size != before ||
+        withTimeoutOrNull(SEEK_WAIT_MILLIS) { entries.first { it.size != before } } != null
 }

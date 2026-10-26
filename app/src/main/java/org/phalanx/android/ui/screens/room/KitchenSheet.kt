@@ -14,11 +14,15 @@ import org.phalanx.android.R
 import org.phalanx.android.data.model.KitchenMix
 import org.phalanx.android.ui.components.ModalSheet
 
-/** The composer's Emoji Kitchen picker, offered only once the user turned it on; a tap sends. */
+/**
+ * The Emoji Kitchen picker, offered only once the user turned it on: [onPick] sends the mix from
+ * the composer, or reacts with it from a message's actions.
+ */
 @Composable
 internal fun KitchenSheet(
     onDismiss: () -> Unit,
     onPick: (KitchenMix) -> Unit,
+    onStarFailed: () -> Unit,
     kitchen: KitchenViewModel = hiltViewModel()
 ) {
     ModalSheet(onDismissRequest = onDismiss) {
@@ -29,7 +33,7 @@ internal fun KitchenSheet(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 24.dp)
             )
-            KitchenTab(kitchen, onPick)
+            KitchenTab(kitchen, onPick, onStarFailed)
         }
     }
 }

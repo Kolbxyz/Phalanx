@@ -4,11 +4,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import org.phalanx.android.di.ApplicationScope
-import javax.inject.Inject
 
 /**
  * Fires at a scheduled message's time. The system briefly lets the app use the network even in

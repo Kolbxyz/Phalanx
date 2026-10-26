@@ -1,6 +1,8 @@
 package org.phalanx.android.core.matrix
 
 import android.graphics.BitmapFactory
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
@@ -13,8 +15,6 @@ import org.phalanx.android.core.media.EmojiKitchen
 import org.phalanx.android.data.model.KitchenMix
 import org.phalanx.android.data.repository.StickerRepository
 import org.phalanx.android.data.repository.TimelineUnavailableException
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Uploads the mix's image, then sends the `m.sticker` event through the SDK, which encrypts it in
@@ -33,6 +33,18 @@ internal class RustStickerRepository @Inject constructor(
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
         return sendImage(roomId, StickerImage(bytes, mix.body, file.name, bounds.outWidth))
+    }
+
+    override suspend fun upload(mix: KitchenMix): Result<String> {
+        val file = kitchen.image(mix).getOrElse { return Result.failure(it) }
+        return withContext(Dispatchers.IO) {
+            val client = active.client() ?: return@withContext Result.failure(TimelineUnavailableException())
+            try {
+                Result.success(client.uploadMedia(MIME_TYPE, file.readBytes(), null))
+            } catch (e: ClientException) {
+                Result.failure(e)
+            }
+        }
     }
 
     private suspend fun sendImage(roomId: String, image: StickerImage): Result<Unit> = withContext(Dispatchers.IO) {
