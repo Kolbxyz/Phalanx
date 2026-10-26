@@ -186,6 +186,10 @@
     <string name="settings_ai_summary">Résumés générés sur ce téléphone</string>
     <string name="settings_ai_switch">Résumer les conversations</string>
     <string name="settings_ai_switch_summary">Ajoute un bouton dans les conversations pour résumer les messages non lus. Le modèle tourne uniquement sur ce téléphone ; rien n’est envoyé nulle part.</string>
+    <string name="settings_auto_transcribe">Transcrire automatiquement les messages vocaux</string>
+    <string name="settings_auto_transcribe_summary">Les messages vocaux sont transcrits quand vous les faites défiler, une fois un modèle vocal importé. Cela les télécharge et consomme plus de batterie.</string>
+    <string name="settings_ai_on_disk">Garder les résultats de l’IA sur ce téléphone</string>
+    <string name="settings_ai_on_disk_summary">Les transcriptions sont gardées chiffrées sur ce téléphone pour ne pas être refaites. Désactiver cette option ou se déconnecter les supprime.</string>
     <string name="settings_ai_model">Modèle de langage</string>
     <string name="settings_ai_model_none">Aucun importé</string>
     <string name="settings_ai_model_copying">Vérification et copie… %1$d %%</string>

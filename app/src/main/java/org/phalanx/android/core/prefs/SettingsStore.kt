@@ -64,6 +64,10 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
 
     suspend fun setAiSummaries(enabled: Boolean) = store.edit { it[AI_SUMMARIES] = enabled }
 
+    suspend fun setAiOnDisk(enabled: Boolean) = store.edit { it[AI_ON_DISK] = enabled }
+
+    suspend fun setAutoTranscribe(enabled: Boolean) = store.edit { it[AUTO_TRANSCRIBE] = enabled }
+
     suspend fun setAppLock(enabled: Boolean) = store.edit { it[APP_LOCK] = enabled }
 
     suspend fun setLockTimeout(timeout: LockTimeout) = store.edit { it[LOCK_TIMEOUT] = timeout.name }
@@ -101,6 +105,8 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
             showEditHistory = this[SHOW_EDIT_HISTORY] ?: defaults.showEditHistory,
             keepDeletedMessages = this[KEEP_DELETED] ?: defaults.keepDeletedMessages,
             aiSummaries = this[AI_SUMMARIES] ?: defaults.aiSummaries,
+            aiOnDisk = this[AI_ON_DISK] ?: defaults.aiOnDisk,
+            autoTranscribe = this[AUTO_TRANSCRIBE] ?: defaults.autoTranscribe,
             appLock = this[APP_LOCK] ?: defaults.appLock,
             lockTimeout = LockTimeout.entries.firstOrNull { it.name == this[LOCK_TIMEOUT] } ?: defaults.lockTimeout,
             blockScreenshots = this[BLOCK_SCREENSHOTS] ?: defaults.blockScreenshots,
@@ -130,6 +136,8 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
         val SHOW_EDIT_HISTORY = booleanPreferencesKey("show_edit_history")
         val KEEP_DELETED = booleanPreferencesKey("keep_deleted_messages")
         val AI_SUMMARIES = booleanPreferencesKey("ai_summaries")
+        val AI_ON_DISK = booleanPreferencesKey("ai_on_disk")
+        val AUTO_TRANSCRIBE = booleanPreferencesKey("auto_transcribe")
         val APP_LOCK = booleanPreferencesKey("app_lock")
         val LOCK_TIMEOUT = stringPreferencesKey("lock_timeout")
         val BLOCK_SCREENSHOTS = booleanPreferencesKey("block_screenshots")

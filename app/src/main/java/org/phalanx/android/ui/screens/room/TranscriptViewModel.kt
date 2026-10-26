@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -22,6 +23,7 @@ import org.phalanx.android.core.ai.speech.Transcriber
 import org.phalanx.android.core.ai.speech.Transcript
 import org.phalanx.android.core.ai.speech.UndecodableAudioException
 import org.phalanx.android.core.ai.speech.WhisperNative
+import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.repository.MediaRepository
 
@@ -40,12 +42,18 @@ sealed interface TranscriptState {
 class TranscriptViewModel @Inject constructor(
     private val transcriber: Transcriber,
     private val media: MediaRepository,
-    models: SpeechModelStore
+    models: SpeechModelStore,
+    settings: SettingsStore
 ) : ViewModel() {
     /** Whether a speech model is there to offer transcripts at all. */
     val available: StateFlow<Boolean> = models.installed
         .map { it != null && WhisperNative.isAvailable }
         .stateIn(viewModelScope, SharingStarted.Eagerly, models.installed.value != null && WhisperNative.isAvailable)
+
+    /** Whether voice messages are written out as they come into view, without asking. */
+    val auto: StateFlow<Boolean> = combine(available, settings.settings) { ready, current ->
+        ready && current.autoTranscribe
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val mutableStates = MutableStateFlow<Map<String, TranscriptState>>(emptyMap())
     val states: StateFlow<Map<String, TranscriptState>> = mutableStates.asStateFlow()
@@ -63,6 +71,16 @@ class TranscriptViewModel @Inject constructor(
                 onSuccess = { set(key, TranscriptState.Done(it)) },
                 onFailure = { set(key, TranscriptState.Failed(transcriptFailure(it))) }
             )
+        }
+    }
+
+    /** Writes out [body] as it comes into view, unless it was already, or is being, written. */
+    fun transcribeOnSight(key: String, body: MessageBody.Audio) {
+        if (key in mutableStates.value) return
+        viewModelScope.launch {
+            // A kept transcript shows without fetching the audio again.
+            val kept = transcriber.cached(key)
+            if (kept != null) set(key, TranscriptState.Done(kept)) else transcribe(key, body)
         }
     }
 
