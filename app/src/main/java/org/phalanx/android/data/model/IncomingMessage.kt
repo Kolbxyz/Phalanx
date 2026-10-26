@@ -17,5 +17,12 @@ data class IncomingMessage(
     val picture: NotificationPicture? = null,
     val timestampMillis: Long,
     /** The account's push rules ask for a sound. */
-    val isNoisy: Boolean
+    val isNoisy: Boolean,
+    /**
+     * Set when this is someone reacting to one of the account's messages, which [body] then is:
+     * the emoji or text they reacted with, empty when it could not be read.
+     */
+    val reaction: String? = null,
+    /** How much of it the notification may show, as the user chose. */
+    val shown: NotificationContent = NotificationContent.Full
 )

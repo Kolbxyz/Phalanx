@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.model.AppSettings
+import org.phalanx.android.data.model.LockTimeout
 import org.phalanx.android.data.model.TextSize
 import org.phalanx.android.data.model.ThemeMode
 import org.phalanx.android.data.repository.AccountProfile
@@ -78,6 +79,14 @@ class SettingsViewModel @Inject constructor(
     fun setKeepDeletedMessages(enabled: Boolean) = edit { store.setKeepDeletedMessages(enabled) }
 
     fun setAiSummaries(enabled: Boolean) = edit { store.setAiSummaries(enabled) }
+
+    fun setAppLock(enabled: Boolean) = edit { store.setAppLock(enabled) }
+
+    fun setLockTimeout(timeout: LockTimeout) = edit { store.setLockTimeout(timeout) }
+
+    fun setBlockScreenshots(enabled: Boolean) = edit { store.setBlockScreenshots(enabled) }
+
+    fun setIncognitoKeyboard(enabled: Boolean) = edit { store.setIncognitoKeyboard(enabled) }
 
     fun unblock(userId: String) = edit {
         blockedUsers.unblock(userId).onFailure { mutableFailed.value = true }

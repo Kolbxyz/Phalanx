@@ -9,7 +9,6 @@ import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,14 +23,6 @@ import java.time.format.FormatStyle
 import org.phalanx.android.R
 import org.phalanx.android.core.ai.SummaryCheckpoint
 import org.phalanx.android.ui.theme.Symbols
-
-/** A room's summary checkpoints, found by the event ID of the last message each one covers. */
-@Immutable
-internal class SummaryMarks(checkpoints: List<SummaryCheckpoint>, val onOpen: (SummaryCheckpoint) -> Unit) {
-    private val byEvent = checkpoints.associateBy { it.eventId }
-
-    fun at(eventId: String?): SummaryCheckpoint? = eventId?.let(byEvent::get)
-}
 
 /**
  * Where a summary stops, shown under the last message it covers, like a date in the timeline:

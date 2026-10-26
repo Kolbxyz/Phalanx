@@ -47,6 +47,7 @@ import org.phalanx.android.ui.components.OpenFileEffect
 import org.phalanx.android.ui.components.OpenRequest
 import org.phalanx.android.ui.components.TopNoticeHost
 import org.phalanx.android.ui.screens.room.ForwardSheet
+import org.phalanx.android.ui.screens.room.ProtectedRoomScreen
 import org.phalanx.android.ui.theme.Symbols
 
 private const val CHROME_ALPHA = 0.72f
@@ -58,6 +59,7 @@ fun MediaViewerScreen(
     onJumpTo: (roomId: String, eventId: String) -> Unit,
     viewModel: MediaViewerViewModel = hiltViewModel()
 ) {
+    ProtectedRoomScreen()
     val items by viewModel.items.collectAsStateWithLifecycle()
     val videos by viewModel.videos.collectAsStateWithLifecycle()
     val notice by viewModel.notice.collectAsStateWithLifecycle()

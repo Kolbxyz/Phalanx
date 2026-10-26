@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Window background only; every pixel after first frame is drawn by PhalanxTheme. -->
     <style name="Theme.Phalanx" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/phalanx_window_background</item>
-        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="27">shortEdges</item>
     </style>
 </resources>

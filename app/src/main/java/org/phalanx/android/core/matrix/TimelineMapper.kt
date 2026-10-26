@@ -31,13 +31,18 @@ internal class MappingContext(
 )
 
 /**
- * Copies what the UI needs out of an SDK item and releases it. Null for items that are not shown
- * (membership changes, state events, read markers, ...).
+ * One SDK item: what the UI shows of it, null for items that are not shown (membership changes,
+ * state events, read markers, ...), and the other members whose read receipt sits on it.
  */
-internal fun TimelineItem.toEntry(context: MappingContext): TimelineEntry? = use { item ->
+internal data class TimelineRow(val entry: TimelineEntry?, val readBy: Set<String> = emptySet())
+
+/** Copies what the UI needs out of an SDK item and releases it. */
+internal fun TimelineItem.toRow(context: MappingContext): TimelineRow = use { item ->
     val id = item.uniqueId().id
-    item.asEvent()?.use { it.toMessage(id, context) }
-        ?: (item.asVirtual() as? VirtualTimelineItem.DateDivider)?.let { TimelineEntry.DayDivider(id, it.ts.toLong()) }
+    item.asEvent()?.use { TimelineRow(it.toMessage(id, context), it.readReceipts.keys - context.ownUserId) }
+        ?: TimelineRow(
+            (item.asVirtual() as? VirtualTimelineItem.DateDivider)?.let { TimelineEntry.DayDivider(id, it.ts.toLong()) }
+        )
 }
 
 private fun EventTimelineItem.toMessage(id: String, context: MappingContext): TimelineEntry.Message? {

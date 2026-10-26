@@ -32,15 +32,22 @@ internal fun repliesPrompt(conversation: SummaryPrompt, you: String) = Prompt(
         "twelve words each, no numbering, no quotes. Each must make sense sent right after the last " +
         "message: never go back to a topic the conversation has moved on from, and never mention news, " +
         "events, dates or facts the conversation does not contain. Write in the language the " +
-        "participants use. $DATA_RULE",
+        "participants use. Write only the message text, with no name, label or number before it. $DATA_RULE",
     "${conversation.user}\n\nThe last message is [${conversation.count}]."
 )
 
-/** The model's reply as up to three suggestions, without bullets, numbers or quotes. */
-internal fun repliesOf(reply: String): List<String> = reply.lines()
-    .map { it.replace(LIST_MARK, "").trim('"', '“', '”', ' ') }
-    .filter { it.isNotEmpty() }
-    .take(REPLY_COUNT)
+/**
+ * The model's reply as up to three suggestions, without bullets, numbers or quotes, nor the `[4] You:`
+ * a small model copies from the conversation's lines, where the user appears as [you].
+ */
+internal fun repliesOf(reply: String, you: String): List<String> {
+    val label = Regex("""^${Regex.escape(you)}\s*:\s*""", RegexOption.IGNORE_CASE)
+    return reply.lines()
+        .map { it.replace(LIST_MARK, "").trim(*QUOTES).replace(label, "").trim(*QUOTES) }
+        .filter { it.isNotEmpty() }
+        .take(REPLY_COUNT)
+}
 
-private val LIST_MARK = Regex("""^\s*(?:[-*•]|\d+[.)])?\s*""")
+private val LIST_MARK = Regex("""^\s*(?:[-*•]|\d+[.)])?\s*(?:\[\d+]\s*)?""")
+private val QUOTES = charArrayOf('"', '“', '”', '«', '»', ' ')
 private const val REPLY_COUNT = 3

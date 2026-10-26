@@ -27,7 +27,7 @@ import javax.inject.Singleton
 import org.phalanx.android.MainActivity
 import org.phalanx.android.R
 import org.phalanx.android.data.model.IncomingMessage
-import org.phalanx.android.ui.screens.room.summaryOf
+import org.phalanx.android.data.model.NotificationContent
 
 /**
  * One notification per room, tagged with its ID, that grows into a conversation as messages
@@ -68,26 +68,28 @@ internal class Notifier @Inject constructor(@ApplicationContext private val cont
     @SuppressLint("MissingPermission") // Checked by allowed().
     fun show(message: IncomingMessage) {
         if (!allowed() || message.roomId == viewing.get()) return
-        val text = message.body?.let { summaryOf(it, context::getString) }
-            ?: context.getString(R.string.notification_invite, message.senderName)
+        val text = context.notificationText(message)
+        val hidden = message.shown == NotificationContent.Hidden
         val style: NotificationCompat.MessagingStyle =
             existingStyle(message.roomId) ?: NotificationCompat.MessagingStyle(self)
-        style.setConversationTitle(if (message.isDirect) null else message.roomName)
-        style.setGroupConversation(!message.isDirect)
+        style.setConversationTitle(notificationRoomName(message))
+        style.setGroupConversation(!message.isDirect && !hidden)
         val sender = Person.Builder()
-            .setName(message.senderName)
+            .setName(context.notificationSender(message))
             .setIcon(message.senderAvatar?.let(IconCompat::createWithBitmap))
             .build()
         val line = NotificationCompat.MessagingStyle.Message(text, message.timestampMillis, sender)
         message.picture?.let { line.setData(it.mimeType, NotificationPictureProvider.publish(context, it)) }
         style.addMessage(line)
-        publishShortcut(message, sender)
+        // A shortcut is named after the person or room, which hidden notifications keep to themselves.
+        if (!hidden) publishShortcut(message, sender)
         val notification = NotificationCompat.Builder(context, if (message.isNoisy) CHANNEL_MESSAGES else CHANNEL_QUIET)
             .setSmallIcon(R.drawable.ic_notification)
             .setStyle(style)
             .setColor(context.getColor(R.color.phalanx_notification_accent))
-            .setShortcutId(message.roomId)
-            .setLocusId(LocusIdCompat(message.roomId))
+            .apply {
+                if (!hidden) setShortcutId(message.roomId).setLocusId(LocusIdCompat(message.roomId))
+            }
             .setLargeIcon(message.senderAvatar.takeIf { message.isDirect })
             .setGroup(GROUP_MESSAGES)
             .setOnlyAlertOnce(true)
@@ -157,6 +159,8 @@ internal class Notifier @Inject constructor(@ApplicationContext private val cont
     fun stopViewing(roomId: String) {
         viewing.compareAndSet(roomId, null)
     }
+
+    fun isViewing(roomId: String): Boolean = viewing.get() == roomId
 
     fun dismissAll() = manager.cancelAll()
 

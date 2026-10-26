@@ -65,13 +65,16 @@ jobs:
       # compilation already done for tests and lint.
       - name: Detekt, Unit Tests, Coverage, Lint & Debug APK
         run: |
+          set -o pipefail
           ./gradlew :app:detekt :app:testDebugUnitTest :app:koverVerifyDebug :app:lintDebug \
-            :app:assembleDebug --continue || {
+            :app:assembleDebug --continue 2>&1 | tee gradle.log || {
             report=app/build/reports/lint-results-debug.txt
             if [ -f "$report" ]; then
               echo "=== $report ==="
               cat "$report"
             fi
+            # The errors again as annotations, readable on the pull request.
+            .github/scripts/annotate-failures.sh gradle.log
             exit 1
           }
 
