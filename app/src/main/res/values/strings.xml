@@ -219,6 +219,20 @@
     <string name="summary_mark">Summary · %1$s</string>
     <string name="summary_mark_open">Show the summary written up to here</string>
     <string name="summary_disclaimer">Written on this phone by an AI model. It can be wrong.</string>
+    <string name="catch_up_open">Catch me up</string>
+    <string name="catch_up_title">Catch me up</string>
+    <string name="catch_up_empty">You’re all caught up</string>
+    <string name="catch_up_more">Read more rooms</string>
+    <string name="catch_up_waiting">Next in line</string>
+    <string name="catch_up_reading">Reading…</string>
+    <string name="catch_up_nothing">Nothing new to read here</string>
+    <string name="catch_up_failed">This room couldn’t be opened</string>
+    <string name="catch_up_waiting_on_you">Waiting on you</string>
+    <string name="catch_up_you_promised">You said you would</string>
+    <plurals name="catch_up_unread">
+        <item quantity="one">%1$d unread</item>
+        <item quantity="other">%1$d unread</item>
+    </plurals>
     <string name="summary_no_model">Import a model in Settings → AI first.</string>
     <string name="summary_empty">There is nothing to summarise yet.</string>
     <string name="summary_failed">The summary failed.</string>

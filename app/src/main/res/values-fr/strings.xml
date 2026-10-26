@@ -219,6 +219,21 @@
     <string name="summary_mark">Résumé · %1$s</string>
     <string name="summary_mark_open">Voir le résumé écrit jusqu’ici</string>
     <string name="summary_disclaimer">Rédigé sur ce téléphone par un modèle d’IA. Il peut se tromper.</string>
+    <string name="catch_up_open">Me mettre à jour</string>
+    <string name="catch_up_title">Me mettre à jour</string>
+    <string name="catch_up_empty">Vous êtes à jour</string>
+    <string name="catch_up_more">Lire d’autres salons</string>
+    <string name="catch_up_waiting">À suivre</string>
+    <string name="catch_up_reading">Lecture…</string>
+    <string name="catch_up_nothing">Rien de nouveau à lire ici</string>
+    <string name="catch_up_failed">Ce salon n’a pas pu être ouvert</string>
+    <string name="catch_up_waiting_on_you">On attend votre réponse</string>
+    <string name="catch_up_you_promised">Vous avez dit que vous le feriez</string>
+    <plurals name="catch_up_unread">
+        <item quantity="one">%1$d non lu</item>
+        <item quantity="many">%1$d non lus</item>
+        <item quantity="other">%1$d non lus</item>
+    </plurals>
     <string name="summary_no_model">Importez d’abord un modèle dans Réglages → IA.</string>
     <string name="summary_empty">Il n’y a encore rien à résumer.</string>
     <string name="summary_failed">Le résumé a échoué.</string>

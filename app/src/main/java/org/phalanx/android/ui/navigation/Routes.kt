@@ -38,6 +38,9 @@ data object BridgesRoute
 @Serializable
 data object DeletedMessagesRoute
 
+@Serializable
+data object CatchUpRoute
+
 /** One page of settings; [category] is a [org.phalanx.android.ui.screens.settings.SettingsCategory] name. */
 @Serializable
 data class SettingsCategoryRoute(val category: String)

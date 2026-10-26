@@ -23,6 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import org.phalanx.android.ui.screens.account.AccountScreen
 import org.phalanx.android.ui.screens.bridges.BridgesScreen
+import org.phalanx.android.ui.screens.catchup.CatchUpScreen
 import org.phalanx.android.ui.screens.deleted.DeletedMessagesScreen
 import org.phalanx.android.ui.screens.details.GalleryScreen
 import org.phalanx.android.ui.screens.details.RoomDetailsScreen
@@ -76,7 +77,14 @@ fun PhalanxNavHost(openRoom: RoomRoute?, onRoomOpened: () -> Unit) {
                         onOpenRoom = { navController.from(entry) { navigate(RoomRoute(it)) } },
                         onOpenMessage = { roomId, eventId -> navController.from(entry) { jumpTo(roomId, eventId) } },
                         onOpenDetails = { navController.from(entry) { navigate(RoomDetailsRoute(it)) } },
-                        onOpenAccount = { navController.from(entry) { navigate(SettingsRoute) } }
+                        onOpenAccount = { navController.from(entry) { navigate(SettingsRoute) } },
+                        onOpenCatchUp = { navController.from(entry) { navigate(CatchUpRoute) } }
+                    )
+                }
+                screen<CatchUpRoute> { entry ->
+                    CatchUpScreen(
+                        onBack = { navController.from(entry) { popBackStack() } },
+                        onOpenRoom = { navController.from(entry) { navigate(RoomRoute(it)) } }
                     )
                 }
                 screen<RoomRoute>(

@@ -75,6 +75,15 @@ class LocalSummarizer @Inject internal constructor(
         complete(translatePrompt(text, language), TRANSLATION_TOKENS, onText)
 
     /**
+     * What the user, named [you] in [lines], missed in one room, in up to three points, with what
+     * waits on them and what they promised. Fails when the reply is not the shape asked for.
+     */
+    suspend fun catchUp(lines: List<SummaryLine>, you: String): Result<CatchUp> =
+        complete(catchUpPrompt(SummaryPrompt.of(lines), you), CATCH_UP_TOKENS) {}.mapCatching {
+            catchUpOf(it) ?: throw IllegalStateException("Not a catch-up")
+        }
+
+    /**
      * What [message] plans or asks that another app could take over: events, alarms, timers,
      * reminders, tasks, places, numbers and tracking codes. [before] is context only; relative dates
      * are read from [sentAt].
@@ -154,6 +163,9 @@ class LocalSummarizer @Inject internal constructor(
         const val SUMMARY_TOKENS = 400
         const val REPLIES_TOKENS = 120
         const val TRANSLATION_TOKENS = 1_600
+
+        // Three short points and two lines.
+        const val CATCH_UP_TOKENS = 250
 
         // Four items of about eighty tokens each, with room to close the array.
         const val ACTIONS_TOKENS = 400

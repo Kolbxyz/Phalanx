@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.repository.AccountProfile
 import org.phalanx.android.data.repository.AccountRepository
@@ -31,8 +32,14 @@ class RoomListViewModel @Inject constructor(
     roomList: RoomListRepository,
     account: AccountRepository,
     drafts: DraftsRepository,
-    private val actions: RoomActionsRepository
+    private val actions: RoomActionsRepository,
+    settings: SettingsStore
 ) : ViewModel() {
+    /** Offered with on-device AI on and something unread to catch up on. */
+    val canCatchUp: StateFlow<Boolean> = combine(settings.settings, roomList.rooms) { current, rooms ->
+        current.aiSummaries && rooms.orEmpty().any { it.hasUnread && !it.isMuted && !it.isLowPriority }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), false)
+
     // Starts from the repository's current list, so coming back to this screen never flashes a
     // loading state.
     private val filter = MutableStateFlow(RoomFilter.All)
