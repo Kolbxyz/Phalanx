@@ -27,7 +27,7 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size
 
 add_subdirectory(llama.cpp)
 
-add_library(phalanx_llm SHARED phalanx_llm.cpp cpu_backend.cpp)
+add_library(phalanx_llm SHARED phalanx_llm.cpp llm_engine.cpp cpu_backend.cpp)
 target_include_directories(phalanx_llm PRIVATE llama.cpp/include llama.cpp/ggml/include)
 target_link_libraries(phalanx_llm PRIVATE llama ggml)
 
