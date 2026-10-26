@@ -1,6 +1,7 @@
 package org.phalanx.android.ui.screens.room
 
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.compose.ui.text.input.TextFieldValue
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
@@ -246,17 +247,26 @@ internal class ComposerController(
     }
 
     fun sendRecording() {
-        val voice = recorder.stop()
+        val voice = stopRecording() ?: return
         val replyTo = (mutableState.value.mode as? ComposerMode.Reply)?.message
-        update { it.copy(recording = null) }
-        if (voice == null) {
-            notify(Notice(R.string.composer_record_too_short, NoticeKind.Error))
-            return
-        }
         val current = session ?: return preparer.discard(voice)
         if (replyTo != null) update { it.copy(mode = ComposerMode.New) }
         scope.launch { current.sendMedia(voice, null, replyTo).onFailure { notify(SEND_FAILED) } }
     }
+
+    /** Ends the recording and hands its audio over; null when it was too short, which the user is told. */
+    fun stopRecording(): OutgoingMedia.Voice? {
+        val voice = recorder.stop()
+        update { it.copy(recording = null) }
+        if (voice == null) notify(Notice(R.string.composer_record_too_short, NoticeKind.Error))
+        return voice
+    }
+
+    /** Shows [text], dictated so far, after [before]: the draft as it was when the dictation began. */
+    fun dictated(before: String, text: String) =
+        update { it.withDraft(listOf(before.trimEnd(), text).filter(String::isNotEmpty).joinToString(" ")) }
+
+    fun dictationFailed(@StringRes message: Int) = notify(Notice(message, NoticeKind.Error))
 
     /** Keeps the draft and drops everything that was only in memory. */
     fun release() {

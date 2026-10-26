@@ -46,6 +46,9 @@ fun RoomScreen(
 ) {
     val kitchen: KitchenViewModel = hiltViewModel()
     ProtectedRoomScreen()
+    val transcripts: TranscriptViewModel = hiltViewModel()
+    val dictation: DictationViewModel = hiltViewModel()
+    val canDictate by dictation.available.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val composerState by viewModel.composer.state.collectAsStateWithLifecycle()
     val notice by viewModel.notice.collectAsStateWithLifecycle()
@@ -99,6 +102,12 @@ fun RoomScreen(
             onRecord = launchers.record,
             onCancelRecording = composer::cancelRecording,
             onSendRecording = composer::sendRecording,
+            onDictateRecording = {
+                composer.stopRecording()?.let { voice ->
+                    val before = composer.state.value.draft
+                    dictation.dictate(voice, { composer.dictated(before, it) }, composer::dictationFailed)
+                }
+            },
             onSchedule = { scheduling = true },
             onSendScheduledNow = viewModel::sendScheduledNow,
             onCancelScheduled = viewModel::cancelScheduled
@@ -117,7 +126,13 @@ fun RoomScreen(
         },
         bottomBar = {
             if (ready != null) {
-                Composer(composerState, composerActions, enterToSend = settings?.enterToSend == true, scheduled)
+                Composer(
+                    composerState,
+                    composerActions,
+                    enterToSend = settings?.enterToSend == true,
+                    scheduled = scheduled,
+                    canDictate = canDictate
+                )
             }
         }
     ) { padding ->
@@ -136,7 +151,10 @@ fun RoomScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                is RoomUiState.Ready -> CompositionLocalProvider(LocalTimelinePrefs provides prefs) {
+                is RoomUiState.Ready -> CompositionLocalProvider(
+                    LocalTimelinePrefs provides prefs,
+                    LocalTranscripts provides transcripts
+                ) {
                     Box(Modifier.fillMaxSize()) {
                         val checkpoints by summary.marks.collectAsStateWithLifecycle()
                         val marks = remember(checkpoints) { SummaryMarks(checkpoints, summary::show) }

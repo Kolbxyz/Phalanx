@@ -86,6 +86,7 @@ internal fun AiSettings(
             shape = segmentedShape(0, 1),
             leading = { Icon(Symbols.Info, contentDescription = null) }
         )
+        SpeechSettingsSection()
     }
 }
 

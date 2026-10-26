@@ -6,6 +6,7 @@ import android.media.MediaPlayer
 import android.net.Uri
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -51,6 +52,8 @@ private const val FLAT_LEVEL = 0.25f
 @Composable
 internal fun AudioContent(
     entryId: String,
+    /** What its transcript is kept under: the event, which outlives this timeline item. */
+    transcriptKey: String,
     body: MessageBody.Audio,
     resolve: suspend (MediaRef, String, String?) -> Uri?,
     modifier: Modifier = Modifier
@@ -100,12 +103,26 @@ internal fun AudioContent(
         }
     }
 
+    Column(modifier) {
+        AudioPlayerRow(::toggle, loading, playing, progress, body)
+        AudioTranscript(transcriptKey, body)
+    }
+}
+
+@Composable
+private fun AudioPlayerRow(
+    onToggle: () -> Unit,
+    loading: Boolean,
+    playing: Boolean,
+    progress: Float,
+    body: MessageBody.Audio
+) {
     Row(
-        modifier = modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        FilledTonalIconButton(onClick = ::toggle) {
+        FilledTonalIconButton(onClick = onToggle) {
             when {
                 loading -> LoadingIndicator(Modifier.size(24.dp))
                 playing -> Icon(Symbols.Pause, contentDescription = stringResource(R.string.timeline_pause))

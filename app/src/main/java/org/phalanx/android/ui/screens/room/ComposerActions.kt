@@ -20,6 +20,8 @@ internal class ComposerActions(
     val onRecord: () -> Unit,
     val onCancelRecording: () -> Unit,
     val onSendRecording: () -> Unit,
+    /** Writes the recording out into the draft instead of sending it. */
+    val onDictateRecording: () -> Unit,
     /** Long press on send: pick a time instead of sending now. */
     val onSchedule: () -> Unit,
     val onSendScheduledNow: (String) -> Unit,
