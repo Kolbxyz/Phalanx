@@ -10,6 +10,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -60,6 +61,7 @@ internal fun TimelineList(
     state: RoomUiState.Ready,
     padding: PaddingValues,
     actions: MessageActions,
+    marks: SummaryMarks,
     onLoadOlder: () -> Unit,
     focus: String?,
     onFocused: () -> Unit
@@ -159,15 +161,18 @@ internal fun TimelineList(
                             // Newest first: the item after this one is older, the one before is newer.
                             val older = state.entries.getOrNull(index + 1)
                             val newer = state.entries.getOrNull(index - 1)
-                            MessageBubble(
-                                message = entry,
-                                isGroupChat = !state.isDirect,
-                                startsRun = !sameRun(older, entry),
-                                endsRun = !sameRun(entry, newer),
-                                isNew = isNew,
-                                actions = actions,
-                                modifier = animated.focusHighlight(entry.id == highlighted) { highlighted = null }
-                            )
+                            Column(animated.fillMaxWidth()) {
+                                MessageBubble(
+                                    message = entry,
+                                    isGroupChat = !state.isDirect,
+                                    startsRun = !sameRun(older, entry),
+                                    endsRun = !sameRun(entry, newer),
+                                    isNew = isNew,
+                                    actions = actions,
+                                    modifier = Modifier.focusHighlight(entry.id == highlighted) { highlighted = null }
+                                )
+                                marks.at(entry.eventId)?.let { SummaryMark(it, marks.onOpen) }
+                            }
                         }
                         is TimelineEntry.DayDivider -> DayDivider(entry.millis, animated)
                     }

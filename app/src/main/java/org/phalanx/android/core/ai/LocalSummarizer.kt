@@ -27,12 +27,12 @@ class SummariesUnsupportedException : Exception("Unsupported device")
 
 /**
  * Runs the imported model on this phone's CPU: summaries, reply suggestions and translations. The
- * model is loaded for each request and released after, so it holds no memory between uses. One
- * request at a time.
+ * model stays loaded for a short while after a request (see [LoadedModel]). One request at a time.
  */
 @Singleton
 class LocalSummarizer @Inject internal constructor(
     private val models: ModelStore,
+    private val loaded: LoadedModel,
     active: ActiveClient,
     @ApplicationScope scope: CoroutineScope
 ) {
@@ -94,8 +94,10 @@ class LocalSummarizer @Inject internal constructor(
     }
 
     private suspend fun run(path: String, prompt: Prompt, maxTokens: Int, onText: (String) -> Unit): String =
+        loaded.use(path) { handle -> generate(handle, prompt, maxTokens, onText) }
+
+    private suspend fun generate(handle: Long, prompt: Prompt, maxTokens: Int, onText: (String) -> Unit): String =
         coroutineScope {
-            val handle = LlamaNative.load(path, CpuCores.replyThreads, CpuCores.promptThreads)
             val finished = AtomicBoolean(false)
             // Cancelling the coroutine stops the native loop, which no suspension point can interrupt.
             val watcher = launch {
@@ -118,9 +120,8 @@ class LocalSummarizer @Inject internal constructor(
                 reply.toString(Charsets.UTF_8.name()).trim()
             } finally {
                 finished.set(true)
-                // Joined before the handle is freed, so a late cancel never touches freed memory.
+                // Joined before the handle can be freed, so a late cancel never touches freed memory.
                 withContext(NonCancellable) { watcher.cancelAndJoin() }
-                LlamaNative.free(handle)
             }
         }
 

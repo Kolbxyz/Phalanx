@@ -158,6 +158,11 @@ JNIEXPORT jboolean JNICALL Java_org_phalanx_android_core_ai_LlamaNative_complete
         params.n_batch = kBatch;
         params.n_threads = engine->threads;
         params.n_threads_batch = engine->promptThreads;
+        // Flash attention over an 8-bit KV cache: half the memory of the default 16-bit one, and
+        // less of it to read for every token of a long conversation.
+        params.flash_attn_type = LLAMA_FLASH_ATTN_TYPE_ENABLED;
+        params.type_k = GGML_TYPE_Q8_0;
+        params.type_v = GGML_TYPE_Q8_0;
         llama_context *context = llama_init_from_model(engine->model, params);
         if (context == nullptr) {
             fail(env, "Not enough memory to run the model");

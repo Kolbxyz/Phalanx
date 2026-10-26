@@ -25,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
 import org.phalanx.android.core.ai.SummaryPoint
+import org.phalanx.android.core.ai.SummaryScope
 import org.phalanx.android.ui.components.ModalSheet
 import org.phalanx.android.ui.theme.Symbols
 
@@ -55,13 +56,17 @@ internal fun SummarySheet(state: SummaryState, actions: SummaryActions) {
                 }
                 is SummaryState.Done -> {
                     Text(
-                        stringResource(
-                            if (state.sinceRead) R.string.summary_scope_unread else R.string.summary_scope,
-                            state.count
-                        ),
+                        stringResource(scopeText(state.scope), state.count),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    state.savedAtMillis?.let { saved ->
+                        Text(
+                            stringResource(R.string.summary_saved, clockTime(saved)),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         state.points.forEach { Point(it, actions.onJump) }
                     }
@@ -78,6 +83,13 @@ internal fun SummarySheet(state: SummaryState, actions: SummaryActions) {
             }
         }
     }
+}
+
+@StringRes
+private fun scopeText(scope: SummaryScope): Int = when (scope) {
+    SummaryScope.Latest -> R.string.summary_scope
+    SummaryScope.Unread -> R.string.summary_scope_unread
+    SummaryScope.SinceLast -> R.string.summary_scope_since_last
 }
 
 /** A point on a tonal row; one that cites a message is a button to it. */
