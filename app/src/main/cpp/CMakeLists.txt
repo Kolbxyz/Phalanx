@@ -61,5 +61,12 @@ set(PCRE2_LIBRARIES pcre2-8-static CACHE STRING "" FORCE)
 set(PCRE2_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/pcre2 CACHE PATH "" FORCE)
 set(BUILD_ARCH armv8-a CACHE STRING "" FORCE)
 add_subdirectory(bergamot-translator EXCLUDE_FROM_ALL)
+# Pathie, Marian's path library, calls iconv() and glob(), which Android only has from API 28.
+# Bergamot never globs, and with UTF-8 assumed it never converts names either; weak references
+# let it link on Android 8 without ever calling them.
+if(ANDROID)
+    target_compile_definitions(pathie-cpp PRIVATE PATHIE_ASSUME_UTF8_ON_UNIX __ANDROID_UNAVAILABLE_SYMBOLS_ARE_WEAK__)
+    target_compile_options(pathie-cpp PRIVATE -Wno-unguarded-availability)
+endif()
 add_library(phalanx_mt SHARED phalanx_mt.cpp)
 target_link_libraries(phalanx_mt PRIVATE bergamot-translator)
