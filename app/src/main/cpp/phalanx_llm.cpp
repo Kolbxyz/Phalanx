@@ -3,30 +3,19 @@
 
 #include <jni.h>
 
-#include <algorithm>
-#include <atomic>
 #include <exception>
 #include <string>
 #include <vector>
 
 #include "cpu_backend.h"
 #include "llama.h"
+#include "llm_engine.h"
 
 namespace {
 
-constexpr int32_t kBatch = 512;
 constexpr int32_t kPieceBytes = 256;
 
-struct Engine {
-    llama_model *model = nullptr;
-    int32_t threads = 4;
-    int32_t promptThreads = 4;
-    std::atomic<bool> cancelled{false};
-};
-
 void silentLog(ggml_log_level, const char *, void *) {}
-
-bool isCancelled(void *flag) { return static_cast<std::atomic<bool> *>(flag)->load(); }
 
 void fail(JNIEnv *env, const char *message) {
     if (env->ExceptionCheck()) return;
@@ -71,16 +60,6 @@ std::vector<llama_token> tokensOf(const llama_vocab *vocab, const std::string &t
     return tokens;
 }
 
-// True once the whole prompt is decoded; false when it was cancelled or llama.cpp refused it.
-bool decodePrompt(Engine *engine, llama_context *context, std::vector<llama_token> &tokens) {
-    for (size_t at = 0; at < tokens.size(); at += kBatch) {
-        const int32_t count = static_cast<int32_t>(std::min<size_t>(kBatch, tokens.size() - at));
-        if (llama_decode(context, llama_batch_get_one(tokens.data() + at, count)) != 0) return false;
-        if (engine->cancelled.load()) return false;
-    }
-    return true;
-}
-
 }  // namespace
 
 extern "C" {
@@ -117,6 +96,7 @@ JNIEXPORT void JNICALL Java_org_phalanx_android_core_ai_LlamaNative_cancel(JNIEn
 
 JNIEXPORT void JNICALL Java_org_phalanx_android_core_ai_LlamaNative_free(JNIEnv *, jobject, jlong handle) {
     auto *engine = reinterpret_cast<Engine *>(handle);
+    if (engine->context != nullptr) llama_free(engine->context);
     llama_model_free(engine->model);
     delete engine;
 }
@@ -142,22 +122,11 @@ JNIEXPORT jboolean JNICALL Java_org_phalanx_android_core_ai_LlamaNative_complete
             return JNI_FALSE;
         }
 
-        llama_context_params params = llama_context_default_params();
-        params.n_ctx = static_cast<uint32_t>(contextSize);
-        params.n_batch = kBatch;
-        params.n_threads = engine->threads;
-        params.n_threads_batch = engine->promptThreads;
-        // Flash attention over an 8-bit KV cache: half the memory of the default 16-bit one, and
-        // less of it to read for every token of a long conversation.
-        params.flash_attn_type = LLAMA_FLASH_ATTN_TYPE_ENABLED;
-        params.type_k = GGML_TYPE_Q8_0;
-        params.type_v = GGML_TYPE_Q8_0;
-        llama_context *context = llama_init_from_model(engine->model, params);
+        llama_context *context = contextFor(engine, contextSize);
         if (context == nullptr) {
             fail(env, "Not enough memory to run the model");
             return JNI_FALSE;
         }
-        llama_set_abort_callback(context, isCancelled, &engine->cancelled);
         llama_sampler *sampler = llama_sampler_chain_init(llama_sampler_chain_default_params());
         // A grammar (GBNF) keeps the reply to the shape asked for, such as JSON: tokens that would
         // break it are never picked, whatever the model would rather write.
@@ -165,7 +134,6 @@ JNIEXPORT jboolean JNICALL Java_org_phalanx_android_core_ai_LlamaNative_complete
             llama_sampler *rules = llama_sampler_init_grammar(vocab, textOf(env, grammar).c_str(), "root");
             if (rules == nullptr) {
                 llama_sampler_free(sampler);
-                llama_free(context);
                 fail(env, "The grammar could not be read");
                 return JNI_FALSE;
             }
@@ -174,7 +142,7 @@ JNIEXPORT jboolean JNICALL Java_org_phalanx_android_core_ai_LlamaNative_complete
         llama_sampler_chain_add(sampler, llama_sampler_init_greedy());
 
         const jmethodID onToken = env->GetMethodID(env->GetObjectClass(sink), "onToken", "([B)Z");
-        bool finished = decodePrompt(engine, context, tokens);
+        bool finished = decodePrompt(engine, tokens, reuse(engine, tokens));
         if (!finished && !engine->cancelled.load()) fail(env, "The model could not read the conversation");
         char piece[kPieceBytes];
         for (int32_t produced = 0; finished && produced < maxNewTokens; produced++) {
@@ -194,12 +162,19 @@ JNIEXPORT jboolean JNICALL Java_org_phalanx_android_core_ai_LlamaNative_complete
             if (llama_decode(context, llama_batch_get_one(&token, 1)) != 0) {
                 finished = false;
                 if (!engine->cancelled.load()) fail(env, "The model stopped unexpectedly");
+                break;
             }
+            engine->cached.push_back(token);
+        }
+        // A reply cut off by its sink leaves the memory as [cached] says; a failed decode does not.
+        if (!finished && engine->cached.size() != static_cast<size_t>(llama_memory_seq_pos_max(
+                llama_get_memory(context), 0) + 1)) {
+            forget(engine);
         }
         llama_sampler_free(sampler);
-        llama_free(context);
         return finished ? JNI_TRUE : JNI_FALSE;
     } catch (const std::exception &) {
+        if (engine->context != nullptr) forget(engine);
         fail(env, "The model ran out of memory");
         return JNI_FALSE;
     }

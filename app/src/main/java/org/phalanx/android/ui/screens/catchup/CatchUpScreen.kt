@@ -1,5 +1,6 @@
 package org.phalanx.android.ui.screens.catchup
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,13 +15,18 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -31,6 +37,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.phalanx.android.R
 import org.phalanx.android.ui.components.BackButton
+import org.phalanx.android.ui.screens.room.ScheduleSheet
+import org.phalanx.android.ui.theme.Symbols
 
 /** Every room with something unread, caught up on in turn; a card opens its room. */
 @Composable
@@ -40,6 +48,9 @@ fun CatchUpScreen(
     viewModel: CatchUpViewModel = hiltViewModel()
 ) {
     val cards by viewModel.cards.collectAsStateWithLifecycle()
+    var reminding by remember { mutableStateOf<CatchUpCard?>(null) }
+    // By room: what came of the reminder set on its promise.
+    var reminded by remember { mutableStateOf(mapOf<String, Int>()) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -64,7 +75,14 @@ fun CatchUpScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(cards, key = { it.room.id }) { card -> CatchUpCardView(card) { onOpenRoom(card.room.id) } }
+            items(cards, key = { it.room.id }) { card ->
+                CatchUpCardView(
+                    card = card,
+                    reminded = reminded[card.room.id],
+                    onRemind = { reminding = card },
+                    onClick = { onOpenRoom(card.room.id) }
+                )
+            }
             if (cards.any { it.state == CardState.Waiting }) {
                 item {
                     FilledTonalButton(onClick = viewModel::more, modifier = Modifier.fillMaxWidth()) {
@@ -81,10 +99,23 @@ fun CatchUpScreen(
             }
         }
     }
+    reminding?.let { card ->
+        ScheduleSheet(
+            exact = viewModel.canScheduleExactly(),
+            onDismiss = { reminding = null },
+            onPick = { at ->
+                reminding = null
+                viewModel.remindPromise(card, at) { saved ->
+                    reminded = reminded + (card.room.id to if (saved) R.string.remind_done else R.string.remind_failed)
+                }
+            },
+            title = R.string.remind_title
+        )
+    }
 }
 
 @Composable
-private fun CatchUpCardView(card: CatchUpCard, onClick: () -> Unit) {
+private fun CatchUpCardView(card: CatchUpCard, @StringRes reminded: Int?, onRemind: () -> Unit, onClick: () -> Unit) {
     Card(onClick = onClick, colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surfaceContainerHigh)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -113,7 +144,17 @@ private fun CatchUpCardView(card: CatchUpCard, onClick: () -> Unit) {
                 is CardState.Done -> {
                     state.catchUp.points.forEach { Text("• $it", style = MaterialTheme.typography.bodyMedium) }
                     state.catchUp.waiting?.let { Line(stringResource(R.string.catch_up_waiting_on_you), it) }
-                    state.catchUp.promised?.let { Line(stringResource(R.string.catch_up_you_promised), it) }
+                    state.catchUp.promised?.let {
+                        Line(stringResource(R.string.catch_up_you_promised), it)
+                        if (reminded != null) {
+                            Muted(stringResource(reminded))
+                        } else {
+                            TextButton(onClick = onRemind) {
+                                Icon(Symbols.AlarmOn, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Text(stringResource(R.string.remind_title), modifier = Modifier.padding(start = 6.dp))
+                            }
+                        }
+                    }
                 }
             }
         }
