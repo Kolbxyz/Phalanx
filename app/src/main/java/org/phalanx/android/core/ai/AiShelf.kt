@@ -54,6 +54,12 @@ internal class AiShelf<T>(
         }
     }
 
+    /** Every result still fresh, by key, oldest first. */
+    suspend fun all(now: Long = System.currentTimeMillis()): Map<String, T> = lock.withLock {
+        loadLocked()
+        results.filterValues { now - it.savedAtMillis < maxAgeMillis }.mapValues { it.value.value }
+    }
+
     /** Forgets every result and deletes the file. */
     suspend fun clear() = lock.withLock {
         results.clear()

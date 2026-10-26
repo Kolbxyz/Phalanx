@@ -17,9 +17,14 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
+import org.phalanx.android.core.ai.AiDisk
+import org.phalanx.android.core.ai.photos.PhotoNote
+import org.phalanx.android.core.ai.photos.matches
+import org.phalanx.android.data.model.MediaRef
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.repository.MediaRepository
@@ -56,7 +61,8 @@ data class SearchResults(
 class SearchViewModel @Inject constructor(
     roomList: RoomListRepository,
     private val searches: SearchRepository,
-    private val mediaFiles: MediaRepository
+    private val mediaFiles: MediaRepository,
+    disk: AiDisk
 ) : ViewModel() {
     private val mutableQuery = MutableStateFlow("")
     val query: StateFlow<String> = mutableQuery.asStateFlow()
@@ -77,20 +83,33 @@ class SearchViewModel @Inject constructor(
         current?.let { combine(it.loading, it.endReached) { loading, end -> loading to end } } ?: flowOf(false to true)
     }
 
+    // Photos found by what they show, from the descriptions kept on this phone (see PhotoIndexer).
+    private val photoHits = mutableQuery.debounce(DEBOUNCE_MILLIS).distinctUntilChanged().mapLatest { text ->
+        val query = text.trim()
+        if (query.isEmpty()) {
+            emptyList()
+        } else {
+            disk.readAll(disk.photos).filterValues { it.matches(query) }.map { (eventId, note) -> note.toHit(eventId) }
+                .sortedByDescending { it.timestampMillis }
+        }
+    }
+
     val results: StateFlow<SearchResults> = combine(
         roomList.rooms,
         mutableQuery,
-        hits,
+        combine(hits, photoHits) { found, photos -> found to photos },
         paging
-    ) { rooms, query, allHits, page ->
+    ) { rooms, query, (allHits, allPhotos), page ->
         val all = rooms.orEmpty()
         val text = query.trim()
         // A cleared query keeps the last hits until the index answers; none of them should show.
         val found = if (text.isEmpty()) emptyList() else allHits
+        val photos = if (text.isEmpty()) emptyList() else allPhotos
         SearchResults(
             chats = if (text.isEmpty()) emptyList() else all.filter { it.name.contains(text, ignoreCase = true) },
             messages = found.filter { it.body is MessageBody.Text },
-            media = found.filter { it.body is MessageBody.Image || it.body is MessageBody.Video },
+            media = (found.filter { it.body is MessageBody.Image || it.body is MessageBody.Video } + photos)
+                .distinctBy { it.eventId },
             files = found.filter { it.body is MessageBody.File || it.body is MessageBody.Audio },
             roomNames = all.associate { it.id to it.name },
             loading = page.first,
@@ -164,3 +183,22 @@ class SearchViewModel @Inject constructor(
         const val STOP_TIMEOUT_MILLIS = 5_000L
     }
 }
+
+/** A described photo as a search hit, shown by its thumbnail like any media hit. */
+private fun PhotoNote.toHit(eventId: String) = MessageHit(
+    roomId = roomId,
+    eventId = eventId,
+    senderName = "",
+    senderAvatar = null,
+    body = MessageBody.Image(
+        media = MediaRef(thumbnail),
+        thumbnail = null,
+        width = null,
+        height = null,
+        caption = null,
+        isSticker = false,
+        filename = "",
+        mimeType = mimeType
+    ),
+    timestampMillis = sentAtMillis
+)

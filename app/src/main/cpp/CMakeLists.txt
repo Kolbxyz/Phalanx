@@ -12,6 +12,8 @@ set(LLAMA_BUILD_TOOLS OFF)
 set(LLAMA_BUILD_EXAMPLES OFF)
 set(LLAMA_BUILD_SERVER OFF)
 set(LLAMA_BUILD_APP OFF)
+# mtmd, llama.cpp's library for images, on its own: it describes photos for search.
+set(LLAMA_BUILD_MTMD ON)
 set(GGML_NATIVE OFF)
 set(GGML_OPENMP OFF)
 set(GGML_CPU_KLEIDIAI OFF)
@@ -27,9 +29,9 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size
 
 add_subdirectory(llama.cpp)
 
-add_library(phalanx_llm SHARED phalanx_llm.cpp llm_engine.cpp cpu_backend.cpp)
-target_include_directories(phalanx_llm PRIVATE llama.cpp/include llama.cpp/ggml/include)
-target_link_libraries(phalanx_llm PRIVATE llama ggml)
+add_library(phalanx_llm SHARED phalanx_llm.cpp phalanx_vision.cpp llm_engine.cpp llm_jni.cpp cpu_backend.cpp)
+target_include_directories(phalanx_llm PRIVATE llama.cpp/include llama.cpp/ggml/include llama.cpp/tools/mtmd)
+target_link_libraries(phalanx_llm PRIVATE llama ggml mtmd)
 
 # Speech to text: only whisper.cpp's library sources, from its pinned submodule, built against
 # llama.cpp's ggml above, so the app ships one ggml and one set of CPU backends. whisper.cpp's own

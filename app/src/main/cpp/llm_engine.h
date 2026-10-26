@@ -5,9 +5,15 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include "llama.h"
+
+struct mtmd_context;
+
+// Tokens decoded in one llama_decode call.
+constexpr int32_t kBatch = 512;
 
 struct Engine {
     llama_model *model = nullptr;
@@ -20,6 +26,9 @@ struct Engine {
     llama_context *context = nullptr;
     int32_t contextSize = 0;
     std::vector<llama_token> cached;
+    // The vision projector read from [visionPath], loaded with the first image to describe.
+    mtmd_context *vision = nullptr;
+    std::string visionPath;
 };
 
 llama_context *contextFor(Engine *engine, int32_t contextSize);

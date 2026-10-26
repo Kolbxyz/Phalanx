@@ -84,6 +84,8 @@ class SettingsViewModel @Inject constructor(
 
     fun setAutoTranscribe(enabled: Boolean) = edit { store.setAutoTranscribe(enabled) }
 
+    fun setPhotoSearch(enabled: Boolean) = edit { store.setPhotoSearch(enabled) }
+
     fun setAppLock(enabled: Boolean) = edit { store.setAppLock(enabled) }
 
     fun setLockTimeout(timeout: LockTimeout) = edit { store.setLockTimeout(timeout) }
