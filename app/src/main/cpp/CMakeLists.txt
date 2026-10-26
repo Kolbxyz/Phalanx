@@ -27,6 +27,18 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size
 
 add_subdirectory(llama.cpp)
 
-add_library(phalanx_llm SHARED phalanx_llm.cpp)
+add_library(phalanx_llm SHARED phalanx_llm.cpp cpu_backend.cpp)
 target_include_directories(phalanx_llm PRIVATE llama.cpp/include llama.cpp/ggml/include)
 target_link_libraries(phalanx_llm PRIVATE llama ggml)
+
+# Speech to text: only whisper.cpp's library sources, from its pinned submodule, built against
+# llama.cpp's ggml above, so the app ships one ggml and one set of CPU backends. whisper.cpp's own
+# ggml copy, tools and examples are never built. ANEForge is Apple-only and compiles to a stub.
+add_library(phalanx_stt SHARED
+        phalanx_stt.cpp
+        cpu_backend.cpp
+        whisper.cpp/src/whisper.cpp
+        whisper.cpp/src/aneforge/whisper-aneforge.cpp)
+target_include_directories(phalanx_stt PRIVATE whisper.cpp/include whisper.cpp/src llama.cpp/ggml/include)
+target_compile_definitions(phalanx_stt PRIVATE WHISPER_VERSION="1.9.5")
+target_link_libraries(phalanx_stt PRIVATE ggml)
