@@ -46,6 +46,7 @@ fun RoomListScreen(
     onOpenAccount: () -> Unit,
     onOpenCatchUp: () -> Unit,
     onOpenReminders: () -> Unit,
+    onOpenPeople: () -> Unit,
     viewModel: RoomListViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -82,6 +83,10 @@ fun RoomListScreen(
         onOpenReminders = {
             scope.launch { drawer.close() }
             onOpenReminders()
+        },
+        onOpenPeople = {
+            scope.launch { drawer.close() }
+            onOpenPeople()
         }
     ) {
         Scaffold(
