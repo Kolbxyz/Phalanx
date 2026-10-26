@@ -65,8 +65,8 @@ private suspend fun Client.ownMessage(roomId: String, eventId: String): MessageL
     }
 }
 
-// The reaction's key, from the decrypted event: the bindings don't expose it.
-private fun keyOf(rawEvent: String): String? = try {
+/** The reaction's key (its emoji or text), from the decrypted event: the bindings don't expose it. */
+internal fun keyOf(rawEvent: String): String? = try {
     Json.parseToJsonElement(rawEvent).jsonObject["content"]?.jsonObject
         ?.get("m.relates_to")?.jsonObject
         ?.get("key")?.jsonPrimitive?.contentOrNull

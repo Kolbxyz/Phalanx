@@ -18,6 +18,7 @@ import org.matrix.rustcomponents.sdk.use
 import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.model.IncomingMessage
 import org.phalanx.android.data.model.MessageBody
+import org.phalanx.android.data.model.NotificationContent
 import org.phalanx.android.data.model.NotificationPicture
 import org.phalanx.android.data.model.UnsupportedKind
 
@@ -38,7 +39,10 @@ internal class NotificationFetcher @Inject constructor(
         val client = active.client() ?: return Result.success(null)
         val sync = active.syncService.value ?: return Result.success(null)
         val current = settings.current()
-        val pictures = current.autoLoadMedia
+        val shown = current.notificationContent
+        // The sender's photo shows unless notifications hide who wrote; the message's only in full.
+        val avatars = shown != NotificationContent.Hidden
+        val pictures = current.autoLoadMedia && shown == NotificationContent.Full
         val reactions = current.reactionNotifications
         if (isMuted(client, roomId)) return Result.success(null)
         return try {
@@ -49,8 +53,11 @@ internal class NotificationFetcher @Inject constructor(
                     is NotificationStatus.Event -> incomingOf(client, roomId, eventId, status.item, reactions)
                         ?.let {
                             it.copy(
-                                senderAvatar = client.avatarBitmap(status.item.senderInfo.avatarUrl),
-                                picture = if (pictures) it.body?.let { body -> client.pictureOf(body) } else null
+                                senderAvatar = status.item.senderInfo.avatarUrl
+                                    ?.takeIf { avatars }
+                                    ?.let { url -> client.avatarBitmap(url) },
+                                picture = if (pictures) it.body?.let { body -> client.pictureOf(body) } else null,
+                                shown = shown
                             )
                         }
                         .also { status.destroy() }

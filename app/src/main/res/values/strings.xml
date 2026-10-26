@@ -370,6 +370,16 @@
     <string name="push_reactions">Reactions to my messages</string>
     <string name="push_reactions_summary">Notify when someone reacts to one of your messages. This turns on your account’s reaction notifications, so your other Matrix apps may start showing reactions too</string>
     <string name="push_reactions_failed">The server did not accept the change. Check your connection and try again</string>
+    <string name="push_content_section">Show in notifications</string>
+    <string name="push_content_full">Everything</string>
+    <string name="push_content_name">Name only</string>
+    <string name="push_content_hidden">Nothing</string>
+    <string name="push_content_full_summary">Who wrote and what they wrote, with photos</string>
+    <string name="push_content_name_summary">Who wrote, but not what: “New message”</string>
+    <string name="push_content_hidden_summary">Only “New message”, with no name, room or photo. Typing and read alerts hide names too</string>
+    <string name="notification_reacted">Reacted to your message</string>
+    <string name="activity_typing_hidden">Someone is typing…</string>
+    <string name="activity_read_hidden">Your message was read</string>
     <string name="notification_reaction">Reacted %1$s to: %2$s</string>
     <string name="notification_reaction_unknown">Reacted to: %1$s</string>
     <string name="notification_channel_activity">Typing and read alerts</string>

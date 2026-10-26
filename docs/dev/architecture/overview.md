@@ -44,3 +44,4 @@ UnifiedPush `PushService` → expedited WorkManager worker → `NotificationClie
 - The incognito keyboard sets `IME_FLAG_NO_PERSONALIZED_LEARNING` on every text field through `InterceptPlatformTextInput`.
 - Typing and read alerts (`core/matrix/RoomWatch`) run only while the app syncs on screen: neither is ever pushed, and nothing keeps the app awake to watch for them.
 - Reaction notifications turn the account's `.m.rule.reaction` push rule to notify; it is account-wide, so other clients may follow it. The phone keeps only reactions to the account's own messages.
+- Settings → Notifications → "Show in notifications" decides how much a notification shows: everything, the sender's name only, or nothing but "New message" (no name, room, photo or shortcut). Typing and read alerts follow it.

@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import org.phalanx.android.data.model.AppSettings
 import org.phalanx.android.data.model.LockTimeout
+import org.phalanx.android.data.model.NotificationContent
 import org.phalanx.android.data.model.TextSize
 import org.phalanx.android.data.model.ThemeMode
 
@@ -73,6 +74,9 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
 
     suspend fun setReactionNotifications(enabled: Boolean) = store.edit { it[REACTION_NOTIFICATIONS] = enabled }
 
+    suspend fun setNotificationContent(content: NotificationContent) =
+        store.edit { it[NOTIFICATION_CONTENT] = content.name }
+
     /** Null goes back to finding the gateway automatically. */
     suspend fun setPushGateway(url: String?) = store.edit {
         if (url == null) it.remove(PUSH_GATEWAY) else it[PUSH_GATEWAY] = url
@@ -102,6 +106,8 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
             blockScreenshots = this[BLOCK_SCREENSHOTS] ?: defaults.blockScreenshots,
             incognitoKeyboard = this[INCOGNITO_KEYBOARD] ?: defaults.incognitoKeyboard,
             reactionNotifications = this[REACTION_NOTIFICATIONS] ?: defaults.reactionNotifications,
+            notificationContent = NotificationContent.entries.firstOrNull { it.name == this[NOTIFICATION_CONTENT] }
+                ?: defaults.notificationContent,
             pushGateway = this[PUSH_GATEWAY]
         )
     }
@@ -129,5 +135,6 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
         val BLOCK_SCREENSHOTS = booleanPreferencesKey("block_screenshots")
         val INCOGNITO_KEYBOARD = booleanPreferencesKey("incognito_keyboard")
         val REACTION_NOTIFICATIONS = booleanPreferencesKey("reaction_notifications")
+        val NOTIFICATION_CONTENT = stringPreferencesKey("notification_content")
     }
 }

@@ -13,6 +13,9 @@ enum class LockTimeout(val millis: Long) {
     FifteenMinutes(15 * MINUTE_MILLIS)
 }
 
+/** How much a notification shows: the sender and message, the sender only, or neither. */
+enum class NotificationContent { Full, NameOnly, Hidden }
+
 private const val MINUTE_MILLIS = 60_000L
 
 private const val SMALL_SCALE = 0.9f
@@ -61,6 +64,7 @@ data class AppSettings(
      * reaction push rule, which other apps signed in to the account may then follow too.
      */
     val reactionNotifications: Boolean = false,
+    val notificationContent: NotificationContent = NotificationContent.Full,
     /** The Matrix push gateway the user chose. Null: the distributor's own, else the public one. */
     val pushGateway: String? = null
 )

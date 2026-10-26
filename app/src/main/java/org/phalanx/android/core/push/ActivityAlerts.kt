@@ -19,6 +19,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import org.phalanx.android.MainActivity
 import org.phalanx.android.R
+import org.phalanx.android.core.prefs.SettingsStore
+import org.phalanx.android.data.model.NotificationContent
 
 /**
  * "Marie is typing" and "Marie read your message", for the rooms the user asked to watch. Shown on
@@ -28,7 +30,8 @@ import org.phalanx.android.R
 @Singleton
 internal class ActivityAlerts @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val notifier: Notifier
+    private val notifier: Notifier,
+    private val settings: SettingsStore
 ) {
     private val manager = NotificationManagerCompat.from(context)
 
@@ -46,28 +49,34 @@ internal class ActivityAlerts @Inject constructor(
     }
 
     /** [names] started typing in [roomName]; the alert goes away by itself once it is stale. */
-    fun typing(roomId: String, roomName: String, names: List<String>) {
+    suspend fun typing(roomId: String, roomName: String, names: List<String>) {
         if (names.isEmpty()) return
-        show(roomId, TYPING_ID, roomName, textOf(R.string.activity_typing, names), TYPING_TIMEOUT_MILLIS)
+        val text = textOf(R.string.activity_typing, R.string.activity_typing_hidden, names)
+        show(roomId, TYPING_ID, roomName, text, TYPING_TIMEOUT_MILLIS)
     }
 
     fun stoppedTyping(roomId: String) = manager.cancel(roomId, TYPING_ID)
 
     /** [names] read this account's latest message in [roomName]. */
-    fun read(roomId: String, roomName: String, names: List<String>) {
+    suspend fun read(roomId: String, roomName: String, names: List<String>) {
         if (names.isEmpty()) return
-        show(roomId, READ_ID, roomName, textOf(R.string.activity_read, names), timeoutMillis = null)
+        val text = textOf(R.string.activity_read, R.string.activity_read_hidden, names)
+        show(roomId, READ_ID, roomName, text, timeoutMillis = null)
     }
 
-    private fun textOf(@StringRes text: Int, names: List<String>) = context.getString(text, names.joinToString(", "))
+    // Notifications that hide who wrote hide who typed or read too, and in which room.
+    private suspend fun hidden() = settings.current().notificationContent == NotificationContent.Hidden
+
+    private suspend fun textOf(@StringRes named: Int, @StringRes anonymous: Int, names: List<String>) =
+        if (hidden()) context.getString(anonymous) else context.getString(named, names.joinToString(", "))
 
     @SuppressLint("MissingPermission") // Checked just before.
-    private fun show(roomId: String, id: Int, roomName: String, text: String, timeoutMillis: Long?) {
+    private suspend fun show(roomId: String, id: Int, roomName: String, text: String, timeoutMillis: Long?) {
         if (notifier.isViewing(roomId) || !allowed()) return
         val notification = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(context.getColor(R.color.phalanx_notification_accent))
-            .setContentTitle(roomName)
+            .setContentTitle(if (hidden()) context.getString(R.string.app_name) else roomName)
             .setContentText(text)
             .setCategory(NotificationCompat.CATEGORY_STATUS)
             .setContentIntent(openRoom(roomId))

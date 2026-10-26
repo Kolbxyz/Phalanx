@@ -373,6 +373,16 @@
     <string name="push_reactions">Réactions à mes messages</string>
     <string name="push_reactions_summary">Notifier quand quelqu’un réagit à l’un de vos messages. Cela active les notifications de réactions de votre compte : vos autres apps Matrix pourraient aussi les afficher</string>
     <string name="push_reactions_failed">Le serveur n’a pas accepté le changement. Vérifiez votre connexion et réessayez</string>
+    <string name="push_content_section">Afficher dans les notifications</string>
+    <string name="push_content_full">Tout</string>
+    <string name="push_content_name">Nom seul</string>
+    <string name="push_content_hidden">Rien</string>
+    <string name="push_content_full_summary">Qui a écrit et ce qui est écrit, avec les photos</string>
+    <string name="push_content_name_summary">Qui a écrit, mais pas quoi : « Nouveau message »</string>
+    <string name="push_content_hidden_summary">Seulement « Nouveau message », sans nom, salon ni photo. Les alertes d’écriture et de lecture masquent aussi les noms</string>
+    <string name="notification_reacted">A réagi à votre message</string>
+    <string name="activity_typing_hidden">Quelqu’un écrit…</string>
+    <string name="activity_read_hidden">Votre message a été lu</string>
     <string name="notification_reaction">A réagi %1$s à : %2$s</string>
     <string name="notification_reaction_unknown">A réagi à : %1$s</string>
     <string name="notification_channel_activity">Alertes d’écriture et de lecture</string>

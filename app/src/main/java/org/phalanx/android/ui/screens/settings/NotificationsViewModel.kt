@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.phalanx.android.core.prefs.SettingsStore
+import org.phalanx.android.data.model.NotificationContent
 import org.phalanx.android.data.model.PushDistributor
 import org.phalanx.android.data.model.PushStatus
 import org.phalanx.android.data.repository.PushRepository
@@ -37,6 +38,14 @@ class NotificationsViewModel @Inject constructor(
 
     private val mutableEditing = MutableStateFlow(GatewayEditing.Closed)
     val editing: StateFlow<GatewayEditing> = mutableEditing.asStateFlow()
+
+    /** Null until the settings are read. */
+    val content: StateFlow<NotificationContent?> = settings.settings.map { it.notificationContent }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), null)
+
+    fun setContent(content: NotificationContent) {
+        viewModelScope.launch { settings.setNotificationContent(content) }
+    }
 
     /** Null until the settings are read. */
     val reactions: StateFlow<Boolean?> = settings.settings.map { it.reactionNotifications }

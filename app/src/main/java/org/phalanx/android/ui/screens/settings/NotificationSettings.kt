@@ -51,6 +51,7 @@ internal fun NotificationSettings(viewModel: NotificationsViewModel = hiltViewMo
     val gateway by viewModel.customGateway.collectAsStateWithLifecycle()
     val editing by viewModel.editing.collectAsStateWithLifecycle()
     val reactions by viewModel.reactions.collectAsStateWithLifecycle()
+    val content by viewModel.content.collectAsStateWithLifecycle()
     val reactionsFailed by viewModel.reactionsFailed.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var permitted by remember { mutableStateOf(notificationsPermitted(context)) }
@@ -87,6 +88,7 @@ internal fun NotificationSettings(viewModel: NotificationsViewModel = hiltViewMo
             }
         }
     }
+    content?.let { NotificationContentSection(it, viewModel::setContent) }
     reactions?.let { on ->
         SegmentedSection(stringResource(R.string.push_reactions_section)) {
             SwitchGroup(
