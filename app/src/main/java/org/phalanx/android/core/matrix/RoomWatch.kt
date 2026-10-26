@@ -54,7 +54,7 @@ internal class RoomWatch @Inject constructor(
         }
     }
 
-    private suspend fun watchTyping(room: Room, roomId: String, name: String) = coroutineScope {
+    private suspend fun watchTyping(room: Room, roomId: String, name: String): Unit = coroutineScope {
         val typing = RoomTyping(room, room.ownUserId(), this)
         try {
             var shown = emptySet<String>()

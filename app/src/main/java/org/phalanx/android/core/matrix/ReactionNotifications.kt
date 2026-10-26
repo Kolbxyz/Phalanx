@@ -15,11 +15,9 @@ import org.matrix.rustcomponents.sdk.use
 import org.phalanx.android.data.model.IncomingMessage
 
 /** The reaction this notification is about, or null when it is about something else. */
-internal fun NotificationItem.reaction(): MessageLikeEventContent.ReactionContent? {
-    val timeline = event as? NotificationEvent.Timeline ?: return null
-    val content = timeline.event.content() as? TimelineEventContent.MessageLike ?: return null
-    return content.content as? MessageLikeEventContent.ReactionContent
-}
+internal fun NotificationItem.reaction(): MessageLikeEventContent.ReactionContent? =
+    ((event as? NotificationEvent.Timeline)?.event?.content() as? TimelineEventContent.MessageLike)
+        ?.content as? MessageLikeEventContent.ReactionContent
 
 /**
  * A reaction to one of this account's own messages, as a notification line; null when it reacts to

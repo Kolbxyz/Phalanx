@@ -8,15 +8,17 @@ enum class TextSize(val scale: Float) { Small(SMALL_SCALE), Default(1f), Large(L
 /** How long the app may stay out of sight before it asks to be unlocked again. */
 enum class LockTimeout(val millis: Long) {
     Immediately(0),
-    OneMinute(MINUTE_MILLIS),
-    FiveMinutes(5 * MINUTE_MILLIS),
-    FifteenMinutes(15 * MINUTE_MILLIS)
+    OneMinute(ONE_MINUTE_MILLIS),
+    FiveMinutes(FIVE_MINUTES_MILLIS),
+    FifteenMinutes(FIFTEEN_MINUTES_MILLIS)
 }
 
 /** How much a notification shows: the sender and message, the sender only, or neither. */
 enum class NotificationContent { Full, NameOnly, Hidden }
 
-private const val MINUTE_MILLIS = 60_000L
+private const val ONE_MINUTE_MILLIS = 60_000L
+private const val FIVE_MINUTES_MILLIS = 300_000L
+private const val FIFTEEN_MINUTES_MILLIS = 900_000L
 
 private const val SMALL_SCALE = 0.9f
 private const val LARGE_SCALE = 1.15f
