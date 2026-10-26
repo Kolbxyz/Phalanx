@@ -5,6 +5,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -40,12 +43,12 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.data.model.TimelineEntry
+import org.phalanx.android.ui.components.pressShrink
 import org.phalanx.android.ui.theme.LocalReducedMotion
 import org.phalanx.android.ui.theme.Symbols
 
 private const val LOAD_AHEAD = 5
 private const val OLDER_KEY = "older"
-private const val TYPING_KEY = "typing"
 private const val JUMP_AFTER_ITEMS = 4
 private const val FOCUS_OFFSET_DIVISOR = 3
 
@@ -75,11 +78,9 @@ internal fun TimelineList(
         val target = focus ?: return@LaunchedEffect
         val index = state.entries.indexOfFirst { it.id == target }
         if (index >= 0) {
-            // The typing row, when shown, comes before every entry in the list.
-            val item = index + if (state.typing.isNotEmpty()) 1 else 0
             val offset = -listState.layoutInfo.viewportSize.height / FOCUS_OFFSET_DIVISOR
             following = false
-            if (reducedMotion) listState.scrollToItem(item, offset) else listState.animateScrollToItem(item, offset)
+            if (reducedMotion) listState.scrollToItem(index, offset) else listState.animateScrollToItem(index, offset)
             highlighted = target
         }
         onFocused()
@@ -124,7 +125,7 @@ internal fun TimelineList(
 
     val entries by rememberUpdatedState(state.entries)
     val voiceChain = remember { VoiceChain { id -> nextVoiceAfter(entries, id) } }
-    VoiceChainScroll(voiceChain, listState, entries, state.typing.isNotEmpty(), reducedMotion)
+    VoiceChainScroll(voiceChain, listState, entries, reducedMotion)
 
     val scope = rememberCoroutineScope()
     val showJump by remember { derivedStateOf { listState.firstVisibleItemIndex > JUMP_AFTER_ITEMS } }
@@ -142,20 +143,6 @@ internal fun TimelineList(
                 ),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                // First in a reversed list, so it sits under the newest message.
-                if (state.typing.isNotEmpty()) {
-                    item(key = TYPING_KEY, contentType = TYPING_KEY) {
-                        TypingIndicator(
-                            names = state.typing,
-                            isGroupChat = !state.isDirect,
-                            modifier = Modifier.animateItem(
-                                fadeInSpec = motion.defaultEffectsSpec(),
-                                placementSpec = motion.defaultSpatialSpec(),
-                                fadeOutSpec = motion.defaultEffectsSpec()
-                            )
-                        )
-                    }
-                }
                 itemsIndexed(
                     items = state.entries,
                     key = { _, entry -> entry.id },
@@ -198,9 +185,22 @@ internal fun TimelineList(
         FloatingDate(
             listState = listState,
             entries = state.entries,
-            hasTyping = state.typing.isNotEmpty(),
             modifier = Modifier.align(Alignment.TopCenter).padding(top = padding.calculateTopPadding() + 8.dp)
         )
+        // Pinned over the list rather than a row in it, so it stays in view however far up the reader is.
+        AnimatedVisibility(
+            visible = state.typing.isNotEmpty(),
+            enter = slideInVertically(motion.defaultSpatialSpec()) { it } + fadeIn(motion.defaultEffectsSpec()),
+            exit = slideOutVertically(motion.defaultSpatialSpec()) { it } + fadeOut(motion.defaultEffectsSpec()),
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 12.dp, bottom = padding.calculateBottomPadding() + 8.dp)
+        ) {
+            // Kept through the exit animation, when the list itself is already empty.
+            var last by remember { mutableStateOf(state.typing) }
+            if (state.typing.isNotEmpty()) last = state.typing
+            TypingIndicator(last, isGroupChat = !state.isDirect)
+        }
         JumpToLatest(
             visible = showJump,
             onClick = {
@@ -228,8 +228,11 @@ private fun JumpToLatest(visible: Boolean, onClick: () -> Unit, modifier: Modifi
         exit = scaleOut(motion.fastSpatialSpec()) + fadeOut(motion.fastEffectsSpec()),
         modifier = modifier
     ) {
+        val interaction = remember { MutableInteractionSource() }
         SmallFloatingActionButton(
             onClick = onClick,
+            modifier = Modifier.pressShrink(interaction),
+            interactionSource = interaction,
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
         ) {

@@ -23,6 +23,8 @@ import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.core.push.Notifier
 import org.phalanx.android.data.model.ThemeMode
 import org.phalanx.android.ui.PhalanxApp
+import org.phalanx.android.ui.share.ShareInbox
+import org.phalanx.android.ui.share.sharedContent
 import org.phalanx.android.ui.theme.PhalanxTheme
 import javax.inject.Inject
 
@@ -36,6 +38,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var settingsStore: SettingsStore
+
+    @Inject
+    lateinit var shareInbox: ShareInbox
 
     /** The room a tapped notification asked for, until the navigation opens it. */
     private val pendingRoom = MutableStateFlow<String?>(null)
@@ -83,6 +88,7 @@ class MainActivity : ComponentActivity() {
 
     private fun handleIntent(intent: Intent) {
         intent.getStringExtra(Notifier.EXTRA_ROOM_ID)?.let { pendingRoom.value = it }
+        sharedContent(intent)?.let { shareInbox.offer(it) }
         val uri = intent.data ?: return
         if (intent.action == Intent.ACTION_VIEW && uri.scheme == BuildConfig.OAUTH_REDIRECT_SCHEME) {
             oidcCallbacks.deliver(uri.toString())

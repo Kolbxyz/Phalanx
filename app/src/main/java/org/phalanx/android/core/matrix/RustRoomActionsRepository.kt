@@ -20,7 +20,8 @@ import javax.inject.Singleton
 @Singleton
 internal class RustRoomActionsRepository @Inject constructor(
     private val active: ActiveClient,
-    private val settings: SettingsStore
+    private val settings: SettingsStore,
+    private val mutes: MuteStates
 ) : RoomActionsRepository {
     override suspend fun setFavourite(roomId: String, favourite: Boolean) =
         withRoom(roomId) { it.setIsFavourite(favourite, tagOrder = null) }
@@ -38,6 +39,8 @@ internal class RustRoomActionsRepository @Inject constructor(
 
     override suspend fun setMuted(roomId: String, muted: Boolean): Result<Unit> = withContext(Dispatchers.IO) {
         val client = active.client() ?: return@withContext Result.failure(TimelineUnavailableException())
+        // Shown at once; put back if the server refuses.
+        mutes.set(roomId, muted)
         try {
             client.getNotificationSettings().use { settings ->
                 if (muted) {
@@ -48,6 +51,7 @@ internal class RustRoomActionsRepository @Inject constructor(
             }
             Result.success(Unit)
         } catch (e: NotificationSettingsException) {
+            mutes.forget(roomId)
             Result.failure(e)
         }
     }

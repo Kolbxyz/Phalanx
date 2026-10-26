@@ -26,8 +26,8 @@ interface TimelineSession {
     /** Oldest first. Includes messages still being sent. */
     val entries: StateFlow<List<TimelineEntry>>
 
-    /** Display names of the other members typing right now. */
-    val typing: StateFlow<List<String>>
+    /** The other members typing right now. */
+    val typing: StateFlow<List<Member>>
 
     /** Tells the others whether this account is typing; callers respect the user's setting. */
     fun setTyping(typing: Boolean)

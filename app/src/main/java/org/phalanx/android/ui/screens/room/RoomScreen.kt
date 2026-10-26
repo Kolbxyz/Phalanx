@@ -195,6 +195,10 @@ fun RoomScreen(
             onPick = {
                 stickering = false
                 viewModel.sendSticker(it)
+            },
+            onPickMix = {
+                stickering = false
+                viewModel.sendMix(it)
             }
         )
     }

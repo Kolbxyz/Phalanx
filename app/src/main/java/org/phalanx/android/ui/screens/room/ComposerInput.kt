@@ -7,7 +7,9 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -29,11 +31,11 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -43,6 +45,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
+import org.phalanx.android.ui.components.pressShrink
 import org.phalanx.android.ui.theme.Symbols
 
 private const val MAX_LINES = 6
@@ -65,10 +68,12 @@ internal fun InputRow(state: ComposerState, actions: ComposerActions, enterToSen
     ) {
         // Centred on the field's single-line height, and stays at the bottom as the field grows.
         Box(Modifier.height(TextFieldHeight), contentAlignment = Alignment.Center) {
+            val interaction = remember { MutableInteractionSource() }
             FilledTonalIconButton(
                 onClick = actions.onAttach,
                 enabled = state.mode !is ComposerMode.Edit,
-                modifier = Modifier.size(ButtonSize)
+                modifier = Modifier.size(ButtonSize).pressShrink(interaction),
+                interactionSource = interaction
             ) {
                 Icon(Symbols.Add, contentDescription = stringResource(R.string.composer_attach))
             }
@@ -108,7 +113,12 @@ private fun SendOrRecord(state: ComposerState, actions: ComposerActions) {
         }
     ) { mic ->
         if (mic) {
-            FilledTonalIconButton(onClick = actions.onRecord, modifier = Modifier.size(ButtonSize)) {
+            val interaction = remember { MutableInteractionSource() }
+            FilledTonalIconButton(
+                onClick = actions.onRecord,
+                modifier = Modifier.size(ButtonSize).pressShrink(interaction),
+                interactionSource = interaction
+            ) {
                 Icon(Symbols.Mic, contentDescription = stringResource(R.string.composer_record))
             }
         } else {
@@ -131,14 +141,18 @@ private fun SendButton(editing: Boolean, enabled: Boolean, onSend: () -> Unit, o
     val colors = MaterialTheme.colorScheme
     val haptics = LocalHapticFeedback.current
     val scheduleLabel = stringResource(R.string.schedule_action)
+    val interaction = remember { MutableInteractionSource() }
     Surface(
         shape = CircleShape,
         color = if (enabled) colors.primary else colors.onSurface.copy(alpha = DISABLED_ALPHA),
         contentColor = if (enabled) colors.onPrimary else colors.onSurface.copy(alpha = DISABLED_CONTENT_ALPHA),
         modifier = Modifier
             .size(ButtonSize)
+            .pressShrink(interaction)
             .clip(CircleShape)
             .combinedClickable(
+                interactionSource = interaction,
+                indication = LocalIndication.current,
                 enabled = enabled,
                 role = Role.Button,
                 onClick = onSend,

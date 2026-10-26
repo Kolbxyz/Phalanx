@@ -56,7 +56,7 @@ internal class RustTimelineSession private constructor(
     private val paginating = Mutex()
 
     private val typingState = RoomTyping(room, room.ownUserId(), scope)
-    override val typing: StateFlow<List<String>> = typingState.names
+    override val typing: StateFlow<List<Member>> = typingState.members
 
     private val mutableHasMore = MutableStateFlow(true)
     override val hasMoreHistory: StateFlow<Boolean> = mutableHasMore

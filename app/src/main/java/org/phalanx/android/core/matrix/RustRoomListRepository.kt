@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -28,6 +29,7 @@ import javax.inject.Singleton
 @Singleton
 internal class RustRoomListRepository @Inject constructor(
     active: ActiveClient,
+    mutes: MuteStates,
     @ApplicationScope scope: CoroutineScope
 ) : RoomListRepository {
     // Kept warm for the whole session, so returning to the list never waits on the SDK again.
@@ -35,6 +37,9 @@ internal class RustRoomListRepository @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     override val rooms: StateFlow<List<RoomSummary>?> = active.syncService
         .flatMapLatest { service -> service?.roomSummaries() ?: flowOf(null) }
+        .combine(mutes.byRoom) { rooms, muted ->
+            if (muted.isEmpty()) rooms else rooms?.map { room -> muted[room.id]?.let { room.copy(isMuted = it) } ?: room }
+        }
         .stateIn(scope, SharingStarted.Eagerly, null)
 }
 

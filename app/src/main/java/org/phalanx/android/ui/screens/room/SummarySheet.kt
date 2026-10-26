@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,7 +26,10 @@ internal fun SummarySheet(state: SummaryState, onDismiss: () -> Unit) {
     if (state == SummaryState.Idle) return
     ModalSheet(onDismissRequest = onDismiss) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, bottom = 32.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(start = 24.dp, end = 24.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(stringResource(R.string.summary_title), style = MaterialTheme.typography.titleLarge)
@@ -62,5 +67,5 @@ internal fun SummarySheet(state: SummaryState, onDismiss: () -> Unit) {
 
 @Composable
 private fun Body(text: String) {
-    SelectionContainer { Text(text, style = MaterialTheme.typography.bodyLarge) }
+    SelectionContainer { Text(summaryMarkdown(text), style = MaterialTheme.typography.bodyLarge) }
 }

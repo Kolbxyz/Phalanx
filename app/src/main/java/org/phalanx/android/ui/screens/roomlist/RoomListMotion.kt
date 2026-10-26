@@ -8,7 +8,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.interaction.InteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,6 +19,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import org.phalanx.android.ui.components.pressShrink
 import org.phalanx.android.ui.theme.LocalReducedMotion
 
 private const val STAGGER_MILLIS = 35L
@@ -69,11 +69,4 @@ internal fun Modifier.listEntrance(index: Int, intro: Boolean): Modifier {
 
 /** Pressing sinks the row a little, the Expressive cue that a long press will act on it. */
 @Composable
-internal fun Modifier.pressSink(interaction: InteractionSource): Modifier {
-    val pressed by interaction.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (pressed) PRESSED_SCALE else 1f, MaterialTheme.motionScheme.fastSpatialSpec())
-    return graphicsLayer {
-        scaleX = scale
-        scaleY = scale
-    }
-}
+internal fun Modifier.pressSink(interaction: InteractionSource): Modifier = pressShrink(interaction, PRESSED_SCALE)

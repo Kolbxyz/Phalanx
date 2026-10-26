@@ -61,7 +61,10 @@ internal fun PrivacySettings(current: AppSettings, viewModel: SettingsViewModel)
                     viewModel::setPublicReadReceipts),
                 SwitchSetting(Symbols.Keyboard, R.string.settings_send_typing,
                     R.string.settings_send_typing_summary, current.sendTypingNotices,
-                    viewModel::setSendTypingNotices)
+                    viewModel::setSendTypingNotices),
+                SwitchSetting(Symbols.Sticker, R.string.settings_emoji_kitchen,
+                    R.string.settings_emoji_kitchen_summary, current.emojiKitchen,
+                    viewModel::setEmojiKitchen)
             )
         )
     }

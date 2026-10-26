@@ -54,6 +54,8 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
 
     suspend fun setPublicReadReceipts(enabled: Boolean) = store.edit { it[PUBLIC_READ_RECEIPTS] = enabled }
 
+    suspend fun setEmojiKitchen(enabled: Boolean) = store.edit { it[EMOJI_KITCHEN] = enabled }
+
     suspend fun setShowEditHistory(enabled: Boolean) = store.edit { it[SHOW_EDIT_HISTORY] = enabled }
 
     suspend fun setKeepDeletedMessages(enabled: Boolean) = store.edit { it[KEEP_DELETED] = enabled }
@@ -80,6 +82,7 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
             autoLoadMedia = this[AUTO_LOAD_MEDIA] ?: defaults.autoLoadMedia,
             sendTypingNotices = this[SEND_TYPING] ?: defaults.sendTypingNotices,
             publicReadReceipts = this[PUBLIC_READ_RECEIPTS] ?: defaults.publicReadReceipts,
+            emojiKitchen = this[EMOJI_KITCHEN] ?: defaults.emojiKitchen,
             showEditHistory = this[SHOW_EDIT_HISTORY] ?: defaults.showEditHistory,
             keepDeletedMessages = this[KEEP_DELETED] ?: defaults.keepDeletedMessages,
             aiSummaries = this[AI_SUMMARIES] ?: defaults.aiSummaries,
@@ -100,6 +103,7 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
         val FULL_QUALITY_IMAGES = booleanPreferencesKey("full_quality_images")
         val AUTO_LOAD_MEDIA = booleanPreferencesKey("auto_load_media")
         val SEND_TYPING = booleanPreferencesKey("send_typing_notices")
+        val EMOJI_KITCHEN = booleanPreferencesKey("emoji_kitchen")
         val PUSH_GATEWAY = stringPreferencesKey("push_gateway")
         val SHOW_EDIT_HISTORY = booleanPreferencesKey("show_edit_history")
         val KEEP_DELETED = booleanPreferencesKey("keep_deleted_messages")

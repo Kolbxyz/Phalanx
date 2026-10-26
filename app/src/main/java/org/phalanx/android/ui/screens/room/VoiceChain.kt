@@ -37,16 +37,14 @@ internal fun VoiceChainScroll(
     chain: VoiceChain,
     listState: LazyListState,
     entries: List<TimelineEntry>,
-    hasTyping: Boolean,
     reducedMotion: Boolean
 ) {
     val pending = chain.pending
     LaunchedEffect(pending) {
         val index = entries.indexOfFirst { it.id == pending }
         if (pending == null || index < 0) return@LaunchedEffect
-        val item = index + if (hasTyping) 1 else 0
-        if (listState.layoutInfo.visibleItemsInfo.none { it.index == item }) {
-            if (reducedMotion) listState.scrollToItem(item) else listState.animateScrollToItem(item)
+        if (listState.layoutInfo.visibleItemsInfo.none { it.index == index }) {
+            if (reducedMotion) listState.scrollToItem(index) else listState.animateScrollToItem(index)
         }
     }
 }

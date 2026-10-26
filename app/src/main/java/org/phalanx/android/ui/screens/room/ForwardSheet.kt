@@ -1,5 +1,6 @@
 package org.phalanx.android.ui.screens.room
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,7 +39,12 @@ import org.phalanx.android.ui.theme.Symbols
 /** Picks the conversation a message is forwarded to; [rooms] null while the list loads. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun ForwardSheet(rooms: List<RoomSummary>?, onPick: (roomId: String) -> Unit, onDismiss: () -> Unit) {
+internal fun ForwardSheet(
+    rooms: List<RoomSummary>?,
+    onPick: (roomId: String) -> Unit,
+    onDismiss: () -> Unit,
+    @StringRes title: Int = R.string.forward_title
+) {
     var query by rememberSaveable { mutableStateOf("") }
     val shown = remember(rooms, query) {
         rooms?.filter { query.isBlank() || it.name.contains(query.trim(), ignoreCase = true) }
@@ -48,7 +54,7 @@ internal fun ForwardSheet(rooms: List<RoomSummary>?, onPick: (roomId: String) ->
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ) {
         Text(
-            text = stringResource(R.string.forward_title),
+            text = stringResource(title),
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
         )
