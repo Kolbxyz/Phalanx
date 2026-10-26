@@ -58,6 +58,10 @@ internal fun AiSettings(
                 SwitchSetting(
                     Symbols.Lock, R.string.settings_ai_on_disk, R.string.settings_ai_on_disk_summary,
                     current.aiOnDisk, viewModel::setAiOnDisk
+                ),
+                SwitchSetting(
+                    Symbols.PhotoLibrary, R.string.settings_photo_search, R.string.settings_photo_search_summary,
+                    current.photoSearch, viewModel::setPhotoSearch
                 )
             )
         )
@@ -95,6 +99,7 @@ internal fun AiSettings(
             leading = { Icon(Symbols.Info, contentDescription = null) }
         )
         SpeechSettingsSection()
+        VisionSettingsSection()
     }
 }
 

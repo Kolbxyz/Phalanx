@@ -203,6 +203,13 @@
     <string name="settings_speech_model_rejected">Ce fichier n’est pas un modèle vocal pris en charge, il n’a donc pas été gardé.</string>
     <string name="settings_speech_hint_title">Obtenir le modèle vocal</string>
     <string name="settings_speech_hint">Téléchargez ggml-small-q5_1.bin (190 Mo, rapide) ou ggml-large-v3-turbo-q5_0.bin (574 Mo, le plus précis) depuis la page de whisper.cpp sur Hugging Face, puis choisissez-le ici. Les messages vocaux en français, en anglais et dans une centaine d’autres langues pourront alors être retranscrits, sur ce téléphone uniquement.</string>
+    <string name="settings_vision_section">Photos</string>
+    <string name="settings_vision_model">Modèle de vision</string>
+    <string name="settings_vision_model_rejected">Ce fichier n’est pas un modèle de vision pris en charge, il n’a donc pas été gardé.</string>
+    <string name="settings_vision_hint_title">Obtenir le modèle de vision</string>
+    <string name="settings_vision_hint">Téléchargez le fichier mmproj publié à côté de Ministral 3 3B sur la page Hugging Face de Mistral, puis choisissez-le ici. Le modèle de langue pourra alors lire les photos, sur ce téléphone uniquement.</string>
+    <string name="settings_photo_search">Rendre les photos cherchables</string>
+    <string name="settings_photo_search_summary">Pendant que le téléphone charge, en veille et en Wi-Fi, les photos de vos discussions sont décrites sur ce téléphone pour que la recherche les trouve par ce qu’elles montrent ou le texte qu’elles contiennent. Nécessite le modèle de vision et « Garder les résultats de l’IA sur ce téléphone ».</string>
     <string name="transcript_action">Retranscrire</string>
     <string name="transcript_writing">Retranscription…</string>
     <string name="transcript_empty">Aucune parole entendue</string>
