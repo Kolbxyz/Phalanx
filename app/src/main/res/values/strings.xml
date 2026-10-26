@@ -186,6 +186,10 @@
     <string name="settings_ai_summary">Summaries that run on this phone</string>
     <string name="settings_ai_switch">Summarise conversations</string>
     <string name="settings_ai_switch_summary">Adds a button in conversations that sums up the unread messages. The model runs on this phone only; nothing is sent anywhere.</string>
+    <string name="settings_auto_transcribe">Transcribe voice messages automatically</string>
+    <string name="settings_auto_transcribe_summary">Voice messages are written out as you scroll to them, once a speech model is imported. This downloads them and uses more battery.</string>
+    <string name="settings_ai_on_disk">Keep AI results on this phone</string>
+    <string name="settings_ai_on_disk_summary">Transcripts are kept encrypted on this phone so they are not written again. Turning this off or signing out deletes them.</string>
     <string name="settings_ai_model">Language model</string>
     <string name="settings_ai_model_none">None imported</string>
     <string name="settings_ai_model_copying">Checking and copying… %1$d%%</string>

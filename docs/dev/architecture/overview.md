@@ -45,3 +45,4 @@ UnifiedPush `PushService` → expedited WorkManager worker → `NotificationClie
 - Typing and read alerts (`core/matrix/RoomWatch`) run only while the app syncs on screen: neither is ever pushed, and nothing keeps the app awake to watch for them.
 - Reaction notifications turn the account's `.m.rule.reaction` push rule to notify; it is account-wide, so other clients may follow it. The phone keeps only reactions to the account's own messages.
 - Settings → Notifications → "Show in notifications" decides how much a notification shows: everything, the sender's name only, or nothing but "New message" (no name, room, photo or shortcut). Typing and read alerts follow it.
+- AI results (voice message transcripts) stay in memory unless "Keep AI results on this phone" is on. Then `core/ai/AiDisk` keeps them sealed by `SecretBox` under `ai_results/`, capped in count and age; turning the setting off or signing out deletes the folder's contents.
