@@ -79,8 +79,8 @@ class LocalSummarizer @Inject constructor(private val models: ModelStore) {
     }
 
     private companion object {
-        const val CONTEXT_TOKENS = 4096
-        const val MAX_NEW_TOKENS = 400
+        const val CONTEXT_TOKENS = 2048
+        const val MAX_NEW_TOKENS = 200
         // The big cores of an 8-core phone; more threads fight over memory bandwidth for no gain.
         val THREADS = (Runtime.getRuntime().availableProcessors() / 2).coerceIn(2, 4)
     }

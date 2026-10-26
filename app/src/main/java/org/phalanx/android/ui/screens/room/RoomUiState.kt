@@ -1,6 +1,7 @@
 package org.phalanx.android.ui.screens.room
 
 import androidx.compose.runtime.Immutable
+import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.TimelineEntry
 
 @Immutable
@@ -16,7 +17,7 @@ sealed interface RoomUiState {
         /** Newest first, which is the order a reversed list lays them out in. */
         val entries: List<TimelineEntry>,
         val canLoadOlder: Boolean,
-        /** Display names of the other members typing right now. */
-        val typing: List<String> = emptyList()
+        /** The other members typing right now. */
+        val typing: List<Member> = emptyList()
     ) : RoomUiState
 }

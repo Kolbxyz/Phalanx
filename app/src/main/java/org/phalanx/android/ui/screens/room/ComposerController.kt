@@ -105,6 +105,12 @@ internal class ComposerController(
         }
     }
 
+    /** Content shared from another app: its text replaces the draft, its files join the attachments. */
+    fun receive(text: String?, uris: List<Uri>) {
+        if (!text.isNullOrBlank()) update { it.withDraft(text) }
+        if (uris.isNotEmpty()) addAttachments(uris)
+    }
+
     fun addAttachments(uris: List<Uri>) {
         uris.forEach { uri ->
             val id = UUID.randomUUID().toString()

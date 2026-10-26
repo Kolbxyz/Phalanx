@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,6 +27,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Job
@@ -51,12 +53,11 @@ internal val LocalTimestampReveal = staticCompositionLocalOf { TimestampReveal()
  * A message row's horizontal gestures, in one place so they never fight: dragging right replies
  * (past [ReplyThreshold], with a haptic tick) and springs back; dragging left shows every row's
  * [time], as in Google Messages, and stays open once dragged past half way, until dragged back.
- * Only this account's rows slide over; the others' are on the far side and leave the times room.
+ * Every row slides over, so a wide bubble can never sit under its time.
  */
 @Composable
 internal fun MessageSwipe(
     time: String,
-    isOwn: Boolean,
     canReply: Boolean,
     onReply: () -> Unit,
     modifier: Modifier = Modifier,
@@ -122,13 +123,16 @@ internal fun MessageSwipe(
                 .alpha(replyProgress)
                 .scale(MIN_ICON_SCALE + (1f - MIN_ICON_SCALE) * replyProgress)
         )
-        Box(Modifier.offset { IntOffset((reply + if (isOwn) reveal.offset else 0f).roundToInt(), 0) }) { content() }
+        Box(Modifier.offset { IntOffset((reply + reveal.offset).roundToInt(), 0) }) { content() }
         Text(
             text = time,
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            textAlign = TextAlign.End,
             modifier = Modifier
                 .align(Alignment.CenterEnd)
+                .width(RevealWidth)
                 .offset { IntOffset((revealWidth + reveal.offset).roundToInt(), 0) }
                 .alpha(revealProgress)
         )

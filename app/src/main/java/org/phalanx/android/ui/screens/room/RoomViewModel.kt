@@ -27,6 +27,7 @@ import org.phalanx.android.data.model.MediaRef
 import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.model.ScheduledMessage
+import org.phalanx.android.data.model.KitchenMix
 import org.phalanx.android.data.model.Sticker
 import org.phalanx.android.data.model.StickerPack
 import org.phalanx.android.data.model.TimelineEntry
@@ -45,6 +46,7 @@ import org.phalanx.android.ui.components.Notice
 import org.phalanx.android.ui.components.NoticeKind
 import org.phalanx.android.ui.components.OpenRequest
 import org.phalanx.android.ui.navigation.RoomRoute
+import org.phalanx.android.ui.share.ShareInbox
 import javax.inject.Inject
 
 @HiltViewModel
@@ -61,7 +63,8 @@ class RoomViewModel @Inject constructor(
     settingsStore: SettingsStore,
     private val schedules: ScheduleRepository,
     private val security: SecurityRepository,
-    private val stickers: StickerRepository
+    private val stickers: StickerRepository,
+    private val shares: ShareInbox
 ) : ViewModel() {
     private val route = savedStateHandle.toRoute<RoomRoute>()
     val roomId: String = route.roomId
@@ -113,6 +116,7 @@ class RoomViewModel @Inject constructor(
                 onSuccess = { opened ->
                     session = opened
                     composer.attach(opened)
+                    shares.take(roomId)?.let { composer.receive(it.text, it.uris) }
                     observe(opened)
                     // Only on the first opening: back here after process death, the user has moved on.
                     if (route.focusEventId != null && savedStateHandle.get<Boolean>(FOCUSED_KEY) != true) {
@@ -153,6 +157,10 @@ class RoomViewModel @Inject constructor(
     }
 
     suspend fun stickerPacks(): List<StickerPack> = stickers.packs()
+
+    fun sendMix(mix: KitchenMix) {
+        viewModelScope.launch { stickers.sendKitchen(roomId, mix).onFailure { notify(R.string.composer_send_failed) } }
+    }
 
     fun sendSticker(sticker: Sticker) {
         viewModelScope.launch {

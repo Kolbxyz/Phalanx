@@ -25,9 +25,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import org.phalanx.android.R
 import org.phalanx.android.core.media.StickerCatalog
+import org.phalanx.android.data.model.KitchenMix
 import org.phalanx.android.data.model.Sticker
 import org.phalanx.android.data.model.StickerPack
 import org.phalanx.android.ui.components.ModalSheet
@@ -37,8 +40,11 @@ import org.phalanx.android.ui.components.ModalSheet
 internal fun StickerSheet(
     loadPacks: suspend () -> List<StickerPack>,
     onDismiss: () -> Unit,
-    onPick: (Sticker) -> Unit
+    onPick: (Sticker) -> Unit,
+    onPickMix: (KitchenMix) -> Unit,
+    kitchen: KitchenViewModel = hiltViewModel()
 ) {
+    val kitchenOn by kitchen.enabled.collectAsStateWithLifecycle()
     var packs by remember { mutableStateOf<List<StickerPack>>(emptyList()) }
     var selected by remember { mutableIntStateOf(0) }
     LaunchedEffect(Unit) { packs = loadPacks() }
@@ -47,6 +53,14 @@ internal fun StickerSheet(
             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // The kitchen comes after the bundled packs, as the index just past them.
+            if (kitchenOn) {
+                FilterChip(
+                    selected = selected == packs.size,
+                    onClick = { selected = packs.size },
+                    label = { Text(stringResource(R.string.sticker_pack_kitchen)) }
+                )
+            }
             packs.forEachIndexed { index, pack ->
                 FilterChip(
                     selected = index == selected,
@@ -55,6 +69,7 @@ internal fun StickerSheet(
                 )
             }
         }
+        if (kitchenOn && packs.isNotEmpty() && selected == packs.size) KitchenTab(kitchen, onPickMix)
         packs.getOrNull(selected)?.let { pack ->
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(88.dp),

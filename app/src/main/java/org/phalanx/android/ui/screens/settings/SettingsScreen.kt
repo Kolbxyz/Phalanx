@@ -49,6 +49,7 @@ import org.phalanx.android.ui.theme.Symbols
 fun SettingsScreen(
     onBack: () -> Unit,
     onOpenAccount: () -> Unit,
+    onOpenBridges: () -> Unit,
     onOpenCategory: (SettingsCategory) -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
@@ -74,6 +75,15 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(SegmentGap)
         ) {
             ProfileCard(profile, avatar, onOpenAccount)
+            Spacer(Modifier.height(16.dp))
+            SegmentedRow(
+                headline = stringResource(R.string.bridges_title),
+                supporting = stringResource(R.string.bridges_summary),
+                shape = segmentedShape(0, 1),
+                leading = { Icon(Symbols.Hub, contentDescription = null) },
+                trailing = { Icon(Symbols.KeyboardArrowRight, contentDescription = null) },
+                interaction = Modifier.clickable { onOpenBridges() }
+            )
             Spacer(Modifier.height(16.dp))
             val categories = SettingsCategory.entries
             categories.forEachIndexed { index, category ->

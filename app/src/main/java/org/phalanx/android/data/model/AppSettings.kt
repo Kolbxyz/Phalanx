@@ -28,6 +28,8 @@ data class AppSettings(
     val sendTypingNotices: Boolean = false,
     /** Off: read receipts stay private, so others never see when this account read their messages. */
     val publicReadReceipts: Boolean = false,
+    /** On: Emoji Kitchen mixes are offered; each one picked is downloaded from Google's servers. */
+    val emojiKitchen: Boolean = false,
     /** On: an edited message offers its earlier versions, fetched from the server when asked. */
     val showEditHistory: Boolean = false,
     /**

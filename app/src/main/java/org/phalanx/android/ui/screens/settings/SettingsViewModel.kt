@@ -71,6 +71,8 @@ class SettingsViewModel @Inject constructor(
 
     fun setPublicReadReceipts(enabled: Boolean) = edit { store.setPublicReadReceipts(enabled) }
 
+    fun setEmojiKitchen(enabled: Boolean) = edit { store.setEmojiKitchen(enabled) }
+
     fun setShowEditHistory(enabled: Boolean) = edit { store.setShowEditHistory(enabled) }
 
     fun setKeepDeletedMessages(enabled: Boolean) = edit { store.setKeepDeletedMessages(enabled) }

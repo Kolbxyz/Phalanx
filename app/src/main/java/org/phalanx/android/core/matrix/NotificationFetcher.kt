@@ -8,7 +8,9 @@ import org.matrix.rustcomponents.sdk.MessageLikeEventContent
 import org.matrix.rustcomponents.sdk.NotificationEvent
 import org.matrix.rustcomponents.sdk.NotificationItem
 import org.matrix.rustcomponents.sdk.NotificationProcessSetup
+import org.matrix.rustcomponents.sdk.NotificationSettingsException
 import org.matrix.rustcomponents.sdk.NotificationStatus
+import org.matrix.rustcomponents.sdk.RoomNotificationMode
 import org.matrix.rustcomponents.sdk.TimelineEventContent
 import org.matrix.rustcomponents.sdk.use
 import org.phalanx.android.core.prefs.SettingsStore
@@ -23,7 +25,8 @@ import javax.inject.Singleton
 @Singleton
 internal class NotificationFetcher @Inject constructor(
     private val active: ActiveClient,
-    private val settings: SettingsStore
+    private val settings: SettingsStore,
+    private val mutes: MuteStates
 ) {
     /**
      * Null when there is nothing to show: the account signed out, the push rules filter the event,
@@ -35,6 +38,7 @@ internal class NotificationFetcher @Inject constructor(
         val client = active.client() ?: return Result.success(null)
         val sync = active.syncService.value ?: return Result.success(null)
         val pictures = settings.current().autoLoadMedia
+        if (isMuted(client, roomId)) return Result.success(null)
         return try {
             // Not destroyed: SingleProcess borrows the sync service, which the active client owns.
             val setup = NotificationProcessSetup.SingleProcess(sync)
@@ -56,6 +60,18 @@ internal class NotificationFetcher @Inject constructor(
             Result.success(message)
         } catch (e: ClientException) {
             Result.failure(e)
+        }
+    }
+
+    /** A room muted here, or by the account's push rules elsewhere, never notifies on this device. */
+    private suspend fun isMuted(client: Client, roomId: String): Boolean {
+        mutes.byRoom.value[roomId]?.let { return it }
+        return try {
+            client.getNotificationSettings().use { it.getUserDefinedRoomNotificationMode(roomId) } ==
+                RoomNotificationMode.MUTE
+        } catch (_: NotificationSettingsException) {
+            // Unknown: better a notification too many than a message missed.
+            false
         }
     }
 }

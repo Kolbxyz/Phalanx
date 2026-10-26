@@ -84,15 +84,14 @@ private fun dayLabel(context: Context, millis: Long): String {
 internal fun FloatingDate(
     listState: LazyListState,
     entries: List<TimelineEntry>,
-    hasTyping: Boolean,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     // The list is reversed: the last visible item is the one at the top of the screen.
-    val millis by remember(entries, hasTyping) {
+    val millis by remember(entries) {
         derivedStateOf {
             val top = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: return@derivedStateOf null
-            when (val entry = entries.getOrNull(top - if (hasTyping) 1 else 0)) {
+            when (val entry = entries.getOrNull(top)) {
                 is TimelineEntry.Message -> entry.timestampMillis
                 is TimelineEntry.DayDivider -> entry.millis
                 null -> null

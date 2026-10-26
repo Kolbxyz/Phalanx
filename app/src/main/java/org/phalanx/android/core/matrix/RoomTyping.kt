@@ -9,19 +9,20 @@ import org.matrix.rustcomponents.sdk.ClientException
 import org.matrix.rustcomponents.sdk.Room
 import org.matrix.rustcomponents.sdk.TaskHandle
 import org.matrix.rustcomponents.sdk.TypingNotificationsListener
+import org.phalanx.android.data.model.Member
 
 /** Who else is typing in [room], and this account's own typing notices. Lives as long as its session. */
 internal class RoomTyping(private val room: Room, private val ownUserId: String, private val scope: CoroutineScope) {
-    private val mutableNames = MutableStateFlow<List<String>>(emptyList())
+    private val mutableMembers = MutableStateFlow<List<Member>>(emptyList())
 
-    /** Display names of the members typing right now, this account left out. */
-    val names: StateFlow<List<String>> = mutableNames
+    /** The members typing right now, this account left out. */
+    val members: StateFlow<List<Member>> = mutableMembers
 
     private val handle: TaskHandle = room.subscribeToTypingNotifications(
         object : TypingNotificationsListener {
             override fun call(typingUserIds: List<String>) {
                 val others = typingUserIds.filter { it != ownUserId }
-                scope.launch { mutableNames.value = others.map { nameOf(it) } }
+                scope.launch { mutableMembers.value = others.map { memberOf(it) } }
             }
         }
     )
@@ -52,10 +53,19 @@ internal class RoomTyping(private val room: Room, private val ownUserId: String,
         handle.destroy()
     }
 
-    private suspend fun nameOf(userId: String): String = try {
-        room.memberDisplayName(userId)?.takeIf { it.isNotBlank() } ?: userId
-    } catch (_: ClientException) {
-        userId
+    private suspend fun memberOf(userId: String): Member {
+        val name = try {
+            room.memberDisplayName(userId)?.takeIf { it.isNotBlank() } ?: userId
+        } catch (_: ClientException) {
+            userId
+        }
+        val avatar = try {
+            mediaRefOf(room.memberAvatarUrl(userId))
+        } catch (_: ClientException) {
+            // The initial stands in for a missing avatar.
+            null
+        }
+        return Member(userId, name, avatar)
     }
 
     private companion object {

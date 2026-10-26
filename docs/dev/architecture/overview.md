@@ -38,3 +38,4 @@ UnifiedPush `PushService` → expedited WorkManager worker → `NotificationClie
 - HTTPS only; user-installed CAs are not trusted.
 - Zero third-party telemetry, crash reporting or analytics SDKs.
 - Never log URLs, tokens, room names, event content or key material.
+- Emoji Kitchen is off by default (Privacy settings). When on, only the mixes the user views are fetched from `www.gstatic.com`; the pair index ships in the APK (`tools/emoji-kitchen`), so nothing else is sent to Google.

@@ -438,4 +438,17 @@
     <string name="trust_verified">Vérifié</string>
     <string name="trust_unverified">Non vérifié</string>
     <string name="trust_changed">Son identité a changé depuis votre vérification</string>
+    <string name="share_title">Partager vers…</string>
+    <string name="sticker_pack_kitchen">Cuisine</string>
+    <string name="settings_emoji_kitchen">Emoji Kitchen</string>
+    <string name="settings_emoji_kitchen_summary">Mélangez deux emoji en un sticker. Chaque mélange affiché est téléchargé depuis les serveurs de Google, qui voient votre adresse IP et le mélange</string>
+    <string name="bridges_title">Comptes connectés</string>
+    <string name="bridges_summary">WhatsApp, Discord, Instagram et plus, dans Phalanx</string>
+    <string name="bridges_intro">Votre serveur peut amener d’autres réseaux dans Phalanx grâce aux passerelles. Connectez-en une, puis suivez les étapes du bot dans la conversation qui s’ouvre : vous vous y connectez, avec votre propre passerelle.</string>
+    <string name="bridges_connect_failed">Passerelle injoignable. Vérifiez votre connexion et réessayez</string>
+    <string name="bridges_unavailable">Indisponible sur votre serveur</string>
+    <string name="bridges_available">Disponible</string>
+    <string name="bridges_chatting">Configuré : ouvrez la conversation de la passerelle pour la gérer</string>
+    <string name="bridges_connect">Connecter</string>
+    <string name="bridges_open">Ouvrir</string>
 </resources>

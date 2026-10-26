@@ -55,7 +55,8 @@ private val AvatarSize = 32.dp
 private val MaxBubbleWidth = 320.dp
 private val ReactionOverlap = 6.dp
 private const val PRESSED_SCALE = 0.96f
-private const val APPEAR_SCALE = 0.7f
+private const val APPEAR_SCALE = 0.9f
+private val APPEAR_RISE = 48.dp
 
 /**
  * One message. Consecutive messages from one sender form a run, shaped like a segmented list: the
@@ -77,13 +78,12 @@ internal fun MessageBubble(
     val time = remember(message.timestampMillis) { formatTime(message.timestampMillis) }
     MessageSwipe(
         time = time,
-        isOwn = own,
         canReply = message.canReply,
         onReply = { actions.onReply(message) },
         modifier = modifier.padding(top = if (startsRun) 10.dp else 0.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().appear(isNew, own),
+            modifier = Modifier.fillMaxWidth().appear(isNew, own, message.sendState == SendState.Sent),
             horizontalArrangement = if (own) Arrangement.End else Arrangement.Start,
             verticalAlignment = Alignment.Bottom
         ) {
@@ -132,18 +132,21 @@ internal fun MessageBubble(
 }
 
 /**
- * A message that arrives while the conversation is open grows out of its sender's side, the way a
- * bubble would; messages already there when it opened, and older pages, just appear.
+ * A message that arrives while the conversation is open rises from the bottom into place;
+ * messages already there when it opened, and older pages, just appear. An own message animates
+ * only as its local echo: once sent it can come back as a fresh row, and must not animate twice.
  */
 @Composable
-private fun Modifier.appear(isNew: Boolean, own: Boolean): Modifier {
+private fun Modifier.appear(isNew: Boolean, own: Boolean, sent: Boolean): Modifier {
     val reducedMotion = LocalReducedMotion.current
-    val progress = remember { Animatable(if (isNew && !reducedMotion) 0f else 1f) }
+    val animate = isNew && !reducedMotion && !(own && sent)
+    val progress = remember { Animatable(if (animate) 0f else 1f) }
     val spring = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
     LaunchedEffect(Unit) { if (progress.value < 1f) progress.animateTo(1f, spring) }
     return graphicsLayer {
         val value = progress.value
         transformOrigin = TransformOrigin(if (own) 1f else 0f, 1f)
+        translationY = (1f - value) * APPEAR_RISE.toPx()
         scaleX = APPEAR_SCALE + (1f - APPEAR_SCALE) * value
         scaleY = APPEAR_SCALE + (1f - APPEAR_SCALE) * value
         alpha = value.coerceIn(0f, 1f)

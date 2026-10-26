@@ -1,5 +1,6 @@
 package org.phalanx.android.core.matrix
 
+import android.graphics.BitmapFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
@@ -8,7 +9,9 @@ import kotlinx.serialization.json.putJsonObject
 import org.matrix.rustcomponents.sdk.ClientException
 import org.matrix.rustcomponents.sdk.RoomException
 import org.matrix.rustcomponents.sdk.use
+import org.phalanx.android.core.media.EmojiKitchen
 import org.phalanx.android.core.media.StickerCatalog
+import org.phalanx.android.data.model.KitchenMix
 import org.phalanx.android.data.model.Sticker
 import org.phalanx.android.data.model.StickerPack
 import org.phalanx.android.data.repository.StickerRepository
@@ -25,20 +28,33 @@ import javax.inject.Singleton
 @Singleton
 internal class RustStickerRepository @Inject constructor(
     private val active: ActiveClient,
-    private val catalog: StickerCatalog
+    private val catalog: StickerCatalog,
+    private val kitchen: EmojiKitchen
 ) : StickerRepository {
     override suspend fun packs(): List<StickerPack> = catalog.packs()
 
-    override suspend fun send(roomId: String, sticker: Sticker): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun send(roomId: String, sticker: Sticker): Result<Unit> {
+        val name = sticker.assetPath.substringAfterLast('/')
+        return sendImage(roomId, StickerImage(catalog.read(sticker), sticker.body, name, StickerCatalog.SIZE_PX))
+    }
+
+    override suspend fun sendKitchen(roomId: String, mix: KitchenMix): Result<Unit> {
+        val file = kitchen.image(mix).getOrElse { return Result.failure(it) }
+        val bytes = withContext(Dispatchers.IO) { file.readBytes() }
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+        return sendImage(roomId, StickerImage(bytes, mix.body, file.name, bounds.outWidth))
+    }
+
+    private suspend fun sendImage(roomId: String, image: StickerImage): Result<Unit> = withContext(Dispatchers.IO) {
         val client = active.client() ?: return@withContext Result.failure(TimelineUnavailableException())
         val room = active.room(roomId) ?: return@withContext Result.failure(TimelineUnavailableException())
         try {
             room.use {
                 val asImage = room.roomInfo().bridge() != null
-                val bytes = catalog.read(sticker)
-                val url = client.uploadMedia(StickerCatalog.MIME_TYPE, bytes, null)
+                val url = client.uploadMedia(StickerCatalog.MIME_TYPE, image.bytes, null)
                 val type = if (asImage) IMAGE_EVENT_TYPE else STICKER_EVENT_TYPE
-                room.sendRaw(type, contentOf(sticker, url, bytes.size, asImage))
+                room.sendRaw(type, contentOf(image, url, asImage))
             }
             Result.success(Unit)
         } catch (e: ClientException) {
@@ -48,18 +64,20 @@ internal class RustStickerRepository @Inject constructor(
         }
     }
 
-    private fun contentOf(sticker: Sticker, url: String, size: Int, asImage: Boolean): String = buildJsonObject {
+    private fun contentOf(image: StickerImage, url: String, asImage: Boolean): String = buildJsonObject {
         // An image's body is its file name, which bridges do not show as a caption.
-        put("body", if (asImage) sticker.assetPath.substringAfterLast('/') else sticker.body)
+        put("body", if (asImage) image.fileName else image.body)
         if (asImage) put("msgtype", "m.image")
         put("url", url)
         putJsonObject("info") {
-            put("w", StickerCatalog.SIZE_PX)
-            put("h", StickerCatalog.SIZE_PX)
+            put("w", image.sizePx)
+            put("h", image.sizePx)
             put("mimetype", StickerCatalog.MIME_TYPE)
-            put("size", size)
+            put("size", image.bytes.size)
         }
     }.toString()
+
+    private class StickerImage(val bytes: ByteArray, val body: String, val fileName: String, val sizePx: Int)
 
     private companion object {
         const val STICKER_EVENT_TYPE = "m.sticker"

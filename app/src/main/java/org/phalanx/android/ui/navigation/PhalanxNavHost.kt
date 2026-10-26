@@ -22,6 +22,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import org.phalanx.android.ui.screens.account.AccountScreen
+import org.phalanx.android.ui.screens.bridges.BridgesScreen
 import org.phalanx.android.ui.screens.deleted.DeletedMessagesScreen
 import org.phalanx.android.ui.screens.details.GalleryScreen
 import org.phalanx.android.ui.screens.details.RoomDetailsScreen
@@ -32,6 +33,7 @@ import org.phalanx.android.ui.screens.roomlist.RoomListScreen
 import org.phalanx.android.ui.screens.settings.SettingsCategory
 import org.phalanx.android.ui.screens.settings.SettingsCategoryScreen
 import org.phalanx.android.ui.screens.settings.SettingsScreen
+import org.phalanx.android.ui.share.SharePicker
 
 /**
  * Shared-axis transitions on the theme's motion scheme, so reduced motion shortens them too.
@@ -48,6 +50,12 @@ fun PhalanxNavHost(openRoom: String?, onRoomOpened: () -> Unit) {
         }
         onRoomOpened()
     }
+    SharePicker(onPicked = { roomId ->
+        navController.navigate(RoomRoute(roomId)) {
+            popUpTo(RoomListRoute)
+            launchSingleTop = true
+        }
+    })
     val spatial: FiniteAnimationSpec<IntOffset> = MaterialTheme.motionScheme.defaultSpatialSpec()
     val effects: FiniteAnimationSpec<Float> = MaterialTheme.motionScheme.defaultEffectsSpec()
     SharedTransitionLayout {
@@ -137,6 +145,12 @@ fun PhalanxNavHost(openRoom: String?, onRoomOpened: () -> Unit) {
                         onOpenDevices = { navController.from(entry) { navigate(DevicesRoute) } }
                     )
                 }
+                screen<BridgesRoute> { entry ->
+                    BridgesScreen(
+                        onBack = { navController.from(entry) { popBackStack() } },
+                        onOpenRoom = { navController.from(entry) { navigate(RoomRoute(it)) } }
+                    )
+                }
                 screen<DevicesRoute> { entry ->
                     DevicesScreen(onBack = { navController.from(entry) { popBackStack() } })
                 }
@@ -144,6 +158,7 @@ fun PhalanxNavHost(openRoom: String?, onRoomOpened: () -> Unit) {
                     SettingsScreen(
                         onBack = { navController.from(entry) { popBackStack() } },
                         onOpenAccount = { navController.from(entry) { navigate(AccountRoute) } },
+                        onOpenBridges = { navController.from(entry) { navigate(BridgesRoute) } },
                         onOpenCategory = { navController.from(entry) { navigate(SettingsCategoryRoute(it.name)) } }
                     )
                 }
