@@ -45,3 +45,21 @@ UnifiedPush `PushService` → expedited WorkManager worker → `NotificationClie
 - Typing and read alerts (`core/matrix/RoomWatch`) run only while the app syncs on screen: neither is ever pushed, and nothing keeps the app awake to watch for them.
 - Reaction notifications turn the account's `.m.rule.reaction` push rule to notify; it is account-wide, so other clients may follow it. The phone keeps only reactions to the account's own messages.
 - Settings → Notifications → "Show in notifications" decides how much a notification shows: everything, the sender's name only, or nothing but "New message" (no name, room, photo or shortcut). Typing and read alerts follow it.
+
+## 6. On-device AI: GPU (Vulkan) on the Pixel 10
+
+The models run on the CPU only (`n_gpu_layers = 0`). `GGML_CPU_ALL_VARIANTS` ships one CPU backend per Arm level and `cpu_backend.cpp` loads the best one the phone runs, so a Tensor G5 already gets its i8mm and SVE2 kernels. The Tensor G5's TPU is reachable only through Google's AICore and Play Services, which this app does not use. Its GPU (Imagination PowerVR) is reachable through Vulkan, and ggml has a Vulkan backend, but it is not built yet, because it has not been measured.
+
+**Building it.** `GGML_VULKAN=ON` adds `libggml-vulkan.so` as one more runtime-loaded backend next to the CPU ones (`GGML_BACKEND_DL`), so a phone without Vulkan 1.2 simply never loads it. The build needs:
+- `glslc`, which the NDK ships under `shader-tools/`;
+- the Vulkan C++ headers (`vulkan.hpp`) and SPIRV-Headers, which it does not ship. Both would be pinned as submodules, after the approval CLAUDE.md asks for any new dependency.
+
+`load()` would then pass `n_gpu_layers = 99` when the backend registered. The setting would be off by default and named after what it does ("Use the graphics chip").
+
+**Measuring it, on the Pixel 10, against the CPU i8mm build:**
+- prompt reading in tokens/s on a 3,000-token summary prompt (`llama_perf_context` timings, read in a debug build only, never logged in release);
+- reply writing in tokens/s over 300 tokens;
+- battery used per summary (Settings → Battery usage, ten summaries in a row) and the phone's temperature after them;
+- the same for photo descriptions, where the vision projector runs on the GPU too.
+
+**Shipping it** only if prompt reading is at least 1.5× faster, replies are not slower, battery use per summary is not higher, and nothing crashes or answers differently over a week of use. Mobile GPU drivers vary: if any of these fails, the backend stays out and this section records the numbers.
