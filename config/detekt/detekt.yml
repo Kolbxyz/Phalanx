@@ -1,0 +1,17 @@
+# On top of detekt's defaults (buildUponDefaultConfig). Jetpack Compose's conventions differ from
+# plain Kotlin's in a few places, as Compose's own guidelines describe.
+naming:
+  FunctionNaming:
+    # Composables are named like types: MessageBubble(), not messageBubble().
+    ignoreAnnotated: ['Composable']
+
+complexity:
+  LongMethod:
+    # A screen's layout reads top to bottom as one tree; splitting it only to meet a count hides it.
+    ignoreAnnotated: ['Composable']
+  CyclomaticComplexMethod:
+    # Each optional piece of UI is an `if`, so layouts score high without being hard to follow.
+    ignoreAnnotated: ['Composable']
+  TooManyFunctions:
+    # A view model exposes one function per user action; the 300-line file rule bounds its size.
+    ignoreAnnotated: ['HiltViewModel']

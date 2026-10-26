@@ -200,4 +200,8 @@ kover {
 detekt {
     buildUponDefaultConfig = true
     source.setFrom("src/main/java", "src/test/java")
+    // Compose naming and layout conventions; see the file.
+    config.setFrom(rootProject.file("config/detekt/detekt.yml"))
+    // Findings in code written before detekt ran in CI; new code must pass without them.
+    baseline = file("detekt-baseline.xml")
 }
