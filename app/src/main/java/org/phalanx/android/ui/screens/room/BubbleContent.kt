@@ -1,5 +1,6 @@
 package org.phalanx.android.ui.screens.room
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -56,7 +57,8 @@ internal fun BubbleContent(
     onLongPress: () -> Unit
 ) {
     when (layout) {
-        BubbleLayout.Media, BubbleLayout.Bare -> Content(message, layout, actions, onLongPress)
+        BubbleLayout.Media -> Content(message, layout, actions, onLongPress)
+        BubbleLayout.Bare -> Box(Modifier.landingPop(message)) { Content(message, layout, actions, onLongPress) }
         BubbleLayout.Padded -> Column(
             Modifier
                 .then(if (hasPicture(message.body)) Modifier.width(MediaWidth + MediaInset * 2) else Modifier)

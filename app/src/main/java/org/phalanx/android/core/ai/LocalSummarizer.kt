@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
@@ -15,6 +16,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.phalanx.android.core.matrix.ActiveClient
+import org.phalanx.android.di.ApplicationScope
 
 /** No model has been imported. */
 class ModelMissingException : Exception("No model")
@@ -23,32 +26,65 @@ class ModelMissingException : Exception("No model")
 class SummariesUnsupportedException : Exception("Unsupported device")
 
 /**
- * Sums up a conversation with the imported model, on this phone's CPU. The model is loaded for
- * each summary and released after, so it holds no memory between uses. One summary at a time.
+ * Runs the imported model on this phone's CPU: summaries, reply suggestions and translations. The
+ * model is loaded for each request and released after, so it holds no memory between uses. One
+ * request at a time.
  */
 @Singleton
-class LocalSummarizer @Inject constructor(private val models: ModelStore) {
+class LocalSummarizer @Inject internal constructor(
+    private val models: ModelStore,
+    active: ActiveClient,
+    @ApplicationScope scope: CoroutineScope
+) {
     private val lock = Mutex()
 
     // The last few replies by model and exact prompt, so asking again with nothing new runs no
-    // inference. Kept in memory only, under [lock]: a summary is room content and never hits disk.
+    // inference. Kept in memory only, under [lock]: a reply is room content and never hits disk.
     private val cache = object : LinkedHashMap<String, String>(CACHE_SIZE, LOAD_FACTOR, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, String>?) = size > CACHE_SIZE
     }
 
-    /** Calls [onText] with the whole reply so far, as it grows; a cached reply comes back at once. */
-    suspend fun summarize(lines: List<SummaryLine>, onText: (String) -> Unit): Result<String> {
+    init {
+        // A new sync service means sign-in or sign-out: the summaries belong to another account.
+        scope.launch { active.syncService.collect { lock.withLock { cache.clear() } } }
+    }
+
+    /**
+     * Sums [lines] up as points citing their messages. Calls [onText] with the reply so far, as it
+     * grows; a cached reply comes back at once.
+     */
+    suspend fun summarize(lines: List<SummaryLine>, onText: (String) -> Unit): Result<Summary> {
+        val prompt = SummaryPrompt.of(lines)
+        return complete(prompt, SUMMARY_TOKENS) { onText(withoutCitations(it)) }
+            .map { Summary(pointsOf(it, prompt.eventIds), prompt.count) }
+    }
+
+    /** Three short replies the user, named [you] in [lines], could send next. */
+    suspend fun suggestReplies(lines: List<SummaryLine>, you: String): Result<List<String>> =
+        complete(repliesPrompt(SummaryPrompt.of(lines), you), REPLIES_TOKENS) {}.map(::repliesOf)
+
+    /**
+     * [text] in [language], an English name such as "French", as it is written. Only the first
+     * [MAX_TRANSLATED_CHARS] are translated.
+     */
+    suspend fun translate(text: String, language: String, onText: (String) -> Unit): Result<String> =
+        complete(translatePrompt(text, language), TRANSLATION_TOKENS, onText)
+
+    /** One long message in a few points, as it is written. */
+    suspend fun summarizeMessage(text: String, onText: (String) -> Unit): Result<String> =
+        complete(messageSummaryPrompt(text), SUMMARY_TOKENS, onText)
+
+    private suspend fun complete(prompt: Prompt, maxTokens: Int, onText: (String) -> Unit): Result<String> {
         val path = models.path()
         return when {
             !LlamaNative.isAvailable -> Result.failure(SummariesUnsupportedException())
             path == null -> Result.failure(ModelMissingException())
             else -> lock.withLock {
-                val prompt = SummaryPrompt.of(lines)
                 val key = listOf(path, prompt.system, prompt.user).joinToString("\u0000")
                 cache[key]?.let { return@withLock Result.success(it) }
                 withContext(Dispatchers.Default) {
                     try {
-                        Result.success(run(path, prompt, onText))
+                        Result.success(run(path, prompt, maxTokens, onText))
                     } catch (e: IllegalStateException) {
                         Result.failure(e)
                     }
@@ -57,41 +93,44 @@ class LocalSummarizer @Inject constructor(private val models: ModelStore) {
         }
     }
 
-    private suspend fun run(path: String, prompt: SummaryPrompt, onText: (String) -> Unit): String = coroutineScope {
-        val handle = LlamaNative.load(path, THREADS)
-        val finished = AtomicBoolean(false)
-        // Cancelling the coroutine stops the native loop, which no suspension point can interrupt.
-        val watcher = launch {
+    private suspend fun run(path: String, prompt: Prompt, maxTokens: Int, onText: (String) -> Unit): String =
+        coroutineScope {
+            val handle = LlamaNative.load(path, THREADS)
+            val finished = AtomicBoolean(false)
+            // Cancelling the coroutine stops the native loop, which no suspension point can interrupt.
+            val watcher = launch {
+                try {
+                    awaitCancellation()
+                } finally {
+                    if (!finished.get()) LlamaNative.cancel(handle)
+                }
+            }
             try {
-                awaitCancellation()
+                val reply = ByteArrayOutputStream()
+                LlamaNative.complete(
+                    handle, prompt.system.toByteArray(), prompt.user.toByteArray(), CONTEXT_TOKENS, maxTokens
+                ) { piece ->
+                    reply.write(piece)
+                    onText(reply.toString(Charsets.UTF_8.name()))
+                    isActive
+                }
+                ensureActive()
+                reply.toString(Charsets.UTF_8.name()).trim()
             } finally {
-                if (!finished.get()) LlamaNative.cancel(handle)
+                finished.set(true)
+                // Joined before the handle is freed, so a late cancel never touches freed memory.
+                withContext(NonCancellable) { watcher.cancelAndJoin() }
+                LlamaNative.free(handle)
             }
         }
-        try {
-            val reply = ByteArrayOutputStream()
-            LlamaNative.complete(
-                handle, prompt.system.toByteArray(), prompt.user.toByteArray(), CONTEXT_TOKENS, MAX_NEW_TOKENS
-            ) { piece ->
-                reply.write(piece)
-                onText(reply.toString(Charsets.UTF_8.name()))
-                isActive
-            }
-            ensureActive()
-            reply.toString(Charsets.UTF_8.name()).trim()
-        } finally {
-            finished.set(true)
-            // Joined before the handle is freed, so a late cancel never touches freed memory.
-            withContext(NonCancellable) { watcher.cancelAndJoin() }
-            LlamaNative.free(handle)
-        }
-    }
 
     private companion object {
         // Room for SummaryPrompt's budget plus the reply; Ministral 3 takes far more, but the KV
         // cache grows with it and a phone has little memory to spare.
         const val CONTEXT_TOKENS = 6144
-        const val MAX_NEW_TOKENS = 400
+        const val SUMMARY_TOKENS = 400
+        const val REPLIES_TOKENS = 120
+        const val TRANSLATION_TOKENS = 1_600
         const val CACHE_SIZE = 8
         const val LOAD_FACTOR = 0.75f
 

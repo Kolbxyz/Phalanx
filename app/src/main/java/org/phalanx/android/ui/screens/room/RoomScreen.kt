@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,8 +40,11 @@ fun RoomScreen(
     onOpenMedia: (roomId: String, entryId: String) -> Unit,
     onOpenRoom: (roomId: String) -> Unit,
     viewModel: RoomViewModel = hiltViewModel(),
-    summary: SummaryViewModel = hiltViewModel()
+    summary: SummaryViewModel = hiltViewModel(),
+    unread: UnreadViewModel = hiltViewModel(),
+    reactorsModel: ReactorsViewModel = hiltViewModel()
 ) {
+    val kitchen: KitchenViewModel = hiltViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val composerState by viewModel.composer.state.collectAsStateWithLifecycle()
     val notice by viewModel.notice.collectAsStateWithLifecycle()
@@ -55,7 +59,6 @@ fun RoomScreen(
     var editingImage by remember { mutableStateOf<String?>(null) }
     var scheduling by remember { mutableStateOf(false) }
     val scheduled by viewModel.scheduled.collectAsStateWithLifecycle()
-    val summaryState by summary.state.collectAsStateWithLifecycle()
     val launchers = rememberAttachLaunchers(viewModel)
 
     LifecycleResumeEffect(viewModel) {
@@ -71,7 +74,7 @@ fun RoomScreen(
             onOpenFile = viewModel::openFile,
             resolveFile = viewModel::fileUri,
             onToggleReaction = viewModel::toggleReaction,
-            onShowReactors = viewModel::showReactors,
+            onShowReactors = reactorsModel::show,
             onReply = viewModel.composer::reply,
             onLongPress = { selected = it },
             onOpenProfile = { profileOf = it },
@@ -84,7 +87,10 @@ fun RoomScreen(
             onDraftChange = composer::onDraftChange,
             onPickSuggestion = composer::pickSuggestion,
             onSend = composer::send,
-            onSendMix = viewModel::sendDraftMix,
+            onSendMix = { mix ->
+                composer.clearDraft()
+                kitchen.send(mix) { viewModel.notify(R.string.composer_send_failed) }
+            },
             onCancelMode = composer::cancelMode,
             onAttach = { attaching = true },
             onRemoveAttachment = composer::removeAttachment,
@@ -130,7 +136,19 @@ fun RoomScreen(
                     )
                 }
                 is RoomUiState.Ready -> CompositionLocalProvider(LocalTimelinePrefs provides prefs) {
-                    TimelineList(current, padding, actions, viewModel::loadOlder, focus, viewModel::onFocused)
+                    Box(Modifier.fillMaxSize()) {
+                        TimelineList(current, padding, actions, viewModel::loadOlder, focus, viewModel::onFocused)
+                        val offer by unread.offer.collectAsStateWithLifecycle()
+                        UnreadJump(
+                            offer,
+                            onJump = {
+                                unread.jump(viewModel::jumpTo) { viewModel.notify(R.string.timeline_focus_not_found) }
+                            },
+                            onDismiss = unread::dismiss,
+                            modifier = Modifier.align(Alignment.TopCenter)
+                                .padding(top = padding.calculateTopPadding() + 8.dp)
+                        )
+                    }
                 }
             }
         }
@@ -139,8 +157,8 @@ fun RoomScreen(
 
     MessageMenu(selected, onDismiss = { selected = null }, viewModel)
     ProfileMenu(profileOf, onDismiss = { profileOf = null }, onOpenRoom, viewModel)
-    val reactors by viewModel.reactors.collectAsStateWithLifecycle()
-    reactors?.let { ReactorsSheet(it, onDismiss = viewModel::dismissReactors) }
+    val reactors by reactorsModel.reactors.collectAsStateWithLifecycle()
+    reactors?.let { ReactorsSheet(it, onDismiss = reactorsModel::dismiss) }
     editingImage?.let { id ->
         val image = composerState.attachments.firstOrNull { it.id == id }?.media as? OutgoingMedia.Image
         if (image == null) {
@@ -193,14 +211,16 @@ fun RoomScreen(
             }
         )
     }
-    SummarySheet(summaryState, onDismiss = summary::dismiss)
+    SummaryHost(summary, viewModel)
     if (stickering) {
         KitchenSheet(
             onDismiss = { stickering = false },
-            onPick = {
+            onPick = { mix ->
                 stickering = false
-                viewModel.sendMix(it)
-            }
+                kitchen.send(mix) { viewModel.notify(R.string.composer_send_failed) }
+            },
+            onStarFailed = { viewModel.notify(R.string.kitchen_star_failed) },
+            kitchen = kitchen
         )
     }
 }

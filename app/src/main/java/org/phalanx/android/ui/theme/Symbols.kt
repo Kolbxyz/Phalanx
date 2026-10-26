@@ -97,6 +97,8 @@ internal object Symbols {
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_open_in_new)
     val PushPin: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_keep)
+    val Translate: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_translate)
     val Summarize: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_auto_awesome)
     val Sticker: ImageVector

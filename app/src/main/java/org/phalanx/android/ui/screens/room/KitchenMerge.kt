@@ -35,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import java.io.File
+import kotlinx.coroutines.delay
 import org.phalanx.android.R
 import org.phalanx.android.data.model.KitchenMix
 import org.phalanx.android.data.model.emojiOf
@@ -43,21 +44,35 @@ import org.phalanx.android.ui.theme.Symbols
 private val StageSize = 64.dp
 private val Spread = 26.dp
 private const val TILT_DEGREES = 28f
+private const val CHOICES_DELAY_MILLIS = 600L
+
+// How much smaller the emoji get as they meet, and how far the burst turns as it pops.
+private const val MERGE_SHRINK = 0.3f
+private const val BURST_TURN_DEGREES = 90f
 
 /**
- * When the draft is exactly two emoji that mix, they slide into each other and pop into their
- * Emoji Kitchen mix above the field; a tap sends the mix in place of the draft.
+ * Emoji Kitchen above the composer's field: two typed emoji that mix merge into their mix, and
+ * one typed emoji offers a few of its mixes. A tap sends the mix in place of the draft.
  */
 @Composable
-internal fun KitchenMerge(
+internal fun KitchenSuggestions(
     draft: String,
     onSend: (KitchenMix) -> Unit,
     kitchen: KitchenViewModel = hiltViewModel()
 ) {
     val enabled by kitchen.enabled.collectAsStateWithLifecycle()
-    val mix by produceState<KitchenMix?>(null, draft, enabled) {
-        value = if (enabled) kitchen.mixOfDraft(draft) else null
+    val offer by produceState<DraftMixes?>(null, draft, enabled) {
+        // One emoji is often the start of a message: its mixes, each a download, wait for a pause.
+        if (emojiIn(draft)?.size == 1) delay(CHOICES_DELAY_MILLIS)
+        value = if (enabled) kitchen.mixesOfDraft(draft) else null
     }
+    KitchenMerge((offer as? DraftMixes.Merge)?.mix, onSend, kitchen)
+    KitchenChoices((offer as? DraftMixes.Choices)?.mixes, onSend, kitchen)
+}
+
+/** [mix]'s two emoji slide into each other and pop into it; null hides the pill. */
+@Composable
+private fun KitchenMerge(mix: KitchenMix?, onSend: (KitchenMix) -> Unit, kitchen: KitchenViewModel) {
     // Shown once the image is there, so the animation never plays onto an empty stage.
     val loaded by produceState<Pair<KitchenMix, File>?>(null, mix) {
         value = mix?.let { m -> kitchen.image(m)?.let { m to it } }
@@ -112,7 +127,7 @@ private fun MergeStage(mix: KitchenMix, file: File) {
             modifier = Modifier.fillMaxSize().graphicsLayer {
                 scaleX = pop.value
                 scaleY = pop.value
-                rotationZ = pop.value * 90f
+                rotationZ = pop.value * BURST_TURN_DEGREES
             }
         ) {}
         listOf(mix.left to -1f, mix.right to 1f).forEach { (codepoints, side) ->
@@ -123,8 +138,8 @@ private fun MergeStage(mix: KitchenMix, file: File) {
                     val apart = 1f - merge.value
                     translationX = side * spread * apart
                     rotationZ = side * TILT_DEGREES * apart
-                    scaleX = 1f - merge.value * 0.3f
-                    scaleY = 1f - merge.value * 0.3f
+                    scaleX = 1f - merge.value * MERGE_SHRINK
+                    scaleY = 1f - merge.value * MERGE_SHRINK
                     alpha = (1f - pop.value).coerceIn(0f, 1f)
                 }
             )

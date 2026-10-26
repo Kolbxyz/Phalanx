@@ -12,15 +12,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
+import org.phalanx.android.R
 import org.phalanx.android.data.model.AppSettings
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
 
 /** The long-press sheet for [message], and the delete confirmation it can lead to. */
 @Composable
-internal fun MessageMenu(message: TimelineEntry.Message?, onDismiss: () -> Unit, viewModel: RoomViewModel) {
+internal fun MessageMenu(
+    message: TimelineEntry.Message?,
+    onDismiss: () -> Unit,
+    viewModel: RoomViewModel,
+    kitchen: KitchenViewModel = hiltViewModel(),
+    assist: AssistViewModel = hiltViewModel()
+) {
     val clipboard = LocalClipboard.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -28,10 +36,13 @@ internal fun MessageMenu(message: TimelineEntry.Message?, onDismiss: () -> Unit,
     var blocking by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     var forwarding by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     var versionsOf by remember { mutableStateOf<String?>(null) }
+    var mixingFor by remember { mutableStateOf<TimelineEntry.Message?>(null) }
+    val kitchenOn by kitchen.enabled.collectAsStateWithLifecycle()
     val muted by viewModel.muted.collectAsStateWithLifecycle()
     val header by viewModel.header.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val text = (message?.body as? MessageBody.Text)?.text
+    val aiOn = settings?.aiSummaries == true
 
     fun copy(value: String) {
         scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, value))) }
@@ -47,10 +58,14 @@ internal fun MessageMenu(message: TimelineEntry.Message?, onDismiss: () -> Unit,
             message = message,
             onDismiss = onDismiss,
             onReact = { key -> then { viewModel.toggleReaction(message, key) }() },
+            onReactWithMix = if (kitchenOn) then { mixingFor = message } else null,
             onReply = then { viewModel.composer.reply(message) },
             onEdit = then { text?.let { viewModel.composer.edit(message, it) } },
             onShowVersions = versionsTarget(message, settings)?.let { eventId -> then { versionsOf = eventId } },
             onCopy = then { text?.let(::copy) },
+            onTranslate = text?.takeIf { aiOn }?.let { then { assist.translate(it) } },
+            onSummarize = text?.takeIf { aiOn && it.length >= AssistViewModel.LONG_MESSAGE_CHARS }
+                ?.let { then { assist.summarize(it) } },
             onCopyLink = { link -> then { copy(link) }() },
             onShareLink = { link -> then { shareText(context, link) }() },
             onForward = then { forwarding = message },
@@ -74,6 +89,19 @@ internal fun MessageMenu(message: TimelineEntry.Message?, onDismiss: () -> Unit,
         )
     }
     versionsOf?.let { eventId -> EditHistorySheet(eventId, onDismiss = { versionsOf = null }) }
+    val assistState by assist.state.collectAsStateWithLifecycle()
+    AssistSheet(assistState, onDismiss = assist::dismiss)
+    mixingFor?.let { target ->
+        KitchenSheet(
+            onDismiss = { mixingFor = null },
+            onPick = { mix ->
+                mixingFor = null
+                kitchen.react(target, mix) { viewModel.notify(R.string.timeline_action_failed) }
+            },
+            onStarFailed = { viewModel.notify(R.string.kitchen_star_failed) },
+            kitchen = kitchen
+        )
+    }
     deleting?.let { target ->
         DeleteMessageDialog(
             onConfirm = {

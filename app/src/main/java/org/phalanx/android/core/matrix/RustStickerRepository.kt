@@ -35,6 +35,18 @@ internal class RustStickerRepository @Inject constructor(
         return sendImage(roomId, StickerImage(bytes, mix.body, file.name, bounds.outWidth))
     }
 
+    override suspend fun upload(mix: KitchenMix): Result<String> {
+        val file = kitchen.image(mix).getOrElse { return Result.failure(it) }
+        return withContext(Dispatchers.IO) {
+            val client = active.client() ?: return@withContext Result.failure(TimelineUnavailableException())
+            try {
+                Result.success(client.uploadMedia(MIME_TYPE, file.readBytes(), null))
+            } catch (e: ClientException) {
+                Result.failure(e)
+            }
+        }
+    }
+
     private suspend fun sendImage(roomId: String, image: StickerImage): Result<Unit> = withContext(Dispatchers.IO) {
         val client = active.client() ?: return@withContext Result.failure(TimelineUnavailableException())
         val room = active.room(roomId) ?: return@withContext Result.failure(TimelineUnavailableException())

@@ -42,8 +42,14 @@ internal fun MessageActionsSheet(
     message: TimelineEntry.Message,
     onDismiss: () -> Unit,
     onReact: (String) -> Unit,
+    /** Null hides the Emoji Kitchen reaction: Kitchen is off. */
+    onReactWithMix: (() -> Unit)?,
     onReply: () -> Unit,
     onCopy: () -> Unit,
+    /** Null hides translating with the local model: AI is off, or the message is not text. */
+    onTranslate: (() -> Unit)?,
+    /** Null hides summing the message up: AI is off, or the message is short or not text. */
+    onSummarize: (() -> Unit)?,
     onCopyLink: (String) -> Unit,
     onShareLink: (String) -> Unit,
     onEdit: () -> Unit,
@@ -65,16 +71,31 @@ internal fun MessageActionsSheet(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                // A seventh button for mixes leaves each a little less room on a narrow phone.
+                val size = if (onReactWithMix != null) 44.dp else 48.dp
                 QuickReactions.forEach { key ->
                     val mine = message.reactions.any { it.key == key && it.byMe }
                     Surface(
                         onClick = { onReact(key) },
                         shape = MaterialShapes.Cookie6Sided.toShape(),
                         color = if (mine) colors.secondaryContainer else colors.surfaceContainerHigh,
-                        modifier = Modifier.size(48.dp)
+                        modifier = Modifier.size(size)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text(key, style = MaterialTheme.typography.titleLarge)
+                        }
+                    }
+                }
+                onReactWithMix?.let { onClick ->
+                    Surface(
+                        onClick = onClick,
+                        shape = MaterialShapes.Puffy.toShape(),
+                        color = colors.tertiaryContainer,
+                        contentColor = colors.onTertiaryContainer,
+                        modifier = Modifier.size(size)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(Symbols.Sticker, contentDescription = stringResource(R.string.kitchen_react))
                         }
                     }
                 }
@@ -82,6 +103,8 @@ internal fun MessageActionsSheet(
         }
         if (message.canReply) Action(Symbols.Reply, R.string.action_reply, onReply)
         if (message.body is MessageBody.Text) Action(Symbols.ContentCopy, R.string.action_copy, onCopy)
+        onTranslate?.let { Action(Symbols.Translate, R.string.action_translate, it) }
+        onSummarize?.let { Action(Symbols.Summarize, R.string.action_summarize_message, it) }
         LinkActions(remember(message.body) { linksOf(message.body) }, onCopyLink, onShareLink)
         if (live && message.eventId != null && message.body.isForwardable()) {
             Action(Symbols.Forward, R.string.action_forward, onForward)

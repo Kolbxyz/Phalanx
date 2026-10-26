@@ -16,10 +16,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.core.ai.LocalSummarizer
-import org.phalanx.android.core.ai.ModelMissingException
-import org.phalanx.android.core.ai.SummariesUnsupportedException
 import org.phalanx.android.core.ai.SummaryLine
-import org.phalanx.android.data.model.MessageBody
+import org.phalanx.android.core.ai.SummaryPoint
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.RoomListRepository
 import org.phalanx.android.data.repository.TimelineRepository
@@ -29,20 +27,39 @@ import org.phalanx.android.ui.navigation.RoomRoute
 sealed interface SummaryState {
     data object Idle : SummaryState
 
-    /** [count] messages are being read; [text] is the reply so far. */
-    data class Running(val count: Int, val text: String) : SummaryState
+    /** [text] is the reply so far. */
+    data class Running(val text: String) : SummaryState
 
-    /** [sinceRead]: the summary covers what was unread at open, and what came after. */
-    data class Done(val count: Int, val text: String, val sinceRead: Boolean) : SummaryState
+    /**
+     * [count] messages were read, fewer than asked when the oldest did not fit the model.
+     * [sinceRead]: the summary covers what was unread at open, and what came after.
+     */
+    data class Done(
+        val count: Int,
+        val points: List<SummaryPoint>,
+        val sinceRead: Boolean,
+        val replies: Replies = Replies.Offered
+    ) : SummaryState
 
     data class Failed(@StringRes val message: Int) : SummaryState
 }
 
+/** Replies the model could suggest once the summary is done. */
+sealed interface Replies {
+    data object Offered : Replies
+
+    data object Writing : Replies
+
+    data class Ready(val replies: List<String>) : Replies
+
+    data class Failed(@StringRes val message: Int) : Replies
+}
+
 /**
- * Sums up every message since the user last read the room: those unread when it was opened, and
- * any that came after, up to [MAX_MESSAGES]; with none unread, the last [DEFAULT_MESSAGES]. The
- * count is taken at open, because opening reads the room. Asking again with nothing new reuses
- * the last summary (see [LocalSummarizer]).
+ * Sums up every message since the user last read the room, from their read receipt (see
+ * [ReadAtOpen]): those unread when it was opened, and any that came after, up to [MAX_MESSAGES];
+ * with none unread, the last [DEFAULT_MESSAGES]. Asking again with nothing new reuses the last
+ * summary (see [LocalSummarizer]).
  */
 @HiltViewModel
 class SummaryViewModel @Inject constructor(
@@ -53,35 +70,52 @@ class SummaryViewModel @Inject constructor(
     @ApplicationContext private val context: Context
 ) : ViewModel() {
     private val roomId = savedStateHandle.toRoute<RoomRoute>().roomId
-    private val unreadAtOpen = roomList.rooms.value?.firstOrNull { it.id == roomId }?.unreadCount ?: 0L
+    private val readAtOpen = ReadAtOpen(
+        viewModelScope, timelines, roomId,
+        unreadCount = roomList.rooms.value?.firstOrNull { it.id == roomId }?.unreadCount ?: 0L
+    )
 
     private val mutableState = MutableStateFlow<SummaryState>(SummaryState.Idle)
     val state: StateFlow<SummaryState> = mutableState.asStateFlow()
     private var job: Job? = null
 
-    // The first message unread at open, found on the first summary; later ones start from it too.
-    private var firstUnreadId: String? = null
+    // What the summary was made from, for the reply suggestions that may follow.
+    private var summarized: List<SummaryLine> = emptyList()
 
     fun start() {
         job?.cancel()
-        mutableState.value = SummaryState.Running(0, "")
+        mutableState.value = SummaryState.Running("")
         job = viewModelScope.launch {
             val session = timelines.open(roomId).getOrNull()
             if (session == null) {
                 mutableState.value = SummaryState.Failed(R.string.summary_failed)
                 return@launch
             }
-            val sinceRead = unreadAtOpen > 0
-            val lines = linesOf(session, sinceRead)
+            val unread = readAtOpen.unread(session, MAX_MESSAGES)
+            val sinceRead = unread.isNotEmpty()
+            val lines = linesOf(unread.ifEmpty { latest(session) })
             if (lines.isEmpty()) {
                 mutableState.value = SummaryState.Failed(R.string.summary_empty)
                 return@launch
             }
-            mutableState.value = SummaryState.Running(lines.size, "")
-            summarizer.summarize(lines) { mutableState.value = SummaryState.Running(lines.size, it) }.fold(
-                onSuccess = { mutableState.value = SummaryState.Done(lines.size, it, sinceRead) },
-                onFailure = { mutableState.value = SummaryState.Failed(messageFor(it)) }
+            summarized = lines
+            summarizer.summarize(lines) { mutableState.value = SummaryState.Running(it) }.fold(
+                onSuccess = { mutableState.value = SummaryState.Done(it.messageCount, it.points, sinceRead) },
+                onFailure = { mutableState.value = SummaryState.Failed(aiFailureMessage(it)) }
             )
+        }
+    }
+
+    /** Asks the model for three replies to the summed-up messages, shown under the summary. */
+    fun suggestReplies() {
+        val done = mutableState.value as? SummaryState.Done ?: return
+        mutableState.value = done.copy(replies = Replies.Writing)
+        job = viewModelScope.launch {
+            val replies = summarizer.suggestReplies(summarized, context.getString(R.string.summary_you)).fold(
+                onSuccess = { if (it.isEmpty()) Replies.Failed(R.string.summary_failed) else Replies.Ready(it) },
+                onFailure = { Replies.Failed(aiFailureMessage(it)) }
+            )
+            mutableState.value = done.copy(replies = replies)
         }
     }
 
@@ -90,43 +124,24 @@ class SummaryViewModel @Inject constructor(
         mutableState.value = SummaryState.Idle
     }
 
-    private fun messageFor(error: Throwable): Int = when (error) {
-        is ModelMissingException -> R.string.summary_no_model
-        is SummariesUnsupportedException -> R.string.settings_ai_unsupported
-        else -> R.string.summary_failed
-    }
-
-    // Older pages are loaded until the first unread message is there or the room starts; a page cap
-    // bounds the wait.
-    private suspend fun linesOf(session: TimelineSession, sinceRead: Boolean): List<SummaryLine> {
-        val wanted = if (sinceRead) unreadAtOpen.coerceAtMost(MAX_MESSAGES.toLong()).toInt() else DEFAULT_MESSAGES
+    // With nothing unread, the latest messages; older pages are loaded until there are enough or
+    // the room starts, and a page cap bounds the wait.
+    private suspend fun latest(session: TimelineSession): List<TimelineEntry.Message> {
         var pages = 0
-        while (firstUnreadId == null && messagesOf(session).size < wanted && session.hasMoreHistory.value &&
-            pages++ < MAX_PAGES
-        ) {
+        while (messagesOf(session).size < DEFAULT_MESSAGES && session.hasMoreHistory.value && pages++ < MAX_PAGES) {
             if (session.loadOlder().isFailure) break
         }
-        val messages = messagesOf(session)
-        val window = if (sinceRead) {
-            val anchor = firstUnreadId ?: messages.takeLast(wanted).firstOrNull()?.id?.also { firstUnreadId = it }
-            messages.dropWhile { it.id != anchor }.ifEmpty { messages.takeLast(wanted) }.takeLast(MAX_MESSAGES)
-        } else {
-            messages.takeLast(wanted)
-        }
-        return window.map { message ->
-            val sender = if (message.isOwn) context.getString(R.string.summary_you) else message.senderName
-            SummaryLine(sender, summaryOf(message.body, context::getString))
-        }
+        return messagesOf(session).takeLast(DEFAULT_MESSAGES)
     }
 
-    private fun messagesOf(session: TimelineSession): List<TimelineEntry.Message> =
-        session.entries.value.filterIsInstance<TimelineEntry.Message>().filter {
-            it.body != MessageBody.Redacted && it.body != MessageBody.Undecryptable
-        }
+    private fun linesOf(messages: List<TimelineEntry.Message>): List<SummaryLine> = messages.map { message ->
+        val sender = if (message.isOwn) context.getString(R.string.summary_you) else message.senderName
+        SummaryLine(sender, summaryOf(message.body, context::getString), message.eventId)
+    }
 
     private companion object {
         const val MAX_MESSAGES = 500
         const val DEFAULT_MESSAGES = 100
-        const val MAX_PAGES = 20
+        const val MAX_PAGES = 4
     }
 }
