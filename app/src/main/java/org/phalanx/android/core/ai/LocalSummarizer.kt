@@ -95,7 +95,7 @@ class LocalSummarizer @Inject internal constructor(
 
     private suspend fun run(path: String, prompt: Prompt, maxTokens: Int, onText: (String) -> Unit): String =
         coroutineScope {
-            val handle = LlamaNative.load(path, THREADS)
+            val handle = LlamaNative.load(path, CpuCores.replyThreads, CpuCores.promptThreads)
             val finished = AtomicBoolean(false)
             // Cancelling the coroutine stops the native loop, which no suspension point can interrupt.
             val watcher = launch {
@@ -133,8 +133,5 @@ class LocalSummarizer @Inject internal constructor(
         const val TRANSLATION_TOKENS = 1_600
         const val CACHE_SIZE = 8
         const val LOAD_FACTOR = 0.75f
-
-        // The big cores of an 8-core phone; more threads fight over memory bandwidth for no gain.
-        val THREADS = (Runtime.getRuntime().availableProcessors() / 2).coerceIn(2, 4)
     }
 }

@@ -16,9 +16,19 @@ namespace {
 constexpr int32_t kBatch = 512;
 constexpr int32_t kPieceBytes = 256;
 
+// The CPU backend builds (CMakeLists.txt), most capable first: the first one this processor can
+// run is the fastest it has. Loaded by file name, so the linker finds them inside the APK.
+constexpr const char *kCpuBackends[] = {
+        "libggml-cpu-android_armv9.2_2.so", "libggml-cpu-android_armv9.2_1.so",
+        "libggml-cpu-android_armv9.0_1.so", "libggml-cpu-android_armv8.6_1.so",
+        "libggml-cpu-android_armv8.2_2.so", "libggml-cpu-android_armv8.2_1.so",
+        "libggml-cpu-android_armv8.0_1.so",
+};
+
 struct Engine {
     llama_model *model = nullptr;
     int32_t threads = 4;
+    int32_t promptThreads = 4;
     std::atomic<bool> cancelled{false};
 };
 
@@ -83,10 +93,20 @@ bool decodePrompt(Engine *engine, llama_context *context, std::vector<llama_toke
 
 extern "C" {
 
-JNIEXPORT jlong JNICALL Java_org_phalanx_android_core_ai_LlamaNative_load(
-        JNIEnv *env, jobject, jstring path, jint threads) {
+// Loads the CPU backend once, before any model. False if none runs on this processor.
+JNIEXPORT jboolean JNICALL Java_org_phalanx_android_core_ai_LlamaNative_loadBackend(JNIEnv *, jobject) {
     llama_log_set(silentLog, nullptr);
-    llama_backend_init();
+    for (const char *name : kCpuBackends) {
+        if (ggml_backend_load(name) != nullptr) {
+            llama_backend_init();
+            return JNI_TRUE;
+        }
+    }
+    return JNI_FALSE;
+}
+
+JNIEXPORT jlong JNICALL Java_org_phalanx_android_core_ai_LlamaNative_load(
+        JNIEnv *env, jobject, jstring path, jint threads, jint promptThreads) {
     llama_model_params params = llama_model_default_params();
     params.n_gpu_layers = 0;
     const char *file = env->GetStringUTFChars(path, nullptr);
@@ -99,6 +119,7 @@ JNIEXPORT jlong JNICALL Java_org_phalanx_android_core_ai_LlamaNative_load(
     auto *engine = new Engine();
     engine->model = model;
     engine->threads = threads;
+    engine->promptThreads = promptThreads;
     return reinterpret_cast<jlong>(engine);
 }
 
@@ -136,7 +157,7 @@ JNIEXPORT jboolean JNICALL Java_org_phalanx_android_core_ai_LlamaNative_complete
         params.n_ctx = static_cast<uint32_t>(contextSize);
         params.n_batch = kBatch;
         params.n_threads = engine->threads;
-        params.n_threads_batch = engine->threads;
+        params.n_threads_batch = engine->promptThreads;
         llama_context *context = llama_init_from_model(engine->model, params);
         if (context == nullptr) {
             fail(env, "Not enough memory to run the model");

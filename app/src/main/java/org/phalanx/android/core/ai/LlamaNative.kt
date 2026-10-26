@@ -14,12 +14,16 @@ internal object LlamaNative {
     /** False on a 32-bit phone, where the library is not shipped. */
     val isAvailable: Boolean = try {
         System.loadLibrary("phalanx_llm")
-        true
+        loadBackend()
     } catch (_: UnsatisfiedLinkError) {
         false
     }
 
-    external fun load(path: String, threads: Int): Long
+    /** Loads the fastest llama.cpp CPU backend this processor runs; false if none does. */
+    private external fun loadBackend(): Boolean
+
+    /** [threads] write the reply, [promptThreads] read the prompt. */
+    external fun load(path: String, threads: Int, promptThreads: Int): Long
 
     /** Stops the [complete] running on [handle], from any thread. */
     external fun cancel(handle: Long)
