@@ -340,6 +340,15 @@
     <string name="reminders_title">Rappels</string>
     <string name="reminders_empty">Aucun rappel à venir. Créez-en un depuis le menu d’un message ou depuis Me mettre à jour.</string>
     <string name="reminders_cancel">Annuler le rappel</string>
+    <string name="people_title">Contacts</string>
+    <string name="people_empty">Personne n’est encore relié. Quand une même personne a des discussions sur deux réseaux, elles vous sont proposées ici pour confirmation.</string>
+    <string name="people_suggested">La même personne ?</string>
+    <string name="people_same_name">Même nom sur deux réseaux</string>
+    <string name="people_same_phone">Même numéro sur deux réseaux</string>
+    <string name="people_link">Relier</string>
+    <string name="people_not_same">Pas la même</string>
+    <string name="people_unlink">Délier</string>
+    <string name="people_failed">Impossible d’enregistrer</string>
     <string name="notification_channel_reminders">Rappels</string>
     <string name="reminder_title">%1$s dans %2$s</string>
     <string name="reminder_title_hidden">Rappel</string>

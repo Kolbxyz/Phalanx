@@ -30,7 +30,7 @@ import org.phalanx.android.ui.theme.Symbols
 /**
  * The room list's side panel, swiped in from the left: every source the rooms come from (Matrix
  * itself and each bridged network) with how many rooms it holds. Picking one narrows the list.
- * Below them, the reminders still to come.
+ * Below them, the reminders still to come and the people linked across networks.
  */
 @Composable
 internal fun SourcesDrawer(
@@ -40,6 +40,7 @@ internal fun SourcesDrawer(
     onSelect: (RoomSource) -> Unit,
     reminders: Int,
     onOpenReminders: () -> Unit,
+    onOpenPeople: () -> Unit,
     content: @Composable () -> Unit
 ) {
     ModalNavigationDrawer(
@@ -70,6 +71,13 @@ internal fun SourcesDrawer(
                         onClick = onOpenReminders,
                         icon = { Icon(Symbols.AlarmOn, contentDescription = null, Modifier.size(24.dp)) },
                         badge = { if (reminders > 0) Text(reminders.toString()) },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    )
+                    NavigationDrawerItem(
+                        label = { Text(stringResource(R.string.people_title)) },
+                        selected = false,
+                        onClick = onOpenPeople,
+                        icon = { Icon(Symbols.Link, contentDescription = null, Modifier.size(24.dp)) },
                         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                     )
                 }

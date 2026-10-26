@@ -29,6 +29,7 @@ import org.phalanx.android.ui.screens.details.GalleryScreen
 import org.phalanx.android.ui.screens.details.RoomDetailsScreen
 import org.phalanx.android.ui.screens.devices.DevicesScreen
 import org.phalanx.android.ui.screens.media.MediaViewerScreen
+import org.phalanx.android.ui.screens.people.PeopleScreen
 import org.phalanx.android.ui.screens.reminders.RemindersScreen
 import org.phalanx.android.ui.screens.room.RoomScreen
 import org.phalanx.android.ui.screens.roomlist.RoomListScreen
@@ -80,7 +81,14 @@ fun PhalanxNavHost(openRoom: RoomRoute?, onRoomOpened: () -> Unit) {
                         onOpenDetails = { navController.from(entry) { navigate(RoomDetailsRoute(it)) } },
                         onOpenAccount = { navController.from(entry) { navigate(SettingsRoute) } },
                         onOpenCatchUp = { navController.from(entry) { navigate(CatchUpRoute) } },
-                        onOpenReminders = { navController.from(entry) { navigate(RemindersRoute) } }
+                        onOpenReminders = { navController.from(entry) { navigate(RemindersRoute) } },
+                        onOpenPeople = { navController.from(entry) { navigate(PeopleRoute) } }
+                    )
+                }
+                screen<PeopleRoute> { entry ->
+                    PeopleScreen(
+                        onBack = { navController.from(entry) { popBackStack() } },
+                        onOpenRoom = { navController.from(entry) { navigate(RoomRoute(it)) } }
                     )
                 }
                 screen<RemindersRoute> { entry ->
