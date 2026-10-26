@@ -26,9 +26,7 @@ internal suspend fun decodeAudio(context: Context, uri: Uri): DecodedAudio {
     val extractor = MediaExtractor()
     try {
         extractor.setDataSource(context, uri, null)
-        val track = (0 until extractor.trackCount).firstOrNull {
-            extractor.getTrackFormat(it).getString(MediaFormat.KEY_MIME)?.startsWith("audio/") == true
-        } ?: throw UndecodableAudioException()
+        val track = audioTrackOf(extractor)
         extractor.selectTrack(track)
         return decodeTrack(extractor, extractor.getTrackFormat(track))
     } catch (e: IllegalArgumentException) {
@@ -39,6 +37,10 @@ internal suspend fun decodeAudio(context: Context, uri: Uri): DecodedAudio {
         extractor.release()
     }
 }
+
+private fun audioTrackOf(extractor: MediaExtractor): Int = (0 until extractor.trackCount).firstOrNull {
+    extractor.getTrackFormat(it).getString(MediaFormat.KEY_MIME)?.startsWith("audio/") == true
+} ?: throw UndecodableAudioException()
 
 private suspend fun decodeTrack(extractor: MediaExtractor, format: MediaFormat): DecodedAudio {
     val mime = checkNotNull(format.getString(MediaFormat.KEY_MIME))

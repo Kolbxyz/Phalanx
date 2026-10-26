@@ -5,6 +5,7 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import java.security.MessageDigest
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.Dispatchers
@@ -68,31 +69,32 @@ internal class VerifiedModelFile(
 
     private fun copyVerified(uri: Uri, job: Job, onProgress: (Float) -> Unit): KnownModel {
         val digest = MessageDigest.getInstance("SHA-256")
-        val limit = known.maxOfOrNull { it.maxBytes } ?: throw ModelRejectedException()
+        val limit = known.maxOf { it.maxBytes }
         // Progress against the file's own size when the picker tells it, else against the limit.
         val total = sizeOf(uri)?.takeIf { it in 1..limit } ?: limit
         var copied = 0L
-        val input = context.contentResolver.openInputStream(uri) ?: throw IOException("Unreadable")
-        input.use { source ->
+        open(uri).use { source ->
             partial.outputStream().use { target ->
                 val buffer = ByteArray(BUFFER_BYTES)
-                while (true) {
-                    val read = source.read(buffer)
-                    if (read < 0) break
+                var read = source.read(buffer)
+                // No supported model is larger than the limit: stop before filling the storage. The
+                // size then matches no model below, so the file is rejected.
+                while (read >= 0 && copied <= limit) {
                     job.ensureActive()
                     copied += read
-                    // No supported model is larger than this: stop before filling the storage. The
-                    // size then matches no model below, so the file is rejected.
-                    if (copied > limit) break
                     digest.update(buffer, 0, read)
                     target.write(buffer, 0, read)
                     onProgress(copied.toFloat() / total)
+                    read = source.read(buffer)
                 }
             }
         }
         val hash = digest.digest().joinToString("") { "%02x".format(it) }
         return known.firstOrNull { copied <= it.maxBytes && it.sha256 == hash } ?: throw ModelRejectedException()
     }
+
+    private fun open(uri: Uri): InputStream =
+        context.contentResolver.openInputStream(uri) ?: throw IOException("Unreadable")
 
     private fun sizeOf(uri: Uri): Long? =
         context.contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { cursor ->
