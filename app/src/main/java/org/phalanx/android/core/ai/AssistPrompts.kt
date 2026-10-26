@@ -21,12 +21,19 @@ internal fun messageSummaryPrompt(text: String) = Prompt(
     "Message:\n${text.take(MESSAGE_CHARS)}"
 )
 
-/** Three short replies the user, named [you] in [conversation], could send next, one per line. */
-internal fun repliesPrompt(conversation: Prompt, you: String) = Prompt(
-    "You suggest replies for the user, who appears as \"$you\" when present. Reply with " +
-        "exactly three short, different replies they could send next, one per line, at most twelve " +
-        "words each, no numbering, no quotes. Write in the language the participants use. $DATA_RULE",
-    conversation.user
+/**
+ * Three short replies the user, named [you] in [conversation], could send next, one per line. They
+ * answer where the conversation ends, and use nothing it does not say.
+ */
+internal fun repliesPrompt(conversation: SummaryPrompt, you: String) = Prompt(
+    "You suggest replies for the user, who appears as \"$you\". Read the conversation for context, " +
+        "but answer where it ends: the last messages, above all the latest one not written by the user. " +
+        "Reply with exactly three short, different replies they could send next, one per line, at most " +
+        "twelve words each, no numbering, no quotes. Each must make sense sent right after the last " +
+        "message: never go back to a topic the conversation has moved on from, and never mention news, " +
+        "events, dates or facts the conversation does not contain. Write in the language the " +
+        "participants use. $DATA_RULE",
+    "${conversation.user}\n\nThe last message is [${conversation.count}]."
 )
 
 /** The model's reply as up to three suggestions, without bullets, numbers or quotes. */

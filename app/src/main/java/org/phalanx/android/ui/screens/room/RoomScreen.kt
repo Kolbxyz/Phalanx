@@ -137,7 +137,11 @@ fun RoomScreen(
                 }
                 is RoomUiState.Ready -> CompositionLocalProvider(LocalTimelinePrefs provides prefs) {
                     Box(Modifier.fillMaxSize()) {
-                        TimelineList(current, padding, actions, viewModel::loadOlder, focus, viewModel::onFocused)
+                        val checkpoints by summary.marks.collectAsStateWithLifecycle()
+                        val marks = remember(checkpoints) { SummaryMarks(checkpoints, summary::show) }
+                        TimelineList(
+                            current, padding, actions, marks, viewModel::loadOlder, focus, viewModel::onFocused
+                        )
                         val offer by unread.offer.collectAsStateWithLifecycle()
                         UnreadJump(
                             offer,

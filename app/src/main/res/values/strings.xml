@@ -199,6 +199,10 @@
     <string name="summary_working">Reading the conversation…</string>
     <string name="summary_scope">Based on the last %1$d messages</string>
     <string name="summary_scope_unread">Covers the %1$d messages since you last read</string>
+    <string name="summary_scope_since_last">Covers the %1$d messages since the last summary</string>
+    <string name="summary_saved">Written at %1$s</string>
+    <string name="summary_mark">Summary · %1$s</string>
+    <string name="summary_mark_open">Show the summary written up to here</string>
     <string name="summary_disclaimer">Written on this phone by an AI model. It can be wrong.</string>
     <string name="summary_no_model">Import a model in Settings → AI first.</string>
     <string name="summary_empty">There is nothing to summarise yet.</string>
