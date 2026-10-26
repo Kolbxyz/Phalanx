@@ -7,6 +7,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DrawerState
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
@@ -29,6 +30,7 @@ import org.phalanx.android.ui.theme.Symbols
 /**
  * The room list's side panel, swiped in from the left: every source the rooms come from (Matrix
  * itself and each bridged network) with how many rooms it holds. Picking one narrows the list.
+ * Below them, the reminders still to come.
  */
 @Composable
 internal fun SourcesDrawer(
@@ -36,6 +38,8 @@ internal fun SourcesDrawer(
     sources: List<SourceCount>,
     selected: RoomSource,
     onSelect: (RoomSource) -> Unit,
+    reminders: Int,
+    onOpenReminders: () -> Unit,
     content: @Composable () -> Unit
 ) {
     ModalNavigationDrawer(
@@ -59,6 +63,15 @@ internal fun SourcesDrawer(
                             modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                         )
                     }
+                    HorizontalDivider(Modifier.padding(horizontal = 28.dp, vertical = 8.dp))
+                    NavigationDrawerItem(
+                        label = { Text(stringResource(R.string.reminders_title)) },
+                        selected = false,
+                        onClick = onOpenReminders,
+                        icon = { Icon(Symbols.AlarmOn, contentDescription = null, Modifier.size(24.dp)) },
+                        badge = { if (reminders > 0) Text(reminders.toString()) },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    )
                 }
             }
         },
