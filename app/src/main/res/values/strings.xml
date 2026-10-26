@@ -578,4 +578,7 @@
     <string name="bridges_chatting">Set up: open the bridge chat to manage it</string>
     <string name="bridges_connect">Connect</string>
     <string name="bridges_open">Open</string>
+    <string name="bridges_logged_out">Disconnected: sign in again to get messages</string>
+    <string name="bridges_connected">Connected</string>
+    <string name="bridges_reconnect">Reconnect</string>
 </resources>

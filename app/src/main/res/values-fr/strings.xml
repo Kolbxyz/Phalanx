@@ -567,4 +567,7 @@
     <string name="bridges_chatting">Configuré : ouvrez la conversation de la passerelle pour la gérer</string>
     <string name="bridges_connect">Connecter</string>
     <string name="bridges_open">Ouvrir</string>
+    <string name="bridges_logged_out">Déconnecté : reconnectez-vous pour recevoir les messages</string>
+    <string name="bridges_connected">Connecté</string>
+    <string name="bridges_reconnect">Reconnecter</string>
 </resources>
