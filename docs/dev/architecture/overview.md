@@ -41,6 +41,7 @@ UnifiedPush `PushService` → expedited WorkManager worker → `NotificationClie
 - Emoji Kitchen is off by default (Privacy settings). When on, only the mixes the user views are fetched from `www.gstatic.com`; the pair index ships in the APK (`tools/emoji-kitchen`), so nothing else is sent to Google.
 - App lock (`core/security/AppLock`) holds the UI back behind the system's BiometricPrompt, with the phone's PIN as fallback; sync and notifications carry on. With it on, Recents shows no picture of the app.
 - `FLAG_SECURE` is set while the Privacy setting or a protected room asks for it (`ui/components/SecureScreens`). Per-room choices (`core/prefs/RoomPrefsStore`) are sealed by `SecretBox` (`room_prefs.bin`), since which rooms are protected or watched says something about them.
+- People linked across networks (`core/contacts/PeopleStore`) are sealed by `SecretBox` (`people.bin`) and deleted on sign-out. Links are only suggested (`PeopleLinker`: same name, or same phone number in a WhatsApp, Google Messages or iMessage ID); nothing is linked until the user confirms.
 - The incognito keyboard sets `IME_FLAG_NO_PERSONALIZED_LEARNING` on every text field through `InterceptPlatformTextInput`.
 - Typing and read alerts (`core/matrix/RoomWatch`) run only while the app syncs on screen: neither is ever pushed, and nothing keeps the app awake to watch for them.
 - Reaction notifications turn the account's `.m.rule.reaction` push rule to notify; it is account-wide, so other clients may follow it. The phone keeps only reactions to the account's own messages.
