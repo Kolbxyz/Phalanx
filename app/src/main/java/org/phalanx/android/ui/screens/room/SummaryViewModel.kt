@@ -23,6 +23,8 @@ import org.phalanx.android.core.ai.SummaryCheckpoints
 import org.phalanx.android.core.ai.SummaryLine
 import org.phalanx.android.core.ai.SummaryPoint
 import org.phalanx.android.core.ai.SummaryScope
+import org.phalanx.android.core.ai.speech.Transcriber
+import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.RoomListRepository
 import org.phalanx.android.data.repository.TimelineRepository
@@ -75,6 +77,7 @@ class SummaryViewModel @Inject constructor(
     roomList: RoomListRepository,
     private val summarizer: LocalSummarizer,
     private val checkpoints: SummaryCheckpoints,
+    private val transcriber: Transcriber,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
     private val roomId = savedStateHandle.toRoute<RoomRoute>().roomId
@@ -190,9 +193,11 @@ class SummaryViewModel @Inject constructor(
         return messagesOf(session).takeLast(DEFAULT_MESSAGES)
     }
 
-    private fun linesOf(messages: List<TimelineEntry.Message>): List<SummaryLine> = messages.map { message ->
+    // A voice message already written out is read as its words, not as "Voice message".
+    private suspend fun linesOf(messages: List<TimelineEntry.Message>): List<SummaryLine> = messages.map { message ->
         val sender = if (message.isOwn) context.getString(R.string.summary_you) else message.senderName
-        SummaryLine(sender, summaryOf(message.body, context::getString), message.eventId)
+        val transcript = (message.body as? MessageBody.Audio)?.let { transcriber.cached(message.eventId ?: message.id) }
+        SummaryLine(sender, transcript?.text ?: summaryOf(message.body, context::getString), message.eventId)
     }
 
     private companion object {
