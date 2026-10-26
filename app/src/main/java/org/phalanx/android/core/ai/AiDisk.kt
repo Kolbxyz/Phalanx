@@ -22,7 +22,8 @@ import org.phalanx.android.di.ApplicationScope
 
 /**
  * AI results kept on this phone while "Keep AI results" is on, so a transcript or a room's
- * catch-up is not written twice. Sealed like the session; turning the setting off or signing out deletes them all.
+ * catch-up is not written twice. Sealed like the session; turning the setting off or signing out
+ * deletes them all.
  */
 @Singleton
 class AiDisk @Inject internal constructor(
