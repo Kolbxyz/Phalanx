@@ -136,11 +136,6 @@
     <string name="composer_attach_gallery">Gallery</string>
     <string name="composer_attach_file">File</string>
     <string name="composer_attach_sticker">Sticker</string>
-    <string name="sticker_pack_reactions">Reactions</string>
-    <string name="sticker_pack_love">Love</string>
-    <string name="sticker_pack_cats">Cats</string>
-    <string name="sticker_pack_snacks">Snacks</string>
-    <string name="sticker_pack_france">France</string>
     <string name="composer_attach_failed">Couldn’t read that file.</string>
     <string name="composer_camera_missing">No camera app is available.</string>
     <string name="composer_edit_image">Edit picture</string>
@@ -186,8 +181,6 @@
     <string name="settings_unblock">Unblock</string>
     <string name="settings_unblock_failed">Couldn’t unblock. Try again.</string>
     <string name="settings_about">About</string>
-    <string name="settings_stickers_credit">Sticker artwork</string>
-    <string name="settings_stickers_credit_summary">OpenMoji (openmoji.org), CC BY-SA 4.0. Some stickers combine and resize the originals.</string>
     <string name="settings_ai">AI</string>
     <string name="settings_ai_summary">Summaries that run on this phone</string>
     <string name="settings_ai_switch">Summarise conversations</string>
@@ -205,6 +198,7 @@
     <string name="summary_title">Summary</string>
     <string name="summary_working">Reading the conversation…</string>
     <string name="summary_scope">Based on the last %1$d messages</string>
+    <string name="summary_scope_unread">Covers the %1$d messages since you last read</string>
     <string name="summary_disclaimer">Written on this phone by an AI model. It can be wrong.</string>
     <string name="summary_no_model">Import a model in Settings → AI first.</string>
     <string name="summary_empty">There is nothing to summarise yet.</string>
@@ -451,9 +445,10 @@
     <string name="trust_unverified">Not verified</string>
     <string name="trust_changed">Their identity changed since you verified them</string>
     <string name="share_title">Share to…</string>
-    <string name="sticker_pack_kitchen">Kitchen</string>
+    <string name="kitchen_hint">Type two emoji in the message box to mix them, or pick a mix here.</string>
+    <string name="composer_kitchen_send">Send the mix</string>
     <string name="settings_emoji_kitchen">Emoji Kitchen</string>
-    <string name="settings_emoji_kitchen_summary">Mix two emoji into a sticker. Each mix you view is downloaded from Google’s servers, which see your IP address and the mix</string>
+    <string name="settings_emoji_kitchen_summary">Mix two emoji into a sticker, from the sticker sheet or by typing two emoji. Each mix shown is downloaded from Google’s servers, which see your IP address and the mix</string>
     <string name="bridges_title">Connected accounts</string>
     <string name="bridges_summary">WhatsApp, Discord, Instagram and more, in Phalanx</string>
     <string name="bridges_intro">Your homeserver can bring other networks into Phalanx through bridges. Connect one, then follow the bridge bot’s steps in the chat that opens: you sign in there, with your own bridge.</string>

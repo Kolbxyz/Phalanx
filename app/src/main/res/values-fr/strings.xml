@@ -135,11 +135,6 @@
     <string name="composer_attach_video">Vidéo</string>
     <string name="composer_attach_gallery">Galerie</string>
     <string name="composer_attach_sticker">Autocollant</string>
-    <string name="sticker_pack_reactions">Réactions</string>
-    <string name="sticker_pack_love">Amour</string>
-    <string name="sticker_pack_cats">Chats</string>
-    <string name="sticker_pack_snacks">Gourmandises</string>
-    <string name="sticker_pack_france">France</string>
     <string name="composer_attach_file">Fichier</string>
     <string name="composer_attach_failed">Impossible de lire ce fichier.</string>
     <string name="composer_camera_missing">Aucune application d’appareil photo disponible.</string>
@@ -186,8 +181,6 @@
     <string name="settings_unblock">Débloquer</string>
     <string name="settings_unblock_failed">Impossible de débloquer. Réessayez.</string>
     <string name="settings_about">À propos</string>
-    <string name="settings_stickers_credit">Illustrations des autocollants</string>
-    <string name="settings_stickers_credit_summary">OpenMoji (openmoji.org), CC BY-SA 4.0. Certains autocollants combinent et redimensionnent les originaux.</string>
     <string name="settings_ai">IA</string>
     <string name="settings_ai_summary">Résumés générés sur ce téléphone</string>
     <string name="settings_ai_switch">Résumer les conversations</string>
@@ -205,6 +198,7 @@
     <string name="summary_title">Résumé</string>
     <string name="summary_working">Lecture de la conversation…</string>
     <string name="summary_scope">Basé sur les %1$d derniers messages</string>
+    <string name="summary_scope_unread">Couvre les %1$d messages depuis votre dernière lecture</string>
     <string name="summary_disclaimer">Rédigé sur ce téléphone par un modèle d’IA. Il peut se tromper.</string>
     <string name="summary_no_model">Importez d’abord un modèle dans Réglages → IA.</string>
     <string name="summary_empty">Il n’y a encore rien à résumer.</string>
@@ -439,9 +433,10 @@
     <string name="trust_unverified">Non vérifié</string>
     <string name="trust_changed">Son identité a changé depuis votre vérification</string>
     <string name="share_title">Partager vers…</string>
-    <string name="sticker_pack_kitchen">Cuisine</string>
+    <string name="kitchen_hint">Tapez deux emoji dans le champ de message pour les mélanger, ou choisissez un mélange ici.</string>
+    <string name="composer_kitchen_send">Envoyer le mélange</string>
     <string name="settings_emoji_kitchen">Emoji Kitchen</string>
-    <string name="settings_emoji_kitchen_summary">Mélangez deux emoji en un sticker. Chaque mélange affiché est téléchargé depuis les serveurs de Google, qui voient votre adresse IP et le mélange</string>
+    <string name="settings_emoji_kitchen_summary">Mélangez deux emoji en un sticker, depuis la feuille d’autocollants ou en tapant deux emoji. Chaque mélange affiché est téléchargé depuis les serveurs de Google, qui voient votre adresse IP et le mélange</string>
     <string name="bridges_title">Comptes connectés</string>
     <string name="bridges_summary">WhatsApp, Discord, Instagram et plus, dans Phalanx</string>
     <string name="bridges_intro">Votre serveur peut amener d’autres réseaux dans Phalanx grâce aux passerelles. Connectez-en une, puis suivez les étapes du bot dans la conversation qui s’ouvre : vous vous y connectez, avec votre propre passerelle.</string>

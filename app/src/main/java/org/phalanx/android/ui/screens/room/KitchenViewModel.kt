@@ -13,7 +13,10 @@ import org.phalanx.android.data.model.KitchenMix
 import java.io.File
 import javax.inject.Inject
 
-/** The Emoji Kitchen tab of the sticker sheet, offered only once the user turned it on in Privacy. */
+/**
+ * The Emoji Kitchen sheet and the composer's mix of two typed emoji, offered only once the user
+ * turned it on in Privacy.
+ */
 @HiltViewModel
 class KitchenViewModel @Inject constructor(
     settings: SettingsStore,
@@ -25,6 +28,12 @@ class KitchenViewModel @Inject constructor(
     suspend fun bases(): List<String> = kitchen.bases()
 
     suspend fun mixesOf(codepoints: String): List<KitchenMix> = kitchen.mixesOf(codepoints)
+
+    /** The mix of the draft's emoji when it is exactly two that mix; null otherwise. */
+    suspend fun mixOfDraft(draft: String): KitchenMix? {
+        val (first, second) = emojiIn(draft)?.takeIf { it.size == 2 } ?: return null
+        return kitchen.mixOf(first, second)
+    }
 
     /** Null when the image can't be fetched; the cell then shows the two emoji instead. */
     suspend fun image(mix: KitchenMix): File? = kitchen.image(mix).getOrNull()

@@ -16,6 +16,6 @@ enum class SettingsCategory(@DrawableRes val icon: Int, @StringRes val title: In
     Conversations(R.drawable.sym_chat, R.string.settings_conversations, R.string.settings_conversations_summary),
     Media(R.drawable.sym_perm_media, R.string.settings_media, R.string.settings_media_summary),
     Privacy(R.drawable.sym_shield, R.string.settings_privacy, R.string.settings_privacy_summary),
-    Ai(R.drawable.sym_sparkle, R.string.settings_ai, R.string.settings_ai_summary),
+    Ai(R.drawable.sym_auto_awesome, R.string.settings_ai, R.string.settings_ai_summary),
     About(R.drawable.sym_info, R.string.settings_about, R.string.settings_about_summary)
 }

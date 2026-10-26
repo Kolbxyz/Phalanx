@@ -84,6 +84,7 @@ fun RoomScreen(
             onDraftChange = composer::onDraftChange,
             onPickSuggestion = composer::pickSuggestion,
             onSend = composer::send,
+            onSendMix = viewModel::sendDraftMix,
             onCancelMode = composer::cancelMode,
             onAttach = { attaching = true },
             onRemoveAttachment = composer::removeAttachment,
@@ -181,22 +182,22 @@ fun RoomScreen(
             onVideo = pick(launchers.video),
             onGallery = pick(launchers.gallery),
             onFile = pick(launchers.file),
-            onSticker = {
-                attaching = false
-                stickering = true
+            // Emoji Kitchen is the only sticker source, so the choice shows only once it is on.
+            onSticker = if (settings?.emojiKitchen == true) {
+                {
+                    attaching = false
+                    stickering = true
+                }
+            } else {
+                null
             }
         )
     }
     SummarySheet(summaryState, onDismiss = summary::dismiss)
     if (stickering) {
-        StickerSheet(
-            loadPacks = viewModel::stickerPacks,
+        KitchenSheet(
             onDismiss = { stickering = false },
             onPick = {
-                stickering = false
-                viewModel.sendSticker(it)
-            },
-            onPickMix = {
                 stickering = false
                 viewModel.sendMix(it)
             }

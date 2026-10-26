@@ -1,6 +1,8 @@
 package org.phalanx.android.ui.screens.room
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -22,4 +24,11 @@ class EmojiOnlyTest {
 
     @Test
     fun `blank text is not emoji`() = assertFalse(isEmojiOnly("   "))
+
+    @Test
+    fun `splits emoji as the reader sees them`() =
+        assertEquals(listOf("👩‍💻", "❤️"), emojiIn(" 👩‍💻❤️ "))
+
+    @Test
+    fun `text with an emoji has no emoji list`() = assertNull(emojiIn("ok 👍"))
 }

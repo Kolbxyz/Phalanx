@@ -22,15 +22,26 @@ import javax.inject.Singleton
 @Singleton
 class EmojiKitchen @Inject constructor(@ApplicationContext private val context: Context) {
     private val lock = Mutex()
-    private var index: Map<String, List<KitchenMix>>? = null
+    private var index: Index? = null
     private val dir get() = File(context.cacheDir, "kitchen").apply { mkdirs() }
 
     /** Every emoji that mixes with at least one other, in codepoint order. */
-    suspend fun bases(): List<String> = load().keys.sorted()
+    suspend fun bases(): List<String> = load().byEmoji.keys.sorted()
 
     /** The mixes [codepoints] is part of, itself with itself first. */
-    suspend fun mixesOf(codepoints: String): List<KitchenMix> = load()[codepoints].orEmpty()
+    suspend fun mixesOf(codepoints: String): List<KitchenMix> = load().byEmoji[codepoints].orEmpty()
         .sortedByDescending { it.left == it.right }
+
+    /**
+     * The mix of two emoji as typed, or null when they don't mix. Keyboards differ in whether they
+     * add variation selectors, so those are ignored on both sides.
+     */
+    suspend fun mixOf(first: String, second: String): KitchenMix? {
+        val loaded = load()
+        val a = loaded.byBare[bareOf(codepointsOf(first))] ?: return null
+        val b = bareOf(codepointsOf(second))
+        return loaded.byEmoji[a]?.firstOrNull { bareOf(if (bareOf(it.left) == bareOf(a)) it.right else it.left) == b }
+    }
 
     /** The mix's PNG, from the cache or downloaded once. */
     suspend fun image(mix: KitchenMix): Result<File> = withContext(Dispatchers.IO) {
@@ -58,9 +69,19 @@ class EmojiKitchen @Inject constructor(@ApplicationContext private val context: 
         }
     }
 
-    private suspend fun load(): Map<String, List<KitchenMix>> = lock.withLock {
-        index ?: withContext(Dispatchers.IO) { parse() }.also { index = it }
+    private suspend fun load(): Index = lock.withLock {
+        index ?: withContext(Dispatchers.IO) { parse() }.let { byEmoji ->
+            Index(byEmoji, byEmoji.keys.associateBy(::bareOf))
+        }.also { index = it }
     }
+
+    private fun codepointsOf(emoji: String): String =
+        emoji.codePoints().toArray().joinToString("-") { Integer.toHexString(it) }
+
+    private fun bareOf(codepoints: String): String = codepoints.replace(VARIATION_SELECTOR, "")
+
+    /** [byBare] finds an index key from its codepoints without variation selectors. */
+    private class Index(val byEmoji: Map<String, List<KitchenMix>>, val byBare: Map<String, String>)
 
     private fun parse(): Map<String, List<KitchenMix>> {
         val byEmoji = HashMap<String, MutableList<KitchenMix>>()
@@ -96,5 +117,6 @@ class EmojiKitchen @Inject constructor(@ApplicationContext private val context: 
         const val BASE_URL = "https://www.gstatic.com/android/keyboard/emojikitchen"
         const val TIMEOUT_MILLIS = 15_000
         const val MAX_BYTES = 2L * 1024 * 1024
+        val VARIATION_SELECTOR = Regex("-?fe0f")
     }
 }

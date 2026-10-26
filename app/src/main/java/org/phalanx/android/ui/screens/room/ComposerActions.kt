@@ -2,6 +2,7 @@ package org.phalanx.android.ui.screens.room
 
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.text.input.TextFieldValue
+import org.phalanx.android.data.model.KitchenMix
 
 /** What the composer asks of the screen; built once per screen. */
 @Stable
@@ -9,6 +10,8 @@ internal class ComposerActions(
     val onDraftChange: (TextFieldValue) -> Unit,
     val onPickSuggestion: (MentionSuggestion) -> Unit,
     val onSend: () -> Unit,
+    /** Sends the Emoji Kitchen mix of the draft's two emoji instead of the draft. */
+    val onSendMix: (KitchenMix) -> Unit,
     val onCancelMode: () -> Unit,
     val onAttach: () -> Unit,
     val onRemoveAttachment: (String) -> Unit,

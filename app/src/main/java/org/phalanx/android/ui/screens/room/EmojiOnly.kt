@@ -8,21 +8,24 @@ private const val MAX_BIG_EMOJI = 3
  * True for a short message made only of emoji ("👍", "🎉🎉"), which messengers draw large and
  * without a bubble. Counted in what the reader sees: a family or a flag is one emoji.
  */
-internal fun isEmojiOnly(text: String): Boolean {
+internal fun isEmojiOnly(text: String): Boolean = emojiIn(text)?.let { it.size <= MAX_BIG_EMOJI } == true
+
+/** The emoji [text] is made of, as the reader sees them; null if it holds anything else. */
+internal fun emojiIn(text: String): List<String>? {
     val trimmed = text.trim()
     if (trimmed.isEmpty() || !trimmed.codePoints().allMatch { isEmojiPart(it) || Character.isWhitespace(it) }) {
-        return false
+        return null
     }
     val graphemes = BreakIterator.getCharacterInstance().apply { setText(trimmed) }
-    var count = 0
+    val emoji = mutableListOf<String>()
     var start = graphemes.first()
     var end = graphemes.next()
     while (end != BreakIterator.DONE) {
-        if (trimmed.substring(start, end).isNotBlank()) count++
+        trimmed.substring(start, end).takeIf { it.isNotBlank() }?.let(emoji::add)
         start = end
         end = graphemes.next()
     }
-    return count <= MAX_BIG_EMOJI
+    return emoji
 }
 
 private val PICTOGRAPHS = 0x1F000..0x1FAFF

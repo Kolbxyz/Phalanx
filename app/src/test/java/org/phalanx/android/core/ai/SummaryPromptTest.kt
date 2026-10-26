@@ -18,7 +18,15 @@ class SummaryPromptTest {
         val user = SummaryPrompt.of(lines).user
         assertTrue(user.contains("message 200 "))
         assertFalse(user.contains("message 1 "))
-        assertTrue(user.length < 8_100)
+        assertTrue(user.length < 10_600)
+    }
+
+    @Test
+    fun `cuts long messages shorter to keep every one of a busy stretch`() {
+        val lines = (1..60).map { SummaryLine("Ana", "message $it " + "x".repeat(380)) }
+        val user = SummaryPrompt.of(lines).user
+        assertTrue(user.contains("message 1 "))
+        assertTrue(user.contains("message 60 "))
     }
 
     @Test

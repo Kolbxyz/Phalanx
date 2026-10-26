@@ -32,14 +32,17 @@ sealed interface SummaryState {
     /** [count] messages are being read; [text] is the reply so far. */
     data class Running(val count: Int, val text: String) : SummaryState
 
-    data class Done(val count: Int, val text: String) : SummaryState
+    /** [sinceRead]: the summary covers what was unread at open, and what came after. */
+    data class Done(val count: Int, val text: String, val sinceRead: Boolean) : SummaryState
 
     data class Failed(@StringRes val message: Int) : SummaryState
 }
 
 /**
- * Sums up the messages not read yet when the room was opened, at most [MAX_MESSAGES]; with none
- * unread, the last [MAX_MESSAGES]. The count is taken at open, because opening reads the room.
+ * Sums up every message since the user last read the room: those unread when it was opened, and
+ * any that came after, up to [MAX_MESSAGES]; with none unread, the last [DEFAULT_MESSAGES]. The
+ * count is taken at open, because opening reads the room. Asking again with nothing new reuses
+ * the last summary (see [LocalSummarizer]).
  */
 @HiltViewModel
 class SummaryViewModel @Inject constructor(
@@ -56,6 +59,9 @@ class SummaryViewModel @Inject constructor(
     val state: StateFlow<SummaryState> = mutableState.asStateFlow()
     private var job: Job? = null
 
+    // The first message unread at open, found on the first summary; later ones start from it too.
+    private var firstUnreadId: String? = null
+
     fun start() {
         job?.cancel()
         mutableState.value = SummaryState.Running(0, "")
@@ -65,15 +71,15 @@ class SummaryViewModel @Inject constructor(
                 mutableState.value = SummaryState.Failed(R.string.summary_failed)
                 return@launch
             }
-            val window = unreadAtOpen.takeIf { it > 0 }?.coerceAtMost(MAX_MESSAGES.toLong())?.toInt() ?: MAX_MESSAGES
-            val lines = linesOf(session, window)
+            val sinceRead = unreadAtOpen > 0
+            val lines = linesOf(session, sinceRead)
             if (lines.isEmpty()) {
                 mutableState.value = SummaryState.Failed(R.string.summary_empty)
                 return@launch
             }
             mutableState.value = SummaryState.Running(lines.size, "")
             summarizer.summarize(lines) { mutableState.value = SummaryState.Running(lines.size, it) }.fold(
-                onSuccess = { mutableState.value = SummaryState.Done(lines.size, it) },
+                onSuccess = { mutableState.value = SummaryState.Done(lines.size, it, sinceRead) },
                 onFailure = { mutableState.value = SummaryState.Failed(messageFor(it)) }
             )
         }
@@ -90,13 +96,24 @@ class SummaryViewModel @Inject constructor(
         else -> R.string.summary_failed
     }
 
-    // Older pages are loaded until the window is full or the room starts; a few tries cap the wait.
-    private suspend fun linesOf(session: TimelineSession, window: Int): List<SummaryLine> {
+    // Older pages are loaded until the first unread message is there or the room starts; a page cap
+    // bounds the wait.
+    private suspend fun linesOf(session: TimelineSession, sinceRead: Boolean): List<SummaryLine> {
+        val wanted = if (sinceRead) unreadAtOpen.coerceAtMost(MAX_MESSAGES.toLong()).toInt() else DEFAULT_MESSAGES
         var pages = 0
-        while (messagesOf(session).size < window && session.hasMoreHistory.value && pages++ < MAX_PAGES) {
+        while (firstUnreadId == null && messagesOf(session).size < wanted && session.hasMoreHistory.value &&
+            pages++ < MAX_PAGES
+        ) {
             if (session.loadOlder().isFailure) break
         }
-        return messagesOf(session).takeLast(window).map { message ->
+        val messages = messagesOf(session)
+        val window = if (sinceRead) {
+            val anchor = firstUnreadId ?: messages.takeLast(wanted).firstOrNull()?.id?.also { firstUnreadId = it }
+            messages.dropWhile { it.id != anchor }.ifEmpty { messages.takeLast(wanted) }.takeLast(MAX_MESSAGES)
+        } else {
+            messages.takeLast(wanted)
+        }
+        return window.map { message ->
             val sender = if (message.isOwn) context.getString(R.string.summary_you) else message.senderName
             SummaryLine(sender, summaryOf(message.body, context::getString))
         }
@@ -108,7 +125,8 @@ class SummaryViewModel @Inject constructor(
         }
 
     private companion object {
-        const val MAX_MESSAGES = 100
-        const val MAX_PAGES = 4
+        const val MAX_MESSAGES = 500
+        const val DEFAULT_MESSAGES = 100
+        const val MAX_PAGES = 20
     }
 }
