@@ -65,21 +65,25 @@ internal fun actionsOf(reply: String): List<MessageAction> = try {
 
 private fun RawAction.toAction(): MessageAction? {
     val name = title.trim().ifEmpty { return null }
-    val begins = start?.let(::dateTimeOf)
     val text = detail?.trim()?.takeIf { it.isNotEmpty() }
     return when (type) {
-        "event" -> begins?.let { (at, allDay) ->
-            val ends = end?.let(::dateTimeOf)?.first?.takeIf { it > at }
-            MessageAction.Event(name, at, ends, allDay, text)
-        }
-        "alarm" -> begins?.takeUnless { it.second }?.let { MessageAction.Alarm(name, it.first) }
+        "event", "alarm", "reminder" -> timedAction(name, text)
         "timer" -> minutes?.takeIf { it in 1..MAX_TIMER_MINUTES }?.let { MessageAction.Timer(name, it) }
-        "reminder" -> begins?.let { MessageAction.Reminder(name, it.first) }
         "task" -> MessageAction.Task(name)
         "place" -> text?.let { MessageAction.Place(name, it) }
         "phone" -> text?.takeIf { it.count(Char::isDigit) >= MIN_PHONE_DIGITS }?.let { MessageAction.Phone(name, it) }
         "tracking" -> text?.let { MessageAction.Tracking(name, it) }
         else -> null
+    }
+}
+
+// An event, alarm or reminder: none of them is anything without its date.
+private fun RawAction.timedAction(name: String, text: String?): MessageAction? {
+    val (at, allDay) = start?.let(::dateTimeOf) ?: return null
+    return when (type) {
+        "event" -> MessageAction.Event(name, at, end?.let(::dateTimeOf)?.first?.takeIf { it > at }, allDay, text)
+        "alarm" -> MessageAction.Alarm(name, at).takeUnless { allDay }
+        else -> MessageAction.Reminder(name, at)
     }
 }
 

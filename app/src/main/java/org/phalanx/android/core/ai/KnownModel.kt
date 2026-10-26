@@ -9,7 +9,8 @@ package org.phalanx.android.core.ai
 internal data class KnownModel(val name: String, val maxBytes: Long, val sha256: String)
 
 /**
- * The language models: Ministral 3 3B Instruct (Apache 2.0), from huggingface.co/mistralai/Ministral-3-3B-Instruct-2512-GGUF.
+ * The language models: Ministral 3 3B Instruct (Apache 2.0), from
+ * huggingface.co/mistralai/Ministral-3-3B-Instruct-2512-GGUF.
  * Only these exact files load, so a swapped or corrupted model never reaches the native parser.
  * Compare a hash with the one on that page before adding a model.
  */
