@@ -52,6 +52,7 @@ fun RoomDetailsScreen(
     onJumpTo: (roomId: String, eventId: String) -> Unit,
     onOpenMedia: (roomId: String, entryId: String) -> Unit,
     onShowAll: (roomId: String, files: Boolean) -> Unit,
+    onOpenRoom: (String) -> Unit,
     viewModel: RoomDetailsViewModel = hiltViewModel()
 ) {
     val room by viewModel.room.collectAsStateWithLifecycle()
@@ -112,6 +113,7 @@ fun RoomDetailsScreen(
                     onMuted = viewModel::setMuted
                 )
             }
+            if (current.isDirect) item { AlsoOnSection(onOpenRoom) }
             pinnedSection(pinned) { eventId -> onJumpTo(viewModel.roomId, eventId) }
             membersSection(members, showAllMembers) { showAllMembers = true }
             mediaSections(media, hasMore, onShowAll = { files -> onShowAll(viewModel.roomId, files) }, onOpen = open)
