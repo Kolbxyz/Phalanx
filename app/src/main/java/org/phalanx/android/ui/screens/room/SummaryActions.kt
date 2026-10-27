@@ -9,13 +9,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 internal class SummaryActions(
     val onDismiss: () -> Unit,
     /** Closes the sheet and shows the message a point cites. */
-    val onJump: (eventId: String) -> Unit,
-    val onSuggestReplies: () -> Unit,
-    /** Closes the sheet with the reply in the composer, for the user to change or send. */
-    val onUseReply: (String) -> Unit
+    val onJump: (eventId: String) -> Unit
 )
 
-/** The summary sheet, wired to the room: a point jumps to its message, a reply goes to the composer. */
+/** The summary sheet, wired to the room: a point jumps to its message. */
 @Composable
 internal fun SummaryHost(summary: SummaryViewModel, room: RoomViewModel) {
     val state by summary.state.collectAsStateWithLifecycle()
@@ -25,11 +22,6 @@ internal fun SummaryHost(summary: SummaryViewModel, room: RoomViewModel) {
             onJump = { eventId ->
                 summary.dismiss()
                 room.jumpTo(eventId)
-            },
-            onSuggestReplies = summary::suggestReplies,
-            onUseReply = { reply ->
-                summary.dismiss()
-                room.composer.receive(reply, emptyList())
             }
         )
     }
