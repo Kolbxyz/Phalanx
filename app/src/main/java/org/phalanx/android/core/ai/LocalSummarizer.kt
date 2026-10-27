@@ -143,7 +143,7 @@ class LocalSummarizer @Inject internal constructor(
         const val TRANSLATION_TOKENS = 1_600
 
         // Three short points and two lines.
-        const val CATCH_UP_TOKENS = 250
+        const val CATCH_UP_TOKENS = 320
 
         // Four items of about eighty tokens each, with room to close the array.
         const val ACTIONS_TOKENS = 400

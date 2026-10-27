@@ -1,6 +1,7 @@
 package org.phalanx.android.ui.screens.room
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -51,6 +52,9 @@ import org.phalanx.android.ui.theme.Symbols
 private const val LOAD_AHEAD = 5
 private const val OLDER_KEY = "older"
 private const val JUMP_AFTER_ITEMS = 4
+
+/** The typing bubble's height (a 24dp indicator, 6dp padding either side) and a little air above it. */
+private val TYPING_ROOM = 40.dp
 private const val FOCUS_OFFSET_DIVISOR = 3
 
 // Messages further apart than this start a new run even from the same sender.
@@ -129,6 +133,13 @@ internal fun TimelineList(
     val voiceChain = remember { VoiceChain { id -> nextVoiceAfter(entries, id) } }
     VoiceChainScroll(voiceChain, listState, entries, reducedMotion)
 
+    // The typing bubble floats over the list's bottom edge, where the newest message is: make room
+    // for it so it never covers that message.
+    val typingRoom by animateDpAsState(
+        targetValue = if (state.typing.isNotEmpty()) TYPING_ROOM else 0.dp,
+        animationSpec = motion.defaultSpatialSpec(),
+        label = "typingRoom"
+    )
     val scope = rememberCoroutineScope()
     val showJump by remember { derivedStateOf { listState.firstVisibleItemIndex > JUMP_AFTER_ITEMS } }
     Box(Modifier.fillMaxSize()) {
@@ -141,7 +152,7 @@ internal fun TimelineList(
                     start = 12.dp,
                     end = 12.dp,
                     top = padding.calculateTopPadding() + 8.dp,
-                    bottom = padding.calculateBottomPadding() + 8.dp
+                    bottom = padding.calculateBottomPadding() + 8.dp + typingRoom
                 ),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
