@@ -36,6 +36,7 @@ import org.matrix.rustcomponents.sdk.use
 import org.phalanx.android.core.format.OutgoingMessage
 import org.phalanx.android.core.media.AttachmentPreparer
 import org.phalanx.android.core.prefs.SettingsStore
+import org.phalanx.android.data.model.CustomEmote
 import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.OutgoingMedia
 import org.phalanx.android.data.model.TimelineEntry
@@ -48,6 +49,7 @@ internal class RustTimelineSession private constructor(
     private val settings: SettingsStore,
     private val attachments: AttachmentPreparer,
     private val drafts: RustDraftsRepository,
+    private val emotes: SessionEmotes,
     override val title: String,
     override val isDirect: Boolean
 ) : TimelineSession {
@@ -87,7 +89,9 @@ internal class RustTimelineSession private constructor(
     override suspend fun sendMedia(media: OutgoingMedia, caption: String?, replyTo: TimelineEntry.Message?) =
         scope.async {
             try {
-                val html = caption?.let { OutgoingMessage.of(it, emptyList(), settings.current().markdown).html }
+                val html = caption?.let {
+                    OutgoingMessage.of(it, emptyList(), settings.current().markdown, emotes.byShortcode()).html
+                }
                 runCatchingSdk { timeline.upload(media, caption, html, replyTo?.eventId).use { it.join() } }
             } finally {
                 attachments.discard(media)
@@ -102,7 +106,7 @@ internal class RustTimelineSession private constructor(
 
     /** Markdown follows the user's setting; mentions are rendered and listed either way. */
     private suspend fun contentOf(text: String, mentions: List<Member>): RoomMessageEventContentWithoutRelation {
-        val message = OutgoingMessage.of(text, mentions, settings.current().markdown)
+        val message = OutgoingMessage.of(text, mentions, settings.current().markdown, emotes.byShortcode())
         val formatted = message.html?.let { FormattedBody(MessageFormat.Html, it) }
         val type = when (message.kind) {
             OutgoingMessage.Kind.Text -> MessageType.Text(TextMessageContent(message.body, formatted))
@@ -226,6 +230,8 @@ internal class RustTimelineSession private constructor(
         }
     }
 
+    override suspend fun emotes(): List<CustomEmote> = withContext(Dispatchers.IO) { emotes.all() }
+
     override suspend fun joinedMembers(): List<Member> = withContext(Dispatchers.IO) {
         try {
             // From the server when it can, so a room synced with lazy-loaded members is complete.
@@ -262,6 +268,7 @@ internal class RustTimelineSession private constructor(
         // Rooms are synced with lazy-loaded members, so senders not yet seen have no profile and
         // would show as their Matrix ID (a bridge's "@whatsapp_lid-…"); their items update once loaded.
         scope.launch { runCatchingSdk { timeline.fetchMembers() } }
+        scope.launch { entries.collect(emotes::learn) }
     }
 
     companion object {
@@ -273,11 +280,14 @@ internal class RustTimelineSession private constructor(
             room: Room,
             settings: SettingsStore,
             attachments: AttachmentPreparer,
-            drafts: RustDraftsRepository
+            drafts: RustDraftsRepository,
+            roomEmotes: RoomEmotes
         ): RustTimelineSession {
             val timeline = room.timeline()
             val title = room.displayName() ?: room.id()
-            val session = RustTimelineSession(room, timeline, settings, attachments, drafts, title, room.isDirect())
+            val emotes = roomEmotes.forRoom(room.ownUserId(), room.id(), room.roomInfo().bridge())
+            val session =
+                RustTimelineSession(room, timeline, settings, attachments, drafts, emotes, title, room.isDirect())
             session.start()
             return session
         }

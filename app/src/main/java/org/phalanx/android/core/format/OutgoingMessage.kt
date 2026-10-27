@@ -22,8 +22,16 @@ internal data class OutgoingMessage(
         private const val EMOTE_PREFIX = "/me "
         private const val SILENT_PREFIX = "@silent "
 
-        /** [mentions] are members picked in the composer; [formatting] follows the markdown setting. */
-        fun of(text: String, mentions: List<Member>, formatting: Boolean): OutgoingMessage {
+        /**
+         * [mentions] are members picked in the composer; [formatting] follows the markdown setting;
+         * [emotes] are the room's custom emoji, shortcode to `mxc://` URL.
+         */
+        fun of(
+            text: String,
+            mentions: List<Member>,
+            formatting: Boolean,
+            emotes: Map<String, String> = emptyMap()
+        ): OutgoingMessage {
             val kind = when {
                 text.startsWith(EMOTE_PREFIX) -> Kind.Emote
                 text.startsWith(SILENT_PREFIX) -> Kind.Notice
@@ -34,7 +42,7 @@ internal data class OutgoingMessage(
                 Kind.Notice -> text.removePrefix(SILENT_PREFIX)
                 Kind.Text -> text
             }
-            val rendered = Markdown.render(body, mentions, formatting)
+            val rendered = Markdown.render(body, mentions, formatting, emotes)
             return OutgoingMessage(kind, body, rendered.html, rendered.userIds, Markdown.mentionsRoom(body))
         }
     }

@@ -3,13 +3,15 @@ package org.phalanx.android.core.format
 import org.phalanx.android.data.model.Member
 
 /**
- * One line of Discord markdown to HTML: emphasis, code, spoilers, links and mention pills. Used for
- * one message only: it collects the [userIds] mentioned and whether anything was [formatted].
+ * One line of Discord markdown to HTML: emphasis, code, spoilers, links, mention pills and custom
+ * emoji. Used for one message only: it collects the [userIds] mentioned and whether anything was [formatted].
  */
 internal class InlineRenderer(
     /** Longest name first, so "@Ann Lee" wins over "@Ann". */
     private val mentions: List<Member>,
-    private val formatting: Boolean
+    private val formatting: Boolean,
+    /** The room's custom emoji, shortcode to `mxc://` URL: ":shortcode:" becomes the image. */
+    private val emotes: Map<String, String> = emptyMap()
 ) {
     val userIds = LinkedHashSet<String>()
     var formatted = false
@@ -19,7 +21,9 @@ internal class InlineRenderer(
         val out = StringBuilder()
         var i = 0
         while (i < text.length) {
-            val next = (if (formatting) formatAt(text, i, out) else -1).takeIf { it > i } ?: mentionAt(text, i, out)
+            val next = (if (formatting) formatAt(text, i, out) else -1).takeIf { it > i }
+                ?: mentionAt(text, i, out).takeIf { it > i }
+                ?: emoteAt(text, i, out)
             if (next > i) {
                 formatted = true
                 i = next
@@ -113,6 +117,15 @@ internal class InlineRenderer(
         return i + userId.length
     }
 
+    /** ":shortcode:" of an emoji the room offers, as the `<img>` Matrix clients and bridges read. */
+    private fun emoteAt(text: String, i: Int, out: StringBuilder): Int {
+        val close = if (text[i] == ':' && emotes.isNotEmpty()) text.indexOf(':', i + 1) else -1
+        val url = (if (close > i + 1) emotes[text.substring(i + 1, close)] else null) ?: return -1
+        val alt = escape(text.substring(i, close + 1))
+        out.append("<img data-mx-emoticon src=\"${escape(url)}\" alt=\"$alt\" title=\"$alt\" height=\"$EMOTE_HEIGHT\">")
+        return close + 1
+    }
+
     private fun pill(userId: String, label: String, out: StringBuilder) {
         userIds += userId
         out.append("<a href=\"https://matrix.to/#/${escape(userId)}\">${escape(label)}</a>")
@@ -129,6 +142,8 @@ internal class InlineRenderer(
             "*" to ("<em>" to "</em>"),
             "_" to ("<em>" to "</em>")
         )
+        // What Element and Cinny send: the height other clients size the emoji at.
+        const val EMOTE_HEIGHT = 32
         const val ESCAPABLE = "\\*_~`|>#-[]()@"
         const val TRAILING_PUNCTUATION = ".,:;!?'\")"
         val URL = Regex("https?://[^\\s<>\"]+")

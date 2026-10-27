@@ -586,6 +586,10 @@
     <string name="kitchen_starred">Starred</string>
     <string name="kitchen_recent">Recent</string>
     <string name="kitchen_react">React with a mix</string>
+    <string name="reaction_more">React with any emoji</string>
+    <string name="reaction_pick_title">Pick an emoji</string>
+    <string name="reaction_pick_hint">Open your keyboard’s emoji panel and tap one</string>
+    <string name="reaction_pick_invalid">That isn’t a single emoji.</string>
     <string name="kitchen_star_failed">Couldn’t save the starred mixes.</string>
     <string name="settings_emoji_kitchen">Emoji Kitchen</string>
     <string name="settings_emoji_kitchen_summary">Mix two emoji into a sticker, from the sticker sheet or by typing two emoji. Each mix shown is downloaded from Google’s servers, which see your IP address and the mix</string>

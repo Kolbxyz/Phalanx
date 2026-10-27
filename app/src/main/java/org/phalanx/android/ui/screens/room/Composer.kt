@@ -65,6 +65,13 @@ internal fun Composer(
                 MentionSuggestions(state.suggestions, actions.onPickSuggestion)
             }
             AnimatedVisibility(
+                visible = state.emoteSuggestions.isNotEmpty(),
+                enter = expandVertically(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
+                exit = shrinkVertically(motion.defaultSpatialSpec()) + fadeOut(motion.defaultEffectsSpec())
+            ) {
+                EmoteSuggestions(state.emoteSuggestions, actions.onPickEmote)
+            }
+            AnimatedVisibility(
                 visible = state.attachments.isNotEmpty(),
                 enter = expandVertically(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
                 exit = shrinkVertically(motion.defaultSpatialSpec()) + fadeOut(motion.defaultEffectsSpec())

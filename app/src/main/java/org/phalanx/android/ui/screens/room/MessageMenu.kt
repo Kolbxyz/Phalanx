@@ -6,6 +6,7 @@ import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -17,6 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.data.model.AppSettings
+import org.phalanx.android.data.model.CustomEmote
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.components.NoticeKind
@@ -40,12 +42,16 @@ internal fun MessageMenu(
     var versionsOf by remember { mutableStateOf<String?>(null) }
     var mixingFor by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     var remindingOf by remember { mutableStateOf<TimelineEntry.Message?>(null) }
+    var pickingFor by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     val kitchenOn by kitchen.enabled.collectAsStateWithLifecycle()
     val header by viewModel.header.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val text = (message?.body as? MessageBody.Text)?.text
     val aiOn = settings?.aiSummaries == true
     val offlinePairs by assist.pairs.collectAsStateWithLifecycle()
+    val emotes by produceState(emptyList<CustomEmote>(), message != null) {
+        if (message != null) value = viewModel.emotes()
+    }
 
     fun copy(value: String) {
         scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, value))) }
@@ -61,6 +67,8 @@ internal fun MessageMenu(
             message = message,
             onDismiss = onDismiss,
             onReact = { key -> then { viewModel.toggleReaction(message, key) }() },
+            onMoreReactions = then { pickingFor = message },
+            emotes = emotes,
             onReactWithMix = if (kitchenOn) then { mixingFor = message } else null,
             onReply = then { viewModel.composer.reply(message) },
             onEdit = then { text?.let { viewModel.composer.edit(message, it) } },
@@ -91,6 +99,15 @@ internal fun MessageMenu(
         )
     }
     versionsOf?.let { eventId -> EditHistorySheet(eventId, onDismiss = { versionsOf = null }) }
+    pickingFor?.let { target ->
+        ReactionPickerDialog(
+            onPick = { key ->
+                viewModel.toggleReaction(target, key)
+                pickingFor = null
+            },
+            onDismiss = { pickingFor = null }
+        )
+    }
     remindingOf?.let { target ->
         ScheduleSheet(
             exact = viewModel.canScheduleExactly(),

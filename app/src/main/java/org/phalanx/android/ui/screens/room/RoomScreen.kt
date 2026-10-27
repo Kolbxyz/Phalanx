@@ -90,6 +90,7 @@ fun RoomScreen(
         ComposerActions(
             onDraftChange = composer::onDraftChange,
             onPickSuggestion = composer::pickSuggestion,
+            onPickEmote = composer::pickEmote,
             onSend = composer::send,
             onSendMix = { mix ->
                 composer.clearDraft()

@@ -23,6 +23,7 @@ import org.phalanx.android.core.media.AttachmentPreparer
 import org.phalanx.android.core.media.VoiceRecorder
 import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.model.AppSettings
+import org.phalanx.android.data.model.CustomEmote
 import org.phalanx.android.data.model.MediaRef
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.model.ScheduledMessage
@@ -127,6 +128,9 @@ class RoomViewModel @Inject constructor(
     fun captureUri(video: Boolean): Uri = preparer.captureUri(video)
 
     fun toggleReaction(message: TimelineEntry.Message, key: String) = act { it.toggleReaction(message, key) }
+
+    /** The custom emoji that make sense in this room; none until it is open. */
+    suspend fun emotes(): List<CustomEmote> = session?.emotes().orEmpty()
 
     fun redact(message: TimelineEntry.Message) = act { it.redact(message) }
 

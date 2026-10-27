@@ -575,6 +575,10 @@
     <string name="kitchen_starred">Favoris</string>
     <string name="kitchen_recent">Récents</string>
     <string name="kitchen_react">Réagir avec un mélange</string>
+    <string name="reaction_more">Réagir avec n’importe quel emoji</string>
+    <string name="reaction_pick_title">Choisir un emoji</string>
+    <string name="reaction_pick_hint">Ouvrez le panneau d’emoji de votre clavier et touchez-en un</string>
+    <string name="reaction_pick_invalid">Ce n’est pas un seul emoji.</string>
     <string name="kitchen_star_failed">Impossible d’enregistrer les favoris.</string>
     <string name="settings_emoji_kitchen">Emoji Kitchen</string>
     <string name="settings_emoji_kitchen_summary">Mélangez deux emoji en un sticker, depuis la feuille d’autocollants ou en tapant deux emoji. Chaque mélange affiché est téléchargé depuis les serveurs de Google, qui voient votre adresse IP et le mélange</string>
