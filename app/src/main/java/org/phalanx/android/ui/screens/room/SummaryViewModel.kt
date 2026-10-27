@@ -171,6 +171,5 @@ class SummaryViewModel @Inject constructor(
         const val MAX_MESSAGES = 500
         const val DEFAULT_MESSAGES = 100
         const val MAX_PAGES = 4
-
     }
 }

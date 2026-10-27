@@ -53,6 +53,7 @@ internal class RoomEmotes @Inject constructor(
 ) {
     // Packs change rarely; read once per room while signed in, and again after a failed read.
     private val roomPacks = ConcurrentHashMap<String, List<Pair<String, String>>>()
+
     @Volatile private var accountPacks: List<Pair<String, String>>? = null
 
     init {

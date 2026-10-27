@@ -3,10 +3,10 @@ package org.phalanx.android.ui.screens.people
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -40,8 +40,8 @@ import org.phalanx.android.data.model.LinkReason
 import org.phalanx.android.data.model.LinkSuggestion
 import org.phalanx.android.data.model.Person
 import org.phalanx.android.data.model.RoomSummary
-import org.phalanx.android.ui.screens.roomlist.label
 import org.phalanx.android.ui.components.BackButton
+import org.phalanx.android.ui.screens.roomlist.label
 
 /**
  * People whose chats on several networks the user linked, each chat opening its room, and the

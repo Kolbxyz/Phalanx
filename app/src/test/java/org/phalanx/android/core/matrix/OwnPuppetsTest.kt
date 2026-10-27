@@ -1,8 +1,8 @@
 package org.phalanx.android.core.matrix
 
-import org.junit.Test
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Test
 import org.phalanx.android.data.model.RoomSummary
 
 class OwnPuppetsTest {

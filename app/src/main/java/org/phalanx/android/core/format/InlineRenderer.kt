@@ -142,6 +142,7 @@ internal class InlineRenderer(
             "*" to ("<em>" to "</em>"),
             "_" to ("<em>" to "</em>")
         )
+
         // What Element and Cinny send: the height other clients size the emoji at.
         const val EMOTE_HEIGHT = 32
         const val ESCAPABLE = "\\*_~`|>#-[]()@"

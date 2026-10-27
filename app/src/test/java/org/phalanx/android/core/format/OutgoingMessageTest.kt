@@ -37,7 +37,7 @@ class OutgoingMessageTest {
         val message = OutgoingMessage.of("hi :blobcat: `:blobcat:` :nope:", emptyList(), formatting = false, emotes)
         assertEquals("hi :blobcat: `:blobcat:` :nope:", message.body)
         val image = "<img data-mx-emoticon src=\"mxc://s.org/a\" alt=\":blobcat:\" title=\":blobcat:\" height=\"32\">"
-        assertEquals("hi $image `${image}` :nope:", message.html)
+        assertEquals("hi $image `$image` :nope:", message.html)
         val formatted = OutgoingMessage.of("`:blobcat:`", emptyList(), formatting = true, emotes)
         assertEquals("<code>:blobcat:</code>", formatted.html)
     }

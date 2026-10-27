@@ -37,7 +37,8 @@ internal fun ReactionPickerDialog(onPick: (String) -> Unit, onDismiss: () -> Uni
                 onValueChange = { input -> if (input.isSingleEmoji()) onPick(input) else text = input },
                 isError = text.isNotEmpty(),
                 supportingText = {
-                    Text(stringResource(if (text.isEmpty()) R.string.reaction_pick_hint else R.string.reaction_pick_invalid))
+                    val hint = if (text.isEmpty()) R.string.reaction_pick_hint else R.string.reaction_pick_invalid
+                    Text(stringResource(hint))
                 },
                 singleLine = true,
                 modifier = Modifier.focusRequester(focus)
