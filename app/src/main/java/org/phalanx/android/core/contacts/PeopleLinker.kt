@@ -15,7 +15,7 @@ import org.phalanx.android.data.model.pairKey
  * bridged ID such as "@whatsapp_33612345678". Pairs already linked or dismissed are left out.
  */
 internal fun suggestLinks(rooms: List<RoomSummary>, links: PeopleLinks): List<LinkSuggestion> {
-    val dms = rooms.filter { it.isDirect && it.dmUserId != null }
+    val dms = rooms.filter { it.dmUserId != null }
     val grouped = links.groups.flatMap { group -> group.map { it to group } }.toMap()
     // Grouped by key first, so a few hundred chats are not compared pair by pair.
     val byPhone = dms.groupBy(::phoneOf).filterKeys { it != null }.values.map { it to LinkReason.SamePhone }
@@ -34,7 +34,7 @@ internal fun suggestLinks(rooms: List<RoomSummary>, links: PeopleLinks): List<Li
 
 /** The user's one-to-one chats as people: linked chats together, every other chat on its own. */
 internal fun peopleOf(rooms: List<RoomSummary>, links: PeopleLinks): List<Person> {
-    val dms = rooms.filter { it.isDirect && it.dmUserId != null }
+    val dms = rooms.filter { it.dmUserId != null }
     val byUser = dms.associateBy { checkNotNull(it.dmUserId) }
     val linked = links.groups.map { group -> group.mapNotNull(byUser::get) }.filter { it.size > 1 }
     val inGroups = linked.flatten().map { it.id }.toSet()

@@ -25,22 +25,32 @@ internal fun copyHashed(
     limit: Long,
     job: Job,
     onProgress: (Float) -> Unit
+): HashedCopy = open(context, uri).use { source ->
+    copyHashed(source, sizeOf(context, uri), target, limit, job, onProgress)
+}
+
+/** As above, from [source], whose size is [size] when known. */
+internal fun copyHashed(
+    source: InputStream,
+    size: Long?,
+    target: File,
+    limit: Long,
+    job: Job,
+    onProgress: (Float) -> Unit
 ): HashedCopy {
     val digest = MessageDigest.getInstance("SHA-256")
-    val total = sizeOf(context, uri)?.takeIf { it in 1..limit } ?: limit
+    val total = size?.takeIf { it in 1..limit } ?: limit
     var copied = 0L
-    open(context, uri).use { source ->
-        target.outputStream().use { output ->
-            val buffer = ByteArray(BUFFER_BYTES)
-            var read = source.read(buffer)
-            while (read >= 0 && copied <= limit) {
-                job.ensureActive()
-                copied += read
-                digest.update(buffer, 0, read)
-                output.write(buffer, 0, read)
-                onProgress(copied.toFloat() / total)
-                read = source.read(buffer)
-            }
+    target.outputStream().use { output ->
+        val buffer = ByteArray(BUFFER_BYTES)
+        var read = source.read(buffer)
+        while (read >= 0 && copied <= limit) {
+            job.ensureActive()
+            copied += read
+            digest.update(buffer, 0, read)
+            output.write(buffer, 0, read)
+            onProgress(copied.toFloat() / total)
+            read = source.read(buffer)
         }
     }
     return HashedCopy(digest.digest().joinToString("") { "%02x".format(it) }, copied)

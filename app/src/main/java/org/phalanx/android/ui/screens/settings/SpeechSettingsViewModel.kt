@@ -5,34 +5,30 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.phalanx.android.core.ai.ModelRejectedException
+import org.phalanx.android.core.ai.KnownModel
+import org.phalanx.android.core.ai.ModelTransfer
+import org.phalanx.android.core.ai.speech.KNOWN_SPEECH_MODELS
 import org.phalanx.android.core.ai.speech.SpeechModelStore
 
-/** The speech model for voice message transcripts: which one is imported, and importing another. */
+/** The speech model for voice message transcripts: which one is installed, and getting another. */
 @HiltViewModel
 class SpeechSettingsViewModel @Inject constructor(private val store: SpeechModelStore) : ViewModel() {
-    /** The name of the imported model, or null. */
+    /** The models it can download, one of which may be installed. */
+    val models: List<KnownModel> = KNOWN_SPEECH_MODELS
+
+    /** The name of the installed model, or null. */
     val model: StateFlow<String?> = store.installed
 
-    private val mutableImport = MutableStateFlow<ModelImport>(ModelImport.Idle)
-    val import: StateFlow<ModelImport> = mutableImport.asStateFlow()
+    /** The download or import under way, or how the last one ended. It goes on outside this screen. */
+    val transfer: StateFlow<ModelTransfer> = store.transfer
 
-    fun import(uri: Uri) {
-        if (mutableImport.value is ModelImport.Copying) return
-        mutableImport.value = ModelImport.Copying(0f)
-        viewModelScope.launch {
-            store.import(uri) { mutableImport.value = ModelImport.Copying(it) }.fold(
-                onSuccess = { mutableImport.value = ModelImport.Idle },
-                onFailure = {
-                    mutableImport.value = if (it is ModelRejectedException) ModelImport.Rejected else ModelImport.Failed
-                }
-            )
-        }
-    }
+    fun download(model: KnownModel) = store.download(model)
+
+    fun import(uri: Uri) = store.import(uri)
+
+    fun cancel() = store.cancel()
 
     fun remove() {
         viewModelScope.launch { store.remove() }

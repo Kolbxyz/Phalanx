@@ -27,7 +27,7 @@ internal suspend fun Room.toSummary(): RoomSummary = use { room ->
         }
     }
     // A DM usually has no avatar of its own; the other person's stands in, as in other clients.
-    val dmHero = info.heroes.singleOrNull()?.takeIf { info.isDirect }
+    val dmHero = info.otherPerson()
     val avatarUrl = info.avatarUrl ?: dmHero?.avatarUrl
     RoomSummary(
         id = info.id,

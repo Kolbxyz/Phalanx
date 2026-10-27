@@ -3,6 +3,7 @@ package org.phalanx.android.core.ai
 import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.res.Configuration
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -19,6 +20,10 @@ import kotlinx.coroutines.withContext
  * of weights, which back-to-back requests would otherwise pay each time. Released after
  * [IDLE_MILLIS] without a request, when the app leaves the screen, when memory runs low, and when
  * [installed] changes, so it never holds that memory in the background.
+ *
+ * Only one runs or stays loaded at a time, across every model: the language model and a speech
+ * model together are gigabytes, enough for the system to start killing apps, its own interface
+ * included. Loading one releases the others first.
  */
 internal open class LoadedNative(
     installed: Flow<String?>,
@@ -27,11 +32,12 @@ internal open class LoadedNative(
     private val load: (path: String) -> Long,
     private val free: (handle: Long) -> Unit
 ) {
-    private val mutex = Mutex()
+    // Guarded by [MEMORY], shared by every model.
     private var handle = 0L
     private var idle: Job? = null
 
     init {
+        LOADED += this
         scope.launch { installed.drop(1).collect { release() } }
         context.registerComponentCallbacks(object : ComponentCallbacks2 {
             override fun onTrimMemory(level: Int) {
@@ -48,8 +54,9 @@ internal open class LoadedNative(
     }
 
     /** Runs [block] with the model at [path], loading it first if it is not in memory. */
-    suspend fun <T> use(path: String, block: suspend (handle: Long) -> T): T = mutex.withLock {
+    suspend fun <T> use(path: String, block: suspend (handle: Long) -> T): T = MEMORY.withLock {
         idle?.cancel()
+        LOADED.filter { it !== this }.forEach { it.releaseLocked() }
         if (handle == 0L) handle = withContext(Dispatchers.Default) { load(path) }
         try {
             block(handle)
@@ -61,7 +68,10 @@ internal open class LoadedNative(
         }
     }
 
-    private suspend fun release() = mutex.withLock {
+    private suspend fun release() = MEMORY.withLock { releaseLocked() }
+
+    private fun releaseLocked() {
+        idle?.cancel()
         if (handle != 0L) {
             free(handle)
             handle = 0L
@@ -70,5 +80,9 @@ internal open class LoadedNative(
 
     private companion object {
         const val IDLE_MILLIS = 2 * 60 * 1000L
+
+        // The models are app-wide singletons, so this only ever holds a handful.
+        val LOADED = CopyOnWriteArrayList<LoadedNative>()
+        val MEMORY = Mutex()
     }
 }
