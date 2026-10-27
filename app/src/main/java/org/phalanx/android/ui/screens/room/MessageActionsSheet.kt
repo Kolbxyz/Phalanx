@@ -29,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
+import org.phalanx.android.data.model.CustomEmote
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.components.ModalSheet
@@ -42,6 +43,10 @@ internal fun MessageActionsSheet(
     message: TimelineEntry.Message,
     onDismiss: () -> Unit,
     onReact: (String) -> Unit,
+    /** Opens the picker for any emoji beyond the quick ones. */
+    onMoreReactions: () -> Unit,
+    /** The room's custom emoji, offered as reactions after the quick ones. */
+    emotes: List<CustomEmote>,
     /** Null hides the Emoji Kitchen reaction: Kitchen is off. */
     onReactWithMix: (() -> Unit)?,
     onReply: () -> Unit,
@@ -50,8 +55,6 @@ internal fun MessageActionsSheet(
     onTranslate: (() -> Unit)?,
     /** Null hides summing the message up: AI is off, or the message is short or not text. */
     onSummarize: (() -> Unit)?,
-    /** Null hides looking for dates, tasks and places: AI is off, or the message has no hint of any. */
-    onFindActions: (() -> Unit)?,
     onCopyLink: (String) -> Unit,
     onShareLink: (String) -> Unit,
     onEdit: () -> Unit,
@@ -63,8 +66,6 @@ internal fun MessageActionsSheet(
     pinned: Boolean,
     onTogglePin: () -> Unit,
     onDelete: () -> Unit,
-    senderMuted: Boolean,
-    onToggleMute: () -> Unit,
     onBlock: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
@@ -75,8 +76,8 @@ internal fun MessageActionsSheet(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // A seventh button for mixes leaves each a little less room on a narrow phone.
-                val size = if (onReactWithMix != null) 44.dp else 48.dp
+                // The "+" and the mix button leave each a little less room on a narrow phone.
+                val size = if (onReactWithMix != null) 40.dp else 44.dp
                 QuickReactions.forEach { key ->
                     val mine = message.reactions.any { it.key == key && it.byMe }
                     Surface(
@@ -88,6 +89,16 @@ internal fun MessageActionsSheet(
                         Box(contentAlignment = Alignment.Center) {
                             Text(key, style = MaterialTheme.typography.titleLarge)
                         }
+                    }
+                }
+                Surface(
+                    onClick = onMoreReactions,
+                    shape = MaterialShapes.Cookie6Sided.toShape(),
+                    color = colors.surfaceContainerHigh,
+                    modifier = Modifier.size(size)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Symbols.Add, contentDescription = stringResource(R.string.reaction_more))
                     }
                 }
                 onReactWithMix?.let { onClick ->
@@ -104,12 +115,12 @@ internal fun MessageActionsSheet(
                     }
                 }
             }
+            if (emotes.isNotEmpty()) EmoteReactions(message, emotes, onReact)
         }
         if (message.canReply) Action(Symbols.Reply, R.string.action_reply, onReply)
         if (message.body is MessageBody.Text) Action(Symbols.ContentCopy, R.string.action_copy, onCopy)
         onTranslate?.let { Action(Symbols.Translate, R.string.action_translate, it) }
         onSummarize?.let { Action(Symbols.Summarize, R.string.action_summarize_message, it) }
-        onFindActions?.let { Action(Symbols.EditCalendar, R.string.action_find_actions, it) }
         LinkActions(remember(message.body) { linksOf(message.body) }, onCopyLink, onShareLink)
         if (live && message.eventId != null && message.body.isForwardable()) {
             Action(Symbols.Forward, R.string.action_forward, onForward)
@@ -122,13 +133,6 @@ internal fun MessageActionsSheet(
         }
         onShowVersions?.let { Action(Symbols.History, R.string.action_edit_history, it) }
         if (live) onRemind?.let { Action(Symbols.AlarmOn, R.string.action_remind, it) }
-        if (!message.isOwn) {
-            if (senderMuted) {
-                Action(Symbols.NotificationsActive, R.string.action_unmute, onToggleMute)
-            } else {
-                Action(Symbols.NotificationsOff, R.string.action_mute, onToggleMute)
-            }
-        }
         if (!message.isOwn) Action(Symbols.Block, R.string.action_block, onBlock, destructive = true)
         if (message.isOwn && live) Action(Symbols.Delete, R.string.action_delete, onDelete, destructive = true)
         Spacer(Modifier.height(8.dp))

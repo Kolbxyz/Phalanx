@@ -28,8 +28,7 @@ import org.phalanx.android.ui.theme.Symbols
 
 /**
  * What the viewer's info button offers on a photo or video: other ways to use it, then what is
- * known about the file. [onJumpTo] is null while the message is still sending; [onDescribe] is
- * null unless the on-device vision model can describe a photo.
+ * known about the file. [onJumpTo] is null while the message is still sending.
  */
 @Composable
 internal fun MediaInfoSheet(
@@ -37,14 +36,12 @@ internal fun MediaInfoSheet(
     onDismiss: () -> Unit,
     onOpenWith: () -> Unit,
     onForward: (() -> Unit)?,
-    onJumpTo: (() -> Unit)?,
-    onDescribe: (() -> Unit)?
+    onJumpTo: (() -> Unit)?
 ) {
     ModalSheet(onDismissRequest = onDismiss) {
         Action(Symbols.OpenInNew, R.string.media_open_with, onOpenWith)
         onForward?.let { Action(Symbols.Forward, R.string.action_forward, it) }
         onJumpTo?.let { Action(Symbols.Chat, R.string.media_jump_to_message, it) }
-        onDescribe?.let { Action(Symbols.Image, R.string.describe_action, it) }
         HorizontalDivider(Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
         detailsOf(entry).forEach { (label, value) ->
             ListItem(

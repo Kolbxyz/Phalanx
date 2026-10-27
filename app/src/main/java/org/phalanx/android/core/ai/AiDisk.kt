@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.KSerializer
-import org.phalanx.android.core.ai.photos.PhotoNote
 import org.phalanx.android.core.ai.speech.Transcript
 import org.phalanx.android.core.matrix.ActiveClient
 import org.phalanx.android.core.prefs.SettingsStore
@@ -45,10 +44,7 @@ class AiDisk @Inject internal constructor(
     // A catch-up goes stale fast: by the next day the user has read the room or more came in.
     internal val catchUps = shelf("catch_ups", CatchUp.serializer(), CATCH_UPS, TimeUnit.DAYS.toMillis(1))
 
-    // A photo's description holds for as long as the photo is worth finding.
-    internal val photos = shelf("photos", PhotoNote.serializer(), PHOTOS, TimeUnit.DAYS.toMillis(PHOTO_DAYS))
-
-    private val shelves = listOf(transcripts, catchUps, photos)
+    private val shelves = listOf(transcripts, catchUps)
 
     fun start() {
         scope.launch {
@@ -89,7 +85,5 @@ class AiDisk @Inject internal constructor(
         const val TRANSCRIPTS = 2_000
         const val TRANSCRIPT_DAYS = 30L
         const val CATCH_UPS = 200
-        const val PHOTOS = 20_000
-        const val PHOTO_DAYS = 365L
     }
 }

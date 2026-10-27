@@ -29,5 +29,5 @@ internal val KNOWN_MODELS = listOf(
     )
 )
 
-/** Mistral's files on Hugging Face, the language models and the vision projector beside them. */
+/** Mistral's language model files on Hugging Face. */
 internal const val MINISTRAL = "https://huggingface.co/mistralai/Ministral-3-3B-Instruct-2512-GGUF/resolve/main"

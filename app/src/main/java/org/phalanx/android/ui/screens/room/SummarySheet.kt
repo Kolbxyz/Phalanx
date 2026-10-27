@@ -3,7 +3,6 @@ package org.phalanx.android.ui.screens.room
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,11 +10,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,7 +28,7 @@ import org.phalanx.android.ui.theme.Symbols
 
 /**
  * The summary as it is written, then as points that each lead to the message they cite, with
- * how many messages it covers, replies the model can suggest, and a reminder it can be wrong.
+ * how many messages it covers, and a reminder it can be wrong.
  */
 @Composable
 internal fun SummarySheet(state: SummaryState, actions: SummaryActions) {
@@ -70,7 +67,6 @@ internal fun SummarySheet(state: SummaryState, actions: SummaryActions) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         state.points.forEach { Point(it, actions.onJump) }
                     }
-                    RepliesPart(state.replies, actions)
                     Text(
                         stringResource(R.string.summary_disclaimer),
                         style = MaterialTheme.typography.bodySmall,
@@ -124,34 +120,6 @@ private fun Point(point: SummaryPoint, onJump: (String) -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             content = content
         )
-    }
-}
-
-@Composable
-private fun RepliesPart(replies: Replies, actions: SummaryActions) {
-    when (replies) {
-        Replies.Offered -> FilledTonalButton(onClick = actions.onSuggestReplies) {
-            Text(stringResource(R.string.summary_suggest_replies))
-        }
-        Replies.Writing -> Working(R.string.summary_writing_replies)
-        is Replies.Ready -> {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                replies.replies.forEach { reply ->
-                    SuggestionChip(
-                        onClick = { actions.onUseReply(reply) },
-                        label = { Text(reply) },
-                        icon = {
-                            Icon(
-                                Symbols.Edit,
-                                contentDescription = stringResource(R.string.summary_use_reply),
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    )
-                }
-            }
-        }
-        is Replies.Failed -> Text(stringResource(replies.message), style = MaterialTheme.typography.bodyMedium)
     }
 }
 

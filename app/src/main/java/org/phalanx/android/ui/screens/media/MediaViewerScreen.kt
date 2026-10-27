@@ -158,10 +158,6 @@ private fun ViewerTopBar(
     val context = LocalContext.current
     var info by rememberSaveable { mutableStateOf(false) }
     var forwarding by rememberSaveable { mutableStateOf(false) }
-    val describer: PhotoDescribeViewModel = hiltViewModel()
-    val canDescribe by describer.ready.collectAsStateWithLifecycle()
-    val described by describer.state.collectAsStateWithLifecycle()
-    described?.let { DescribeSheet(it, describer::dismiss) }
     if (info) {
         MediaInfoSheet(
             entry = entry,
@@ -176,13 +172,7 @@ private fun ViewerTopBar(
                     forwarding = true
                 }
             },
-            onJumpTo = onJumpTo,
-            onDescribe = (entry.body as? MessageBody.Image)?.takeIf { canDescribe }?.let { image ->
-                {
-                    info = false
-                    describer.describe(image)
-                }
-            }
+            onJumpTo = onJumpTo
         )
     }
     if (forwarding) {

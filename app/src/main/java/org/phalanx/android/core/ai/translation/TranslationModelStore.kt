@@ -27,7 +27,9 @@ import org.phalanx.android.di.ApplicationScope
 /**
  * The translation model files the user downloaded or imported, one of [KNOWN_PAIR_FILES] each, kept
  * in the app's private storage under their hash: the two directions of a pair may share a file,
- * which is then kept once and counts for both. Which file it is comes from its hash alone, so the
+ * which is then kept once and counts for both. The name keeps the published extension, which
+ * Bergamot reads the file type from (it aborts the whole app on a model not ending in ".bin" or a
+ * vocabulary not ending in ".spm"). Which file it is comes from its hash alone, so the
  * user picks a pair's files in any order.
  */
 @Singleton
@@ -38,7 +40,7 @@ class TranslationModelStore @Inject constructor(
     private val dir = File(context.filesDir, DIR_NAME)
     private val partial = File(dir, "$DIR_NAME.part")
     private val runner = TransferRunner(scope)
-    private val mutablePairs = MutableStateFlow(read())
+    private val mutablePairs = MutableStateFlow(renameBareHashes().let { read() })
 
     /** The pairs whose files are all here. */
     val pairs: StateFlow<List<LanguagePair>> = mutablePairs.asStateFlow()
@@ -106,7 +108,13 @@ class TranslationModelStore @Inject constructor(
             }
         }
 
-    private fun fileOf(known: KnownPairFile) = File(dir, known.sha256)
+    private fun fileOf(known: KnownPairFile) = File(dir, "${known.sha256}.${known.name.substringAfterLast('.')}")
+
+    // Version 1.2.0 kept the files under their bare hash, which Bergamot refuses to load.
+    private fun renameBareHashes() = KNOWN_PAIR_FILES.forEach { known ->
+        val bare = File(dir, known.sha256)
+        if (bare.isFile) bare.renameTo(fileOf(known))
+    }
 
     // Only this class writes the files, after checking their hashes.
     private fun read(): List<LanguagePair> = KNOWN_PAIR_FILES.map { it.pair }.distinct().filter { filesOf(it) != null }

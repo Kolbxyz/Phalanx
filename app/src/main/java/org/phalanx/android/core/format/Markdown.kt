@@ -13,10 +13,16 @@ internal object Markdown {
 
     /**
      * [mentions] are members picked in the composer: "@" and their name in [text] become a pill.
-     * Without [formatting], only mentions are rendered and markdown stays literal.
+     * [emotes] are the room's custom emoji by shortcode: ":shortcode:" becomes the image.
+     * Without [formatting], only mentions and emoji are rendered and markdown stays literal.
      */
-    fun render(text: String, mentions: List<Member> = emptyList(), formatting: Boolean = true): Rendered {
-        val inline = InlineRenderer(mentions.sortedByDescending { it.name.length }, formatting)
+    fun render(
+        text: String,
+        mentions: List<Member> = emptyList(),
+        formatting: Boolean = true,
+        emotes: Map<String, String> = emptyMap()
+    ): Rendered {
+        val inline = InlineRenderer(mentions.sortedByDescending { it.name.length }, formatting, emotes)
         val html = StringBuilder()
         var lineBefore = false
         // Anything other than a plain line (a code block, a list, ...) is formatting by itself.

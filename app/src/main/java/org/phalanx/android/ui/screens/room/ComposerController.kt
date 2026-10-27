@@ -20,6 +20,7 @@ import org.phalanx.android.R
 import org.phalanx.android.core.media.AttachmentPreparer
 import org.phalanx.android.core.media.ImageEdits
 import org.phalanx.android.core.media.VoiceRecorder
+import org.phalanx.android.data.model.CustomEmote
 import org.phalanx.android.data.model.OutgoingMedia
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.ScheduleRepository
@@ -44,9 +45,7 @@ internal class ComposerController(
     val state: StateFlow<ComposerState> = mutableState.asStateFlow()
 
     private var session: TimelineSession? = null
-    private val mentionSource: MentionSource = MentionSource(scope) {
-        update { it.copy(suggestions = mentionSource.suggestions(it.input, session)) }
-    }
+    private val completions: DraftCompletions = DraftCompletions(scope, { session }) { update(completions::refresh) }
 
     init {
         scope.launch {
@@ -78,7 +77,7 @@ internal class ComposerController(
         var value = typed
         update {
             value = typed.asLinkPasteOver(it.input) ?: typed
-            it.copy(input = value, suggestions = mentionSource.suggestions(value, session))
+            completions.refresh(it.copy(input = value))
         }
         session?.setTyping(shareTyping() && value.text.isNotBlank())
     }
@@ -92,7 +91,13 @@ internal class ComposerController(
         )
     }
 
-    fun clearDraft() = update { it.withDraft("").copy(mentions = emptyList(), suggestions = emptyList()) }
+    fun pickEmote(emote: CustomEmote) = update {
+        it.copy(input = EmoteCompletion.complete(it.input, emote), emoteSuggestions = emptyList())
+    }
+
+    fun clearDraft() = update {
+        it.withDraft("").copy(mentions = emptyList(), suggestions = emptyList(), emoteSuggestions = emptyList())
+    }
 
     fun reply(message: TimelineEntry.Message) = update { it.copy(mode = ComposerMode.Reply(message)) }
 

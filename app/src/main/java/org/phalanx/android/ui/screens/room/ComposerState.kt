@@ -3,6 +3,7 @@ package org.phalanx.android.ui.screens.room
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import org.phalanx.android.data.model.CustomEmote
 import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.OutgoingMedia
 import org.phalanx.android.data.model.TimelineEntry
@@ -29,7 +30,9 @@ data class ComposerState(
     val recording: List<Float>? = null,
     /** Members picked from [suggestions]; "@" and their name in the draft is sent as a mention. */
     val mentions: List<Member> = emptyList(),
-    val suggestions: List<MentionSuggestion> = emptyList()
+    val suggestions: List<MentionSuggestion> = emptyList(),
+    /** The room's custom emoji matching the ":name" being typed. */
+    val emoteSuggestions: List<CustomEmote> = emptyList()
 ) {
     val draft: String
         get() = input.text

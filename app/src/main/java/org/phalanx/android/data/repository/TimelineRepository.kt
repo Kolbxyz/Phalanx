@@ -1,6 +1,7 @@
 package org.phalanx.android.data.repository
 
 import kotlinx.coroutines.flow.StateFlow
+import org.phalanx.android.data.model.CustomEmote
 import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.OutgoingMedia
 import org.phalanx.android.data.model.TimelineEntry
@@ -81,6 +82,9 @@ interface TimelineSession {
 
     /** The members who joined, roles first, to mention; this account left out. Empty if unavailable. */
     suspend fun joinedMembers(): List<Member>
+
+    /** The custom emoji that make sense here, this room's first; ":shortcode:" in a sent text shows them. */
+    suspend fun emotes(): List<CustomEmote>
 
     /** Who [userIds] are in this room, in the same order. */
     suspend fun members(userIds: List<String>): List<Member>

@@ -10,5 +10,11 @@ data class RoomPrefs(
     /** A notice when someone starts typing in the room, while Phalanx is open. */
     val typingAlerts: Boolean = false,
     /** A notice when someone reads this account's latest message, while Phalanx is open. */
-    val readAlerts: Boolean = false
+    val readAlerts: Boolean = false,
+    /**
+     * The offline translation pair the room's messages are translated with as they come into
+     * view, such as "en-fr" (see [org.phalanx.android.core.ai.translation.LanguagePair.key]);
+     * null leaves them as they are.
+     */
+    val translatePair: String? = null
 )

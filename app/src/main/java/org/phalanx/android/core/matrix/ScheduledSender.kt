@@ -24,14 +24,17 @@ import org.phalanx.android.data.repository.TimelineUnavailableException
 @Singleton
 internal class ScheduledSender @Inject constructor(
     private val active: ActiveClient,
-    private val settings: SettingsStore
+    private val settings: SettingsStore,
+    private val roomEmotes: RoomEmotes
 ) {
     suspend fun send(message: ScheduledMessage): Result<Unit> = withContext(Dispatchers.IO) {
         if (active.client() == null) active.restore()
         val room = active.room(message.roomId) ?: return@withContext Result.failure(TimelineUnavailableException())
         try {
-            val content = contentOf(message, settings.current().markdown)
-            room.use { it.sendRaw(EVENT_TYPE, content) }
+            room.use {
+                val emotes = roomEmotes.forRoom(room.ownUserId(), room.id(), room.roomInfo().bridge()).byShortcode()
+                room.sendRaw(EVENT_TYPE, contentOf(message, settings.current().markdown, emotes))
+            }
             Result.success(Unit)
         } catch (e: ClientException) {
             Result.failure(IOException("Scheduled send failed", e))
@@ -39,8 +42,8 @@ internal class ScheduledSender @Inject constructor(
     }
 
     /** Formatted as the composer's messages are; a reply points at the message it answers. */
-    private fun contentOf(message: ScheduledMessage, formatting: Boolean): String {
-        val outgoing = OutgoingMessage.of(message.text, mentions = emptyList(), formatting)
+    private fun contentOf(message: ScheduledMessage, formatting: Boolean, emotes: Map<String, String>): String {
+        val outgoing = OutgoingMessage.of(message.text, mentions = emptyList(), formatting, emotes)
         val msgtype = when (outgoing.kind) {
             OutgoingMessage.Kind.Text -> "m.text"
             OutgoingMessage.Kind.Emote -> "m.emote"
