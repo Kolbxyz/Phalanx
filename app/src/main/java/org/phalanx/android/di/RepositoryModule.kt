@@ -5,6 +5,7 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import org.phalanx.android.core.contacts.PeopleStore
+import org.phalanx.android.core.matrix.AccountBookmarks
 import org.phalanx.android.core.matrix.MessageArchive
 import org.phalanx.android.core.matrix.PushRulesMutedUsersRepository
 import org.phalanx.android.core.matrix.ReactionPushRule
@@ -28,6 +29,7 @@ import org.phalanx.android.core.schedule.Reminders
 import org.phalanx.android.data.repository.AccountRepository
 import org.phalanx.android.data.repository.AuthRepository
 import org.phalanx.android.data.repository.BlockedUsersRepository
+import org.phalanx.android.data.repository.BookmarkRepository
 import org.phalanx.android.data.repository.BridgeRepository
 import org.phalanx.android.data.repository.DeletedMessagesRepository
 import org.phalanx.android.data.repository.DraftsRepository
@@ -85,6 +87,9 @@ internal abstract class RepositoryModule {
 
     @Binds
     abstract fun reminderRepository(impl: Reminders): ReminderRepository
+
+    @Binds
+    abstract fun bookmarkRepository(impl: AccountBookmarks): BookmarkRepository
 
     @Binds
     abstract fun peopleRepository(impl: PeopleStore): PeopleRepository

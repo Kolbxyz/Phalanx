@@ -349,6 +349,14 @@
     <string name="reminders_title">Rappels</string>
     <string name="reminders_empty">Aucun rappel à venir. Créez-en un depuis le menu d’un message ou depuis Me mettre à jour.</string>
     <string name="reminders_cancel">Annuler le rappel</string>
+    <string name="action_bookmark">Ajouter aux favoris</string>
+    <string name="action_unbookmark">Retirer des favoris</string>
+    <string name="bookmark_failed">Impossible de mettre à jour vos favoris. Vérifiez votre connexion et réessayez.</string>
+    <string name="bookmarks_title">Favoris</string>
+    <string name="bookmarks_empty">Aucun favori pour l’instant. Enregistrez un message depuis son menu pour le retrouver ici, sur tous vos appareils.</string>
+    <string name="bookmarks_remove">Retirer des favoris</string>
+    <string name="bookmarks_other_device">Enregistré sur un autre appareil. Ouvrez-le pour lire le message.</string>
+    <string name="bookmarks_sync_failed">Impossible de joindre votre compte, cette liste est peut-être périmée.</string>
     <string name="people_title">Contacts</string>
     <string name="people_empty">Personne n’est encore lié. Quand une même personne a des discussions sur deux réseaux, elles vous sont proposées ici pour confirmation. Vous pouvez aussi lier des discussions vous-même depuis les détails d’une discussion, avec « Lier une discussion ».</string>
     <string name="people_suggested">La même personne ?</string>

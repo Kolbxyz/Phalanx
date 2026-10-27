@@ -32,6 +32,7 @@ internal fun MessageMenu(
     kitchen: KitchenViewModel = hiltViewModel(),
     assist: AssistViewModel = hiltViewModel(),
     reminder: ReminderViewModel = hiltViewModel(),
+    bookmarks: BookmarkViewModel = hiltViewModel(),
     transcripts: TranscriptViewModel = hiltViewModel()
 ) {
     val clipboard = LocalClipboard.current
@@ -45,6 +46,7 @@ internal fun MessageMenu(
     var remindingOf by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     var pickingFor by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     val kitchenOn by kitchen.enabled.collectAsStateWithLifecycle()
+    val bookmarked by bookmarks.saved.collectAsStateWithLifecycle()
     val header by viewModel.header.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val text = (message?.body as? MessageBody.Text)?.text
@@ -90,6 +92,8 @@ internal fun MessageMenu(
             onRemind = message.eventId?.let { then { remindingOf = message } },
             pinned = message.eventId in header?.pinnedEventIds.orEmpty(),
             onTogglePin = then { viewModel.setPinned(message, message.eventId !in header?.pinnedEventIds.orEmpty()) },
+            bookmarked = message.eventId in bookmarked,
+            onToggleBookmark = then { bookmarks.toggle(message) { viewModel.notify(R.string.bookmark_failed) } },
             onDelete = then { deleting = message },
             onBlock = then { blocking = message }
         )

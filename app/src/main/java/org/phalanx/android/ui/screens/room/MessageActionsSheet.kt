@@ -65,6 +65,8 @@ internal fun MessageActionsSheet(
     onRemind: (() -> Unit)?,
     pinned: Boolean,
     onTogglePin: () -> Unit,
+    bookmarked: Boolean,
+    onToggleBookmark: () -> Unit,
     onDelete: () -> Unit,
     onBlock: () -> Unit
 ) {
@@ -127,6 +129,11 @@ internal fun MessageActionsSheet(
         }
         if (live && message.eventId != null) {
             Action(Symbols.PushPin, if (pinned) R.string.action_unpin else R.string.action_pin, onTogglePin)
+            Action(
+                if (bookmarked) Symbols.BookmarkFilled else Symbols.Bookmark,
+                if (bookmarked) R.string.action_unbookmark else R.string.action_bookmark,
+                onToggleBookmark
+            )
         }
         if (message.canEdit && message.body is MessageBody.Text) {
             Action(Symbols.Edit, R.string.action_edit, onEdit)
