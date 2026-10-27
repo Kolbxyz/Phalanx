@@ -200,6 +200,12 @@
     <string name="model_role_other">Modèle</string>
     <string name="settings_ai_downloads_note">Les modèles sont téléchargés directement chez leur éditeur (Hugging Face, Mozilla), qui voit votre adresse IP. Chaque fichier est vérifié avec une empreinte intégrée.</string>
     <string name="settings_translation_engine">Bergamot · Mozilla</string>
+    <string name="details_translate_section">Traduction</string>
+    <string name="details_auto_translate">Traduire cette discussion automatiquement</string>
+    <string name="details_auto_translate_summary">Les messages s’affichent traduits, les vôtres aussi. Touchez-en un pour le lire tel qu’écrit.</string>
+    <string name="details_auto_translate_needs_pair">Téléchargez d’abord une paire de langues dans Paramètres › IA.</string>
+    <string name="auto_translate_show_translation">Voir la traduction</string>
+    <string name="auto_translated_from">Traduit · %1$s</string>
     <string name="settings_ai_intro">Tourne sur ce téléphone. Rien de ce que vous écrivez ou dites n’en sort.</string>
     <string name="feature_summaries">Résumés</string>
     <string name="feature_summaries_description">Résume les messages non lus.</string>

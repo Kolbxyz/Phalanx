@@ -32,6 +32,7 @@ internal fun MessageMenu(
     kitchen: KitchenViewModel = hiltViewModel(),
     assist: AssistViewModel = hiltViewModel(),
     reminder: ReminderViewModel = hiltViewModel(),
+    transcripts: TranscriptViewModel = hiltViewModel()
 ) {
     val clipboard = LocalClipboard.current
     val context = LocalContext.current
@@ -47,6 +48,12 @@ internal fun MessageMenu(
     val header by viewModel.header.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val text = (message?.body as? MessageBody.Text)?.text
+    val transcriptStates by transcripts.states.collectAsStateWithLifecycle()
+    // What the AI reads: the text, or a voice message's transcript once it is written.
+    val readable = text ?: message?.takeIf { it.body is MessageBody.Audio }?.let { audio ->
+        val state = transcriptStates[audio.eventId ?: audio.id] as? TranscriptState.Done
+        state?.transcript?.text?.takeIf { it.isNotBlank() }
+    }
     val aiOn = settings?.aiSummaries == true
     val offlinePairs by assist.pairs.collectAsStateWithLifecycle()
     val emotes by produceState(emptyList<CustomEmote>(), message != null) {
@@ -74,8 +81,8 @@ internal fun MessageMenu(
             onEdit = then { text?.let { viewModel.composer.edit(message, it) } },
             onShowVersions = versionsTarget(message, settings)?.let { eventId -> then { versionsOf = eventId } },
             onCopy = then { text?.let(::copy) },
-            onTranslate = text?.takeIf { aiOn || offlinePairs.isNotEmpty() }?.let { then { assist.translate(it) } },
-            onSummarize = text?.takeIf { aiOn && it.length >= AssistViewModel.LONG_MESSAGE_CHARS }
+            onTranslate = readable?.takeIf { aiOn || offlinePairs.isNotEmpty() }?.let { then { assist.translate(it) } },
+            onSummarize = readable?.takeIf { aiOn && it.length >= AssistViewModel.LONG_MESSAGE_CHARS }
                 ?.let { then { assist.summarize(it) } },
             onCopyLink = { link -> then { copy(link) }() },
             onShareLink = { link -> then { shareText(context, link) }() },

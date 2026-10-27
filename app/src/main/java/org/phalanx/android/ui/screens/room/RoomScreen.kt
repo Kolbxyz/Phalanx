@@ -47,6 +47,7 @@ fun RoomScreen(
     val kitchen: KitchenViewModel = hiltViewModel()
     ProtectedRoomScreen()
     val transcripts: TranscriptViewModel = hiltViewModel()
+    val autoTranslations: AutoTranslateViewModel = hiltViewModel()
     val dictation: DictationViewModel = hiltViewModel()
     val canDictate by dictation.available.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -154,7 +155,8 @@ fun RoomScreen(
                 }
                 is RoomUiState.Ready -> CompositionLocalProvider(
                     LocalTimelinePrefs provides prefs,
-                    LocalTranscripts provides transcripts
+                    LocalTranscripts provides transcripts,
+                    LocalAutoTranslations provides autoTranslations
                 ) {
                     Box(Modifier.fillMaxSize()) {
                         val checkpoints by summary.marks.collectAsStateWithLifecycle()

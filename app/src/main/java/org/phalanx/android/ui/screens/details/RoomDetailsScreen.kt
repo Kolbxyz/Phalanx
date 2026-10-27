@@ -117,6 +117,7 @@ fun RoomDetailsScreen(
             pinnedSection(pinned) { eventId -> onJumpTo(viewModel.roomId, eventId) }
             membersSection(members, showAllMembers) { showAllMembers = true }
             mediaSections(media, hasMore, onShowAll = { files -> onShowAll(viewModel.roomId, files) }, onOpen = open)
+            item { DetailsTranslateSection() }
             item { DetailsPrivacySection(prefs, viewModel) }
             item {
                 SegmentedSection(stringResource(R.string.details_manage)) {

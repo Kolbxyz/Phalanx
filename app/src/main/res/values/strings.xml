@@ -200,6 +200,12 @@
     <string name="model_role_other">Model</string>
     <string name="settings_ai_downloads_note">Models download straight from their publisher (Hugging Face, Mozilla), which sees your IP address. Each file is checked against a built-in fingerprint.</string>
     <string name="settings_translation_engine">Bergamot · Mozilla</string>
+    <string name="details_translate_section">Translation</string>
+    <string name="details_auto_translate">Translate this chat automatically</string>
+    <string name="details_auto_translate_summary">Messages show translated, yours too. Tap one to read it as written.</string>
+    <string name="details_auto_translate_needs_pair">Download a language pair in Settings › AI first.</string>
+    <string name="auto_translate_show_translation">Show translation</string>
+    <string name="auto_translated_from">Translated from %1$s</string>
     <string name="settings_ai_intro">Runs on this phone. Nothing you write or say leaves it.</string>
     <string name="feature_summaries">Summaries</string>
     <string name="feature_summaries_description">Sums up unread messages.</string>

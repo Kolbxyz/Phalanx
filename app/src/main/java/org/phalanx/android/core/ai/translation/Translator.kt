@@ -32,4 +32,13 @@ class Translator @Inject internal constructor(
             model.translate(text, into.getDisplayLanguage(Locale.ENGLISH), onText)
         }
     }
+
+    /**
+     * [text] translated with [pair] alone, for auto-translate: null when it does not read as the
+     * pair's source language or the pair is not installed, so nothing slower is ever started.
+     */
+    suspend fun translateWith(pair: LanguagePair, text: String): Result<String>? {
+        val usable = BergamotNative.isAvailable && pair in store.pairs.value && readsAs(text, pair.from, pair.to)
+        return if (usable) bergamot.translate(pair, text.take(MAX_TRANSLATED_CHARS)) else null
+    }
 }
