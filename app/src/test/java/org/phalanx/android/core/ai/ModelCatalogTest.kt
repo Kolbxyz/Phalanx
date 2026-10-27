@@ -7,14 +7,13 @@ import org.junit.Test
 import org.phalanx.android.core.ai.speech.KNOWN_SPEECH_MODELS
 import org.phalanx.android.core.ai.translation.KNOWN_PAIR_FILES
 import org.phalanx.android.core.ai.translation.pairFilesOf
-import org.phalanx.android.core.ai.vision.KNOWN_VISION_MODELS
 
 class ModelCatalogTest {
     private val sha256 = Regex("[0-9a-f]{64}")
 
     @Test
     fun `every model downloads over HTTPS and is pinned by a full hash`() {
-        (KNOWN_MODELS + KNOWN_SPEECH_MODELS + KNOWN_VISION_MODELS).forEach { model ->
+        (KNOWN_MODELS + KNOWN_SPEECH_MODELS).forEach { model ->
             assertTrue(model.name, model.url.startsWith("https://") && model.url.endsWith("/${model.name}"))
             assertTrue(model.name, sha256.matches(model.sha256))
             assertTrue(model.name, model.maxBytes > 0)

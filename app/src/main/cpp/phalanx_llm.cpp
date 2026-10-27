@@ -34,7 +34,6 @@ JNIEXPORT jboolean JNICALL Java_org_phalanx_android_core_ai_LlamaNative_loadBack
     llama_log_set(silentLog, nullptr);
     if (!loadCpuBackend()) return JNI_FALSE;
     llama_backend_init();
-    silenceVision();
     return JNI_TRUE;
 }
 
@@ -62,7 +61,6 @@ JNIEXPORT void JNICALL Java_org_phalanx_android_core_ai_LlamaNative_cancel(JNIEn
 
 JNIEXPORT void JNICALL Java_org_phalanx_android_core_ai_LlamaNative_free(JNIEnv *, jobject, jlong handle) {
     auto *engine = reinterpret_cast<Engine *>(handle);
-    releaseVision(engine);
     if (engine->context != nullptr) llama_free(engine->context);
     llama_model_free(engine->model);
     delete engine;

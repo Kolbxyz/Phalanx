@@ -29,8 +29,3 @@ llama_sampler *samplerOf(JNIEnv *env, const llama_vocab *vocab, jbyteArray gramm
 // Samples up to [maxNewTokens] after a prompt already in the context, sending each piece to [sink]'s
 // onToken. True when it ran to its end; false when cancelled, stopped by the sink, or on failure.
 bool streamReply(JNIEnv *env, Engine *engine, llama_sampler *sampler, int32_t maxNewTokens, jobject sink);
-
-// The vision model (llama.cpp's mtmd), loaded on the engine on first use. Defined in phalanx_vision.cpp.
-void silenceVision();
-
-void releaseVision(Engine *engine);
