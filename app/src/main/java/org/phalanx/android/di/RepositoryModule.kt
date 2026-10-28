@@ -15,6 +15,7 @@ import org.phalanx.android.core.matrix.RustBlockedUsersRepository
 import org.phalanx.android.core.matrix.RustBridgeRepository
 import org.phalanx.android.core.matrix.RustDraftsRepository
 import org.phalanx.android.core.matrix.RustEditHistoryRepository
+import org.phalanx.android.core.matrix.RustLinkPreviewRepository
 import org.phalanx.android.core.matrix.RustMediaRepository
 import org.phalanx.android.core.matrix.RustRoomActionsRepository
 import org.phalanx.android.core.matrix.RustRoomGalleryRepository
@@ -34,6 +35,7 @@ import org.phalanx.android.data.repository.BridgeRepository
 import org.phalanx.android.data.repository.DeletedMessagesRepository
 import org.phalanx.android.data.repository.DraftsRepository
 import org.phalanx.android.data.repository.EditHistoryRepository
+import org.phalanx.android.data.repository.LinkPreviewRepository
 import org.phalanx.android.data.repository.MediaRepository
 import org.phalanx.android.data.repository.MutedUsersRepository
 import org.phalanx.android.data.repository.PeopleRepository
@@ -117,4 +119,7 @@ internal abstract class RepositoryModule {
 
     @Binds
     abstract fun deletedMessagesRepository(impl: MessageArchive): DeletedMessagesRepository
+
+    @Binds
+    abstract fun linkPreviewRepository(impl: RustLinkPreviewRepository): LinkPreviewRepository
 }

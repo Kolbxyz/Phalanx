@@ -11,6 +11,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationCompat.MessagingStyle
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
 import androidx.core.app.RemoteInput
@@ -130,13 +131,28 @@ internal class Notifier @Inject constructor(@ApplicationContext private val cont
         .build()
 
     /** Redraws a room's notification, with [repliedWith] added as this account's message. */
-    @SuppressLint("MissingPermission") // Checked by allowed().
-    fun refresh(roomId: String, repliedWith: String? = null) {
-        if (!allowed()) return
-        val shown = shownFor(roomId) ?: return
-        val style = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(shown.notification)
-            ?: return
+    fun refresh(roomId: String, repliedWith: String? = null) = redraw(roomId) { style ->
         repliedWith?.let { style.addMessage(it, System.currentTimeMillis(), self) }
+        style
+    }
+
+    /** Swaps the line [message] showed for [text], silently, if its notification is still up. */
+    fun rewrite(message: IncomingMessage, text: String) = redraw(message.roomId) { old ->
+        val shownText = context.notificationText(message)
+        val style = MessagingStyle(old.user)
+            .setConversationTitle(old.conversationTitle)
+            .setGroupConversation(old.isGroupConversation)
+        old.messages.forEach { line ->
+            val isIt = line.timestamp == message.timestampMillis && line.text?.toString() == shownText
+            style.addMessage(if (isIt) MessagingStyle.Message(text, line.timestamp, line.person) else line)
+        }
+        style
+    }
+
+    @SuppressLint("MissingPermission") // Checked by allowed().
+    private fun redraw(roomId: String, change: (MessagingStyle) -> MessagingStyle) {
+        val shown = shownFor(roomId)?.takeIf { allowed() } ?: return
+        val style = MessagingStyle.extractMessagingStyleFromNotification(shown.notification)?.let(change) ?: return
         manager.notify(
             roomId,
             MESSAGE_ID,

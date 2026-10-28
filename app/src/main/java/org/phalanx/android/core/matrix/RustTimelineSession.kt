@@ -33,6 +33,7 @@ import org.matrix.rustcomponents.sdk.TimelineDiff
 import org.matrix.rustcomponents.sdk.TimelineListener
 import org.matrix.rustcomponents.sdk.messageEventContentNew
 import org.matrix.rustcomponents.sdk.use
+import org.phalanx.android.core.format.LinkTrackers
 import org.phalanx.android.core.format.OutgoingMessage
 import org.phalanx.android.core.media.AttachmentPreparer
 import org.phalanx.android.core.prefs.SettingsStore
@@ -89,10 +90,10 @@ internal class RustTimelineSession private constructor(
     override suspend fun sendMedia(media: OutgoingMedia, caption: String?, replyTo: TimelineEntry.Message?) =
         scope.async {
             try {
-                val html = caption?.let {
-                    OutgoingMessage.of(it, emptyList(), settings.current().markdown, emotes.byShortcode()).html
-                }
-                runCatchingSdk { timeline.upload(media, caption, html, replyTo?.eventId).use { it.join() } }
+                val prefs = settings.current()
+                val text = caption?.let { if (prefs.stripLinkTrackers) LinkTrackers.strip(it) else it }
+                val html = text?.let { OutgoingMessage.of(it, emptyList(), prefs.markdown, emotes.byShortcode()).html }
+                runCatchingSdk { timeline.upload(media, text, html, replyTo?.eventId).use { it.join() } }
             } finally {
                 attachments.discard(media)
             }
@@ -106,7 +107,8 @@ internal class RustTimelineSession private constructor(
 
     /** Markdown follows the user's setting; mentions are rendered and listed either way. */
     private suspend fun contentOf(text: String, mentions: List<Member>): RoomMessageEventContentWithoutRelation {
-        val message = OutgoingMessage.of(text, mentions, settings.current().markdown, emotes.byShortcode())
+        val prefs = settings.current()
+        val message = OutgoingMessage.of(text, mentions, prefs.markdown, emotes.byShortcode(), prefs.stripLinkTrackers)
         val formatted = message.html?.let { FormattedBody(MessageFormat.Html, it) }
         val type = when (message.kind) {
             OutgoingMessage.Kind.Text -> MessageType.Text(TextMessageContent(message.body, formatted))

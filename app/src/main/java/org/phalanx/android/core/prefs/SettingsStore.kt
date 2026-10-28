@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import org.phalanx.android.data.model.AppSettings
+import org.phalanx.android.data.model.LinkPreviewSource
 import org.phalanx.android.data.model.LockTimeout
 import org.phalanx.android.data.model.NotificationContent
 import org.phalanx.android.data.model.TextSize
@@ -47,6 +48,10 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
     suspend fun setEnterToSend(enabled: Boolean) = store.edit { it[ENTER_TO_SEND] = enabled }
 
     suspend fun setMarkdown(enabled: Boolean) = store.edit { it[MARKDOWN] = enabled }
+
+    suspend fun setStripLinkTrackers(enabled: Boolean) = store.edit { it[STRIP_LINK_TRACKERS] = enabled }
+
+    suspend fun setLinkPreviews(source: LinkPreviewSource) = store.edit { it[LINK_PREVIEWS] = source.name }
 
     suspend fun setFullQualityImages(enabled: Boolean) = store.edit { it[FULL_QUALITY_IMAGES] = enabled }
 
@@ -97,6 +102,9 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
             messageTextSize = TextSize.entries.firstOrNull { it.name == this[TEXT_SIZE] } ?: defaults.messageTextSize,
             enterToSend = this[ENTER_TO_SEND] ?: defaults.enterToSend,
             markdown = this[MARKDOWN] ?: defaults.markdown,
+            stripLinkTrackers = this[STRIP_LINK_TRACKERS] ?: defaults.stripLinkTrackers,
+            linkPreviews = LinkPreviewSource.entries.firstOrNull { it.name == this[LINK_PREVIEWS] }
+                ?: defaults.linkPreviews,
             fullQualityImages = this[FULL_QUALITY_IMAGES] ?: defaults.fullQualityImages,
             autoLoadMedia = this[AUTO_LOAD_MEDIA] ?: defaults.autoLoadMedia,
             sendTypingNotices = this[SEND_TYPING] ?: defaults.sendTypingNotices,
@@ -128,6 +136,8 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
         val TEXT_SIZE = stringPreferencesKey("message_text_size")
         val ENTER_TO_SEND = booleanPreferencesKey("enter_to_send")
         val MARKDOWN = booleanPreferencesKey("markdown")
+        val STRIP_LINK_TRACKERS = booleanPreferencesKey("strip_link_trackers")
+        val LINK_PREVIEWS = stringPreferencesKey("link_previews")
         val FULL_QUALITY_IMAGES = booleanPreferencesKey("full_quality_images")
         val AUTO_LOAD_MEDIA = booleanPreferencesKey("auto_load_media")
         val SEND_TYPING = booleanPreferencesKey("send_typing_notices")

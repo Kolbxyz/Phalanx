@@ -47,6 +47,7 @@ fun RoomScreen(
     val kitchen: KitchenViewModel = hiltViewModel()
     ProtectedRoomScreen()
     val transcripts: TranscriptViewModel = hiltViewModel()
+    val linkPreviews: LinkPreviewViewModel = hiltViewModel()
     val autoTranslations: AutoTranslateViewModel = hiltViewModel()
     val dictation: DictationViewModel = hiltViewModel()
     val canDictate by dictation.available.collectAsStateWithLifecycle()
@@ -156,6 +157,7 @@ fun RoomScreen(
                 is RoomUiState.Ready -> CompositionLocalProvider(
                     LocalTimelinePrefs provides prefs,
                     LocalTranscripts provides transcripts,
+                    LocalLinkPreviews provides linkPreviews,
                     LocalAutoTranslations provides autoTranslations
                 ) {
                     Box(Modifier.fillMaxSize()) {

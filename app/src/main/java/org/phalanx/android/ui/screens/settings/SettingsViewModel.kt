@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.phalanx.android.core.prefs.SettingsStore
 import org.phalanx.android.data.model.AppSettings
+import org.phalanx.android.data.model.LinkPreviewSource
 import org.phalanx.android.data.model.LockTimeout
 import org.phalanx.android.data.model.TextSize
 import org.phalanx.android.data.model.ThemeMode
@@ -63,6 +64,10 @@ class SettingsViewModel @Inject constructor(
     fun setEnterToSend(enabled: Boolean) = edit { store.setEnterToSend(enabled) }
 
     fun setMarkdown(enabled: Boolean) = edit { store.setMarkdown(enabled) }
+
+    fun setStripLinkTrackers(enabled: Boolean) = edit { store.setStripLinkTrackers(enabled) }
+
+    fun setLinkPreviews(source: LinkPreviewSource) = edit { store.setLinkPreviews(source) }
 
     fun setFullQualityImages(enabled: Boolean) = edit { store.setFullQualityImages(enabled) }
 

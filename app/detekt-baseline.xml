@@ -28,7 +28,6 @@
     <ID>ReturnCount:MediaContent.kt:private fun ratioOf: Float</ID>
     <ID>ReturnCount:MentionCompletion.kt:MentionCompletion$private fun wordAt: Word?</ID>
     <ID>ReturnCount:NotificationFetcher.kt:NotificationFetcher$suspend fun fetch: Result&lt;IncomingMessage?&gt;</ID>
-    <ID>ReturnCount:Notifier.kt:Notifier$@SuppressLint("MissingPermission") // Checked by allowed(). fun refresh</ID>
     <ID>ReturnCount:PushRulesMutedUsersRepository.kt:PushRulesMutedUsersRepository$private suspend fun load</ID>
     <ID>ReturnCount:PushWorker.kt:PushWorker$override suspend fun doWork: Result</ID>
     <ID>ReturnCount:RoomFilter.kt:internal fun RoomSummary.isArchived: Boolean</ID>

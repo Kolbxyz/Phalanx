@@ -17,6 +17,7 @@ class PushWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
     internal interface Dependencies {
         fun fetcher(): NotificationFetcher
         fun notifier(): Notifier
+        fun voice(): VoiceNotification
     }
 
     private val dependencies = EntryPointAccessors.fromApplication(applicationContext, Dependencies::class.java)
@@ -26,7 +27,11 @@ class PushWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
         val eventId = inputData.getString(KEY_EVENT_ID) ?: return Result.failure()
         return dependencies.fetcher().fetch(roomId, eventId).fold(
             onSuccess = { message ->
-                message?.let(dependencies.notifier()::show)
+                message?.let {
+                    dependencies.notifier().show(it)
+                    // After showing, so the message never waits on the model to be heard of.
+                    dependencies.voice().writeOut(it)
+                }
                 Result.success()
             },
             // A message too old to matter by the last try is dropped, not shown late.
