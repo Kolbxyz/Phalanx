@@ -40,6 +40,7 @@ internal fun SourcesDrawer(
     onSelect: (RoomSource) -> Unit,
     reminders: Int,
     onOpenReminders: () -> Unit,
+    onOpenBookmarks: () -> Unit,
     onOpenPeople: () -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -71,6 +72,13 @@ internal fun SourcesDrawer(
                         onClick = onOpenReminders,
                         icon = { Icon(Symbols.AlarmOn, contentDescription = null, Modifier.size(24.dp)) },
                         badge = { if (reminders > 0) Text(reminders.toString()) },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    )
+                    NavigationDrawerItem(
+                        label = { Text(stringResource(R.string.bookmarks_title)) },
+                        selected = false,
+                        onClick = onOpenBookmarks,
+                        icon = { Icon(Symbols.Bookmark, contentDescription = null, Modifier.size(24.dp)) },
                         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                     )
                     NavigationDrawerItem(

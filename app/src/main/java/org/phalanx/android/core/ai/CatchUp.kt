@@ -55,5 +55,5 @@ root ::= (
 optional ::= "null" | text
 text ::= "\"" char{1,160} "\""
 char ::= [^"\\\x00-\x1F] | "\\" ["\\/nt]
-ws ::= [ \n]{0,2}
+ws ::= [ \t\n]{0,12}
 """.trimIndent()

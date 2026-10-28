@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.stateIn
 import org.matrix.rustcomponents.sdk.RoomListEntriesDynamicFilterKind
@@ -56,6 +57,7 @@ internal class RustRoomListRepository @Inject constructor(
 private fun SyncService.roomSummaries(): Flow<List<RoomSummary>> =
     roomUpdates()
         .runningFold(emptyList<RoomSummary>()) { current, updates -> current.applying(updates) }
+        .map { it.resolvingOwnPuppets() }
         // The seed is not a real list yet; the first emission is the SDK's own.
         .drop(1)
 

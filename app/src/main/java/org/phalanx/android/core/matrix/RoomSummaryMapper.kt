@@ -1,7 +1,9 @@
 package org.phalanx.android.core.matrix
 
+import org.matrix.rustcomponents.sdk.ClientException
 import org.matrix.rustcomponents.sdk.LatestEventValue
 import org.matrix.rustcomponents.sdk.Room
+import org.matrix.rustcomponents.sdk.RoomInfo
 import org.matrix.rustcomponents.sdk.RoomNotificationMode
 import org.matrix.rustcomponents.sdk.TimelineItemContent
 import org.matrix.rustcomponents.sdk.use
@@ -27,7 +29,9 @@ internal suspend fun Room.toSummary(): RoomSummary = use { room ->
         }
     }
     // A DM usually has no avatar of its own; the other person's stands in, as in other clients.
-    val dmHero = info.otherPerson()
+    val heroes = info.heroes.map { RoomPerson(it.userId, it.avatarUrl) }.ifEmpty { room.smallRoomMembers(info) }
+    val people = info.people(heroes)
+    val dmHero = people.singleOrNull()
     val avatarUrl = info.avatarUrl ?: dmHero?.avatarUrl
     RoomSummary(
         id = info.id,
@@ -45,15 +49,30 @@ internal suspend fun Room.toSummary(): RoomSummary = use { room ->
         isFavourite = info.isFavourite,
         isMarkedUnread = info.isMarkedUnread,
         dmUserId = dmHero?.userId,
+        dmCandidates = people.map { it.userId },
         topic = info.topic?.takeIf { it.isNotBlank() },
         memberCount = info.joinedMembersCount.toLong(),
         isEncrypted = info.encryptionState == EncryptionState.ENCRYPTED,
         isLowPriority = info.isLowPriority,
         pinnedEventIds = info.pinnedEventIds.toSet(),
-        bridge = info.bridge(),
+        bridge = info.bridge(heroes),
         isMuted = info.cachedUserDefinedNotificationMode == RoomNotificationMode.MUTE
     )
 }
+
+private suspend fun Room.smallRoomMembers(info: RoomInfo): List<RoomPerson> {
+    if (info.joinedMembersCount.toLong() > SMALL_ROOM_MEMBERS) return emptyList()
+    return try {
+        membersNoSync().use { it.nextChunk(SMALL_ROOM_MEMBERS.toUInt()).orEmpty() }
+            .map { RoomPerson(it.userId, it.avatarUrl) }
+    } catch (_: ClientException) {
+        // Members not stored yet; the next update of the room asks again.
+        emptyList()
+    }
+}
+
+// The user, their own bridged account, the person brought over and the bridge's bot.
+private const val SMALL_ROOM_MEMBERS = 4L
 
 private class LatestMessage(val body: MessageBody?, val isOwn: Boolean, val sender: String?, val timestampMillis: Long?)
 

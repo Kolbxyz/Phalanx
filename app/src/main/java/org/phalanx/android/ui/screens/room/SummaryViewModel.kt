@@ -45,22 +45,10 @@ sealed interface SummaryState {
         val count: Int,
         val points: List<SummaryPoint>,
         val scope: SummaryScope,
-        val savedAtMillis: Long? = null,
-        val replies: Replies = Replies.Offered
+        val savedAtMillis: Long? = null
     ) : SummaryState
 
     data class Failed(@StringRes val message: Int) : SummaryState
-}
-
-/** Replies the model could suggest once the summary is done. */
-sealed interface Replies {
-    data object Offered : Replies
-
-    data object Writing : Replies
-
-    data class Ready(val replies: List<String>) : Replies
-
-    data class Failed(@StringRes val message: Int) : Replies
 }
 
 /**
@@ -132,27 +120,6 @@ class SummaryViewModel @Inject constructor(
             SummaryState.Done(summary.messageCount, summary.points, checkpoint.scope, checkpoint.madeAtMillis)
     }
 
-    /**
-     * Asks the model for three replies, shown under the summary. They answer the room's latest
-     * messages, whichever summary is shown, so none goes back to something already moved past.
-     */
-    fun suggestReplies() {
-        val done = mutableState.value as? SummaryState.Done ?: return
-        mutableState.value = done.copy(replies = Replies.Writing)
-        job = viewModelScope.launch {
-            val recent = timelines.open(roomId).getOrNull()?.let { linesOf(messagesOf(it).takeLast(REPLY_MESSAGES)) }
-            val replies = if (recent.isNullOrEmpty()) {
-                Replies.Failed(R.string.summary_failed)
-            } else {
-                summarizer.suggestReplies(recent, context.getString(R.string.summary_you)).fold(
-                    onSuccess = { if (it.isEmpty()) Replies.Failed(R.string.summary_failed) else Replies.Ready(it) },
-                    onFailure = { Replies.Failed(aiFailureMessage(it)) }
-                )
-            }
-            mutableState.value = done.copy(replies = replies)
-        }
-    }
-
     private suspend fun summarize(messages: List<TimelineEntry.Message>, scope: SummaryScope) {
         val lines = linesOf(messages)
         if (lines.isEmpty()) {
@@ -204,8 +171,5 @@ class SummaryViewModel @Inject constructor(
         const val MAX_MESSAGES = 500
         const val DEFAULT_MESSAGES = 100
         const val MAX_PAGES = 4
-
-        // Enough to know what the conversation is about, few enough that its end stays in focus.
-        const val REPLY_MESSAGES = 30
     }
 }

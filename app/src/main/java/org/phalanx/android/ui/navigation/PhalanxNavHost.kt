@@ -22,6 +22,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import org.phalanx.android.ui.screens.account.AccountScreen
+import org.phalanx.android.ui.screens.bookmarks.BookmarksScreen
 import org.phalanx.android.ui.screens.bridges.BridgesScreen
 import org.phalanx.android.ui.screens.catchup.CatchUpScreen
 import org.phalanx.android.ui.screens.deleted.DeletedMessagesScreen
@@ -82,6 +83,7 @@ fun PhalanxNavHost(openRoom: RoomRoute?, onRoomOpened: () -> Unit) {
                         onOpenAccount = { navController.from(entry) { navigate(SettingsRoute) } },
                         onOpenCatchUp = { navController.from(entry) { navigate(CatchUpRoute) } },
                         onOpenReminders = { navController.from(entry) { navigate(RemindersRoute) } },
+                        onOpenBookmarks = { navController.from(entry) { navigate(BookmarksRoute) } },
                         onOpenPeople = { navController.from(entry) { navigate(PeopleRoute) } }
                     )
                 }
@@ -93,6 +95,12 @@ fun PhalanxNavHost(openRoom: RoomRoute?, onRoomOpened: () -> Unit) {
                 }
                 screen<RemindersRoute> { entry ->
                     RemindersScreen(
+                        onBack = { navController.from(entry) { popBackStack() } },
+                        onOpenMessage = { roomId, eventId -> navController.from(entry) { jumpTo(roomId, eventId) } }
+                    )
+                }
+                screen<BookmarksRoute> { entry ->
+                    BookmarksScreen(
                         onBack = { navController.from(entry) { popBackStack() } },
                         onOpenMessage = { roomId, eventId -> navController.from(entry) { jumpTo(roomId, eventId) } }
                     )

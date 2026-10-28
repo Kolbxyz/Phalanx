@@ -155,6 +155,10 @@ internal object Symbols {
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_alarm_on)
     val Add: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_add)
+    val Bookmark: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_bookmark)
+    val BookmarkFilled: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_bookmark_filled)
     val KeyboardReturn: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_keyboard_return)
     val KeyboardArrowRight: ImageVector

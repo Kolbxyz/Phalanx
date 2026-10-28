@@ -46,6 +46,7 @@ fun RoomListScreen(
     onOpenAccount: () -> Unit,
     onOpenCatchUp: () -> Unit,
     onOpenReminders: () -> Unit,
+    onOpenBookmarks: () -> Unit,
     onOpenPeople: () -> Unit,
     viewModel: RoomListViewModel = hiltViewModel()
 ) {
@@ -83,6 +84,10 @@ fun RoomListScreen(
         onOpenReminders = {
             scope.launch { drawer.close() }
             onOpenReminders()
+        },
+        onOpenBookmarks = {
+            scope.launch { drawer.close() }
+            onOpenBookmarks()
         },
         onOpenPeople = {
             scope.launch { drawer.close() }

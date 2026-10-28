@@ -45,6 +45,9 @@ data object CatchUpRoute
 data object RemindersRoute
 
 @Serializable
+data object BookmarksRoute
+
+@Serializable
 data object PeopleRoute
 
 /** One page of settings; [category] is a [org.phalanx.android.ui.screens.settings.SettingsCategory] name. */

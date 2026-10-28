@@ -1,7 +1,15 @@
 package org.phalanx.android.core.ai.translation
 
 /** One direction of translation, between two language codes such as "fr" and "en". */
-data class LanguagePair(val from: String, val to: String)
+data class LanguagePair(val from: String, val to: String) {
+    /** As stored in the settings, such as "en-fr". */
+    val key: String get() = "$from-$to"
+
+    companion object {
+        fun ofKey(key: String): LanguagePair? =
+            key.split('-').takeIf { it.size == 2 && it.all(String::isNotBlank) }?.let { LanguagePair(it[0], it[1]) }
+    }
+}
 
 /** What a file is to its language pair. A pair has one vocabulary for both sides, or one each. */
 internal enum class PairFileRole { Model, Shortlist, Vocabulary, SourceVocabulary, TargetVocabulary }

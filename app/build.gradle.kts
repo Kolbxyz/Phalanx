@@ -49,7 +49,14 @@ android {
 
         // On-device summaries (llama.cpp) are 64-bit only: a 32-bit phone is too slow and too short
         // of memory for a 3B model, and the app then offers no summaries (core/ai/LlamaNative.kt).
-        externalNativeBuild { cmake { abiFilters += "arm64-v8a" } }
+        // Optimised in every variant: Gradle's debug variant otherwise compiles ggml with -O0, which
+        // runs the models tens of times slower and makes a summary or transcript take minutes.
+        externalNativeBuild {
+            cmake {
+                abiFilters += "arm64-v8a"
+                arguments += "-DCMAKE_BUILD_TYPE=Release"
+            }
+        }
     }
 
     externalNativeBuild {

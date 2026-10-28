@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -46,12 +45,10 @@ internal fun AudioTranscript(key: String, body: MessageBody.Audio) {
         }
         is TranscriptState.Writing -> Muted(state.text.ifEmpty { stringResource(R.string.transcript_writing) }, padding)
         is TranscriptState.Done -> Column(padding, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            SelectionContainer {
-                Text(
-                    state.transcript.text.ifEmpty { stringResource(R.string.transcript_empty) },
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
+            Text(
+                state.transcript.text.ifEmpty { stringResource(R.string.transcript_empty) },
+                style = MaterialTheme.typography.bodyMedium
+            )
             if (state.transcript.partial) Muted(stringResource(R.string.transcript_partial), Modifier)
         }
         is TranscriptState.Failed -> TextButton(

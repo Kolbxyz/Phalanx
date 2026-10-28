@@ -30,7 +30,7 @@ private const val EMOTE_ID = "emote:"
 // Emotes are drawn a little larger than the text, as Discord and Element do, and fetched at a
 // size that stays sharp at the largest text setting.
 private const val EMOTE_EM = 1.4f
-private const val EMOTE_PX = 96
+internal const val EMOTE_PX = 96
 
 /**
  * This text with every marked custom emote swapped for an inline image slot. The alt text

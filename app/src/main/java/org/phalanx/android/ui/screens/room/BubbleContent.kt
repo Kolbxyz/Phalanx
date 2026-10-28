@@ -91,7 +91,22 @@ private fun Content(
         is MessageBody.Text -> if (isEmojiOnly(body.text) && message.replyTo == null) {
             BigEmoji(body.text)
         } else {
-            MessageText(body, message.senderName, message.isEdited, actions.onOpenProfile, onLongPress, textPadding)
+            TranslatableText(
+                key = message.eventId ?: message.id,
+                body = body,
+                original = {
+                    MessageText(
+                        body,
+                        message.senderName,
+                        message.isEdited,
+                        actions.onOpenProfile,
+                        onLongPress,
+                        textPadding
+                    )
+                },
+                onLongPress = onLongPress,
+                modifier = textPadding
+            )
         }
         is MessageBody.Image -> {
             ImageContent(

@@ -226,7 +226,7 @@ private fun UnreadBadge(count: Long, mention: Boolean, muted: Boolean) {
 private const val MAX_BADGE = 99L
 
 /** Today shows the time; anything older shows the date. */
-private fun formatActivity(millis: Long): String {
+internal fun formatActivity(millis: Long): String {
     val zone = ZoneId.systemDefault()
     val moment = Instant.ofEpochMilli(millis).atZone(zone)
     val formatter = if (moment.toLocalDate() == LocalDate.now(zone)) {

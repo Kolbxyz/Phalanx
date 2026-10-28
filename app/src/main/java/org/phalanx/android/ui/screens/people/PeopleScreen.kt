@@ -1,16 +1,19 @@
 package org.phalanx.android.ui.screens.people
 
-import androidx.compose.foundation.clickable
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -23,10 +26,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -38,13 +41,7 @@ import org.phalanx.android.data.model.LinkSuggestion
 import org.phalanx.android.data.model.Person
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.ui.components.BackButton
-import org.phalanx.android.ui.components.SegmentGap
-import org.phalanx.android.ui.components.SegmentedRow
-import org.phalanx.android.ui.components.segmentedShape
-import org.phalanx.android.ui.screens.roomlist.RoomSource
-import org.phalanx.android.ui.screens.roomlist.SourceIcon
 import org.phalanx.android.ui.screens.roomlist.label
-import org.phalanx.android.ui.theme.Symbols
 
 /**
  * People whose chats on several networks the user linked, each chat opening its room, and the
@@ -82,14 +79,14 @@ fun PeopleScreen(onBack: () -> Unit, onOpenRoom: (String) -> Unit, viewModel: Pe
                 top = padding.calculateTopPadding(),
                 bottom = padding.calculateBottomPadding() + 16.dp
             ),
-            verticalArrangement = Arrangement.spacedBy(SegmentGap)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             val current = state ?: return@LazyColumn
             if (current.suggestions.isEmpty() && current.people.isEmpty()) {
                 item(key = "empty") { Muted(stringResource(R.string.people_empty)) }
             }
             suggestions(current.suggestions, viewModel::link, viewModel::dismiss)
-            current.people.forEach { personSection(it, onOpenRoom, viewModel::unlink) }
+            people(current.people, onOpenRoom, viewModel::unlink)
         }
     }
 }
@@ -101,45 +98,51 @@ private fun LazyListScope.suggestions(
 ) {
     if (suggestions.isEmpty()) return
     item(key = "suggested") { Heading(stringResource(R.string.people_suggested)) }
-    itemsIndexed(suggestions, key = { _, pair -> "${pair.first.id} ${pair.second.id}" }) { index, suggestion ->
-        SegmentedRow(
-            headline = "${chatLabel(suggestion.first)} · ${chatLabel(suggestion.second)}",
-            supporting = stringResource(
-                if (suggestion.reason == LinkReason.SamePhone) R.string.people_same_phone else R.string.people_same_name
-            ),
-            shape = segmentedShape(index, suggestions.size),
-            leading = { Icon(Symbols.Link, contentDescription = null) },
-            trailing = {
-                Row {
-                    TextButton(onClick = { onDismiss(suggestion) }) { Text(stringResource(R.string.people_not_same)) }
-                    TextButton(onClick = { onLink(suggestion) }) { Text(stringResource(R.string.people_link)) }
+    items(suggestions, key = { pair -> "${pair.first.id} ${pair.second.id}" }) { suggestion ->
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+            shape = MaterialTheme.shapes.extraLarge,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    OverlappingAvatars(suggestion.first, suggestion.second)
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            "${chatLabel(suggestion.first)} · ${chatLabel(suggestion.second)}",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            stringResource(reasonText(suggestion.reason)),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
-            }
-        )
-    }
-}
-
-private fun LazyListScope.personSection(person: Person, onOpenRoom: (String) -> Unit, onUnlink: (Person) -> Unit) {
-    item(key = "person ${person.chats.first().id}") {
-        Row {
-            Heading(person.name, Modifier.weight(1f))
-            IconButton(onClick = { onUnlink(person) }) {
-                Icon(Symbols.Close, contentDescription = stringResource(R.string.people_unlink))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextButton(onClick = { onDismiss(suggestion) }) { Text(stringResource(R.string.people_not_same)) }
+                    Button(onClick = { onLink(suggestion) }) { Text(stringResource(R.string.people_link)) }
+                }
             }
         }
     }
-    itemsIndexed(person.chats, key = { _, chat -> chat.id }) { chatIndex, chat ->
-        SegmentedRow(
-            headline = stringResource(sourceOf(chat).label),
-            supporting = chat.name,
-            shape = segmentedShape(chatIndex, person.chats.size),
-            leading = { SourceIcon(sourceOf(chat)) },
-            interaction = Modifier.clickable(role = Role.Button) { onOpenRoom(chat.id) }
-        )
+}
+
+private fun LazyListScope.people(people: List<Person>, onOpenRoom: (String) -> Unit, onUnlink: (Person) -> Unit) {
+    if (people.isEmpty()) return
+    items(people, key = { person -> "person ${person.chats.first().id}" }) { person ->
+        PersonCard(person, onOpenRoom, onUnlink)
     }
 }
 
-private fun sourceOf(chat: RoomSummary): RoomSource = chat.bridge?.let(RoomSource::Network) ?: RoomSource.Matrix
+@StringRes
+private fun reasonText(reason: LinkReason) =
+    if (reason == LinkReason.SamePhone) R.string.people_same_phone else R.string.people_same_name
 
 @Composable
 private fun chatLabel(chat: RoomSummary): String = "${chat.name} (${stringResource(sourceOf(chat).label)})"

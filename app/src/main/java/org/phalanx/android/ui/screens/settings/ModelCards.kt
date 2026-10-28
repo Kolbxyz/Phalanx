@@ -54,7 +54,8 @@ internal fun ModelCards(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         models.forEach { model ->
             ModelCard(
-                title = model.name,
+                title = stringResource(model.role),
+                detail = model.name,
                 bytes = model.maxBytes,
                 icon = icon,
                 installed = installed == model.name,
@@ -75,10 +76,14 @@ internal class ModelActions(
     val onRemove: () -> Unit
 )
 
-/** One downloadable model, or language pair: filled once installed, with its size on the button. */
+/**
+ * One downloadable model, or language pair: what it is for first, the file below, filled and
+ * checked once installed, with its size on the download button.
+ */
 @Composable
 internal fun ModelCard(
     title: String,
+    detail: String,
     bytes: Long,
     icon: ImageVector,
     installed: Boolean,
@@ -96,15 +101,20 @@ internal fun ModelCard(
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(if (installed) Symbols.Check else icon, contentDescription = null, modifier = Modifier.size(32.dp))
-                Column(Modifier.weight(1f)) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(title, style = MaterialTheme.typography.titleMedium)
                     Text(
-                        stringResource(
-                            if (installed) R.string.settings_ai_model_installed else R.string.settings_ai_model_size,
-                            size
-                        ),
-                        style = MaterialTheme.typography.bodyMedium
+                        detail,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    if (installed) {
+                        Text(
+                            stringResource(R.string.settings_ai_model_installed, size),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = colors.primary
+                        )
+                    }
                 }
             }
             if (installed) {

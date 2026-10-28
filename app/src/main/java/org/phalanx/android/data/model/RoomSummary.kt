@@ -24,6 +24,8 @@ data class RoomSummary(
     val isMarkedUnread: Boolean = false,
     /** The other person's Matrix ID in a one-to-one chat, so they can be blocked from it. */
     val dmUserId: String? = null,
+    /** Who a one-to-one chat could be with, when the user's own bridged account is in it too. */
+    val dmCandidates: List<String> = emptyList(),
     val topic: String? = null,
     val memberCount: Long = 0,
     val isEncrypted: Boolean = false,

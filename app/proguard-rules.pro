@@ -20,6 +20,8 @@
 -keepclasseswithmembers class org.phalanx.android.** { kotlinx.serialization.KSerializer serializer(...); }
 -keep,includedescriptorclasses class org.phalanx.android.**$$serializer { *; }
 
-# Called by name from the native library (src/main/cpp/phalanx_llm.cpp).
+# Called by name from the native libraries (src/main/cpp/llm_jni.cpp, phalanx_stt.cpp): without
+# these, R8 renames the callbacks and every reply or transcript ends in NoSuchMethodError.
 -keep class org.phalanx.android.core.ai.LlamaNative { native <methods>; }
 -keep interface org.phalanx.android.core.ai.TokenSink { *; }
+-keep interface org.phalanx.android.core.ai.speech.SegmentSink { *; }

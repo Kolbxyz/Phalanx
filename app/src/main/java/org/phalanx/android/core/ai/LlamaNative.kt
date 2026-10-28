@@ -25,7 +25,7 @@ internal object LlamaNative {
     /** [threads] write the reply, [promptThreads] read the prompt. */
     external fun load(path: String, threads: Int, promptThreads: Int): Long
 
-    /** Stops the [complete] or [describe] running on [handle], from any thread. */
+    /** Stops the [complete] running on [handle], from any thread. */
     external fun cancel(handle: Long)
 
     external fun free(handle: Long)
@@ -36,25 +36,6 @@ internal object LlamaNative {
      */
     external fun complete(
         handle: Long,
-        system: ByteArray,
-        user: ByteArray,
-        contextSize: Int,
-        maxNewTokens: Int,
-        grammar: ByteArray?,
-        sink: TokenSink
-    ): Boolean
-
-    /**
-     * Writes about an image, [width] by [height] RGB bytes in [rgb], answering [user] and held to
-     * [grammar] as in [complete]; [projector] is the vision model file, loaded with the first image.
-     * True if the reply ran to its end.
-     */
-    external fun describe(
-        handle: Long,
-        projector: String,
-        rgb: ByteArray,
-        width: Int,
-        height: Int,
         system: ByteArray,
         user: ByteArray,
         contextSize: Int,
