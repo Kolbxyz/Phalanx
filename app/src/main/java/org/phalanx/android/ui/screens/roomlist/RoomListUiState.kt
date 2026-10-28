@@ -17,6 +17,8 @@ sealed interface RoomListUiState {
         val filter: RoomFilter = RoomFilter.All,
         val archivedCount: Int = 0,
         val source: RoomSource = RoomSource.All,
-        val sources: List<SourceCount> = emptyList()
+        val sources: List<SourceCount> = emptyList(),
+        /** For a row that is a linked person, all of their chats' room IDs, by the row's room ID. */
+        val roomsOf: Map<String, List<String>> = emptyMap()
     ) : RoomListUiState
 }

@@ -11,6 +11,7 @@ import java.io.IOException
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.launch
+import org.phalanx.android.core.contacts.Conversations
 import org.phalanx.android.data.model.Reminder
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.ReminderRepository
@@ -22,6 +23,7 @@ import org.phalanx.android.ui.navigation.RoomRoute
 class ReminderViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val reminders: ReminderRepository,
+    private val conversations: Conversations,
     private val roomList: RoomListRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -30,17 +32,18 @@ class ReminderViewModel @Inject constructor(
     /** Reminds the user of [message] at [atMillis]; [onDone] says whether it could be saved. */
     fun remind(message: TimelineEntry.Message, atMillis: Long, onDone: (Boolean) -> Unit) {
         val eventId = message.eventId ?: return onDone(false)
-        val roomName = roomList.rooms.value?.firstOrNull { it.id == roomId }?.name ?: message.senderName
-        val reminder = Reminder(
-            id = UUID.randomUUID().toString(),
-            roomId = roomId,
-            eventId = eventId,
-            roomName = roomName,
-            senderName = message.senderName,
-            preview = summaryOf(message.body, context::getString),
-            remindAtMillis = atMillis
-        )
         viewModelScope.launch {
+            // In a person's thread, the chat the message came from: that is where the reminder opens.
+            val (origin, _) = conversations.originOf(roomId, message.id)
+            val reminder = Reminder(
+                id = UUID.randomUUID().toString(),
+                roomId = origin,
+                eventId = eventId,
+                roomName = roomList.rooms.value?.firstOrNull { it.id == origin }?.name ?: message.senderName,
+                senderName = message.senderName,
+                preview = summaryOf(message.body, context::getString),
+                remindAtMillis = atMillis
+            )
             val saved = try {
                 reminders.remind(reminder)
                 true

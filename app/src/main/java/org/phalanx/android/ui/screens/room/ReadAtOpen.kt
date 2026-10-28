@@ -4,21 +4,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
-import org.phalanx.android.data.repository.TimelineRepository
 import org.phalanx.android.data.repository.TimelineSession
 
 /**
- * Where the user had stopped reading [roomId] when the room was opened. Built as the screen opens,
- * so the receipts and [unreadCount] are taken before reading the room moves them.
+ * Where the user had stopped reading a room, or a person's thread, when it was opened. Built as
+ * the screen opens, so [readUpTo]'s receipts and [unreadCount] are taken before reading moves them.
  */
 internal class ReadAtOpen(
     scope: CoroutineScope,
-    timelines: TimelineRepository,
-    roomId: String,
+    readUpTo: suspend () -> Set<String>,
     private val unreadCount: Long
 ) {
     // An unknown receipt leaves the unread count to place the first unread message.
-    private val receipts = scope.async { timelines.readUpTo(roomId).getOrNull().orEmpty() }
+    private val receipts = scope.async { readUpTo() }
 
     // Found once: later messages arrive after it, and reading the room must not move it.
     private var firstUnreadId: String? = null

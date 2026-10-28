@@ -15,10 +15,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
+import org.phalanx.android.core.contacts.Conversations
+import org.phalanx.android.core.contacts.PersonTimelineSession
 import org.phalanx.android.core.media.AttachmentPreparer
 import org.phalanx.android.core.media.VoiceRecorder
 import org.phalanx.android.core.prefs.SettingsStore
@@ -45,6 +49,7 @@ import org.phalanx.android.ui.share.ShareInbox
 @HiltViewModel
 class RoomViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
+    private val conversations: Conversations,
     private val timelines: TimelineRepository,
     private val media: MediaRepository,
     private val preparer: AttachmentPreparer,
@@ -89,9 +94,17 @@ class RoomViewModel @Inject constructor(
     private val mutableFocus = MutableStateFlow<String?>(null)
     val focus: StateFlow<String?> = mutableFocus.asStateFlow()
 
-    /** This room's messages waiting on the phone to be sent. */
-    val scheduled: StateFlow<List<ScheduledMessage>> = schedules.scheduled(roomId)
+    /** The conversation's messages waiting on the phone to be sent, to any of a person's chats. */
+    val scheduled: StateFlow<List<ScheduledMessage>> = flow { emit(conversations.roomsOf(roomId)) }
+        .flatMapLatest { scheduledIn(schedules, it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    private val shown = ShownRooms(push, roomId)
+
+    private val mutableThread = MutableStateFlow<PersonThread?>(null)
+
+    /** Null unless the room is one of a person's linked chats, shown as one thread. */
+    val thread: StateFlow<PersonThread?> = mutableThread.asStateFlow()
 
     internal val composer = ComposerController(viewModelScope, preparer, recorder, schedules, { notify(it) }) {
         settings.value?.sendTypingNotices == true
@@ -99,12 +112,16 @@ class RoomViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            timelines.open(roomId).fold(
+            conversations.open(roomId).fold(
                 onSuccess = { opened ->
                     session = opened
                     composer.attach(opened)
                     shares.take(roomId)?.let { composer.receive(it.text, it.uris) }
                     observe(opened)
+                    if (opened is PersonTimelineSession) {
+                        shown.update(opened.roomIds)
+                        viewModelScope.launch { personThreadOf(opened, rooms).collect { mutableThread.value = it } }
+                    }
                     // Only on the first opening: back here after process death, the user has moved on.
                     if (route.focusEventId != null && savedStateHandle.get<Boolean>(FOCUSED_KEY) != true) {
                         savedStateHandle[FOCUSED_KEY] = true
@@ -120,9 +137,18 @@ class RoomViewModel @Inject constructor(
     }
 
     /** While the conversation is on screen, its messages need no notification. */
-    fun onShown() = push.startViewing(roomId)
+    fun onShown() = shown.show()
 
-    fun onHidden() = push.stopViewing(roomId)
+    fun onHidden() = shown.hide()
+
+    /** Sends new messages of a person's thread through [roomId], one of their chats, from now on. */
+    fun chooseNetwork(roomId: String) = (session as? PersonTimelineSession)?.choose(roomId)
+
+    /** The room and row ID, in that room's own timeline, of the row [entryId]; see [Conversations.originOf]. */
+    fun originOf(entryId: String): Pair<String, String> =
+        (session as? PersonTimelineSession)?.origin(entryId) ?: (roomId to entryId)
+
+    private val target: String get() = (session as? PersonTimelineSession)?.target?.value ?: roomId
 
     /** Where the camera app should write a new photo or video before it is attached. */
     fun captureUri(video: Boolean): Uri = preparer.captureUri(video)
@@ -139,7 +165,7 @@ class RoomViewModel @Inject constructor(
     fun forward(message: TimelineEntry.Message, toRoomId: String) {
         val eventId = message.eventId ?: return
         viewModelScope.launch {
-            timelines.forward(roomId, eventId, toRoomId).fold(
+            timelines.forward(originOf(message.id).first, eventId, toRoomId).fold(
                 onSuccess = { notify(R.string.timeline_forwarded, NoticeKind.Done) },
                 onFailure = { notify(R.string.timeline_action_failed) }
             )
@@ -158,7 +184,7 @@ class RoomViewModel @Inject constructor(
         }
     }
 
-    fun scheduleDraft(atMillis: Long) = composer.schedule(roomId, atMillis)
+    fun scheduleDraft(atMillis: Long) = composer.schedule(target, atMillis)
 
     fun canScheduleExactly(): Boolean = schedules.canScheduleExactly()
 

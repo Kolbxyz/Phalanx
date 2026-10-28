@@ -24,10 +24,10 @@ import org.phalanx.android.core.ai.SummaryLine
 import org.phalanx.android.core.ai.SummaryPoint
 import org.phalanx.android.core.ai.SummaryScope
 import org.phalanx.android.core.ai.speech.Transcriber
+import org.phalanx.android.core.contacts.Conversations
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.RoomListRepository
-import org.phalanx.android.data.repository.TimelineRepository
 import org.phalanx.android.data.repository.TimelineSession
 import org.phalanx.android.ui.navigation.RoomRoute
 
@@ -61,7 +61,7 @@ sealed interface SummaryState {
 @HiltViewModel
 class SummaryViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val timelines: TimelineRepository,
+    private val conversations: Conversations,
     roomList: RoomListRepository,
     private val summarizer: LocalSummarizer,
     private val checkpoints: SummaryCheckpoints,
@@ -70,7 +70,7 @@ class SummaryViewModel @Inject constructor(
 ) : ViewModel() {
     private val roomId = savedStateHandle.toRoute<RoomRoute>().roomId
     private val readAtOpen = ReadAtOpen(
-        viewModelScope, timelines, roomId,
+        viewModelScope, { conversations.readUpTo(roomId) },
         unreadCount = roomList.rooms.value?.firstOrNull { it.id == roomId }?.unreadCount ?: 0L
     )
 
@@ -86,7 +86,7 @@ class SummaryViewModel @Inject constructor(
         job?.cancel()
         mutableState.value = SummaryState.Running("")
         job = viewModelScope.launch {
-            val session = timelines.open(roomId).getOrNull()
+            val session = conversations.open(roomId).getOrNull()
             if (session == null) {
                 mutableState.value = SummaryState.Failed(R.string.summary_failed)
                 return@launch

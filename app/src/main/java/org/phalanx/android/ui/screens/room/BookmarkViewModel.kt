@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.phalanx.android.core.contacts.Conversations
 import org.phalanx.android.data.model.Bookmark
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.BookmarkRepository
@@ -24,6 +25,7 @@ import org.phalanx.android.ui.navigation.RoomRoute
 class BookmarkViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val bookmarks: BookmarkRepository,
+    private val conversations: Conversations,
     private val roomList: RoomListRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -41,11 +43,13 @@ class BookmarkViewModel @Inject constructor(
             val result = if (eventId in saved.value) {
                 bookmarks.remove(eventId)
             } else {
+                // In a person's thread, the chat the message came from: that is where the bookmark opens.
+                val (origin, _) = conversations.originOf(roomId, message.id)
                 bookmarks.add(
                     Bookmark(
-                        roomId = roomId,
+                        roomId = origin,
                         eventId = eventId,
-                        roomName = roomList.rooms.value?.firstOrNull { it.id == roomId }?.name ?: message.senderName,
+                        roomName = roomList.rooms.value?.firstOrNull { it.id == origin }?.name ?: message.senderName,
                         senderName = message.senderName,
                         preview = summaryOf(message.body, context::getString),
                         savedAtMillis = System.currentTimeMillis()

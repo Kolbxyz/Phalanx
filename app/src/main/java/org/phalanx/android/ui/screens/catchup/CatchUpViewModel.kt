@@ -89,7 +89,9 @@ class CatchUpViewModel @Inject constructor(
             set(room.id, CardState.Failed(R.string.catch_up_failed))
             return
         }
-        val unread = ReadAtOpen(viewModelScope, timelines, room.id, room.unreadCount).unread(session, MAX_MESSAGES)
+        val readUpTo = suspend { timelines.readUpTo(room.id).getOrNull().orEmpty() }
+        val readAtOpen = ReadAtOpen(viewModelScope, readUpTo, room.unreadCount)
+        val unread = readAtOpen.unread(session, MAX_MESSAGES)
         val you = context.getString(R.string.summary_you)
         val lines = unread.map {
             SummaryLine(if (it.isOwn) you else it.senderName, summaryOf(it.body, context::getString), it.eventId)

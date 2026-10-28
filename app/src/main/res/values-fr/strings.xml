@@ -128,6 +128,7 @@
     <string name="delete_body">Il est retiré pour tout le monde dans la discussion. C’est définitif.</string>
     <string name="cancel">Annuler</string>
     <string name="composer_replying_to">Réponse à %1$s</string>
+    <string name="composer_network">Sur %1$s</string>
     <string name="composer_reply_cancel">Annuler la réponse</string>
     <string name="media_viewer_close">Fermer</string>
     <string name="composer_attach">Joindre</string>

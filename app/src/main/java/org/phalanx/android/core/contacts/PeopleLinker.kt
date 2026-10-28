@@ -42,6 +42,32 @@ internal fun peopleOf(rooms: List<RoomSummary>, links: PeopleLinks): List<Person
         dms.filter { it.id !in inGroups }.map { Person(it.name, listOf(it)) }
 }
 
+/** [rooms] with each linked person on one row, and every row's rooms by the row's room ID. */
+internal data class FoldedRooms(val rows: List<RoomSummary>, val roomsOf: Map<String, List<String>>)
+
+/**
+ * [rooms], most recent first, with each linked person's chats folded into the most recent of them:
+ * that row opens their thread, and counts every chat's unread messages. The order is kept.
+ */
+internal fun foldPeople(rooms: List<RoomSummary>, links: PeopleLinks): FoldedRooms {
+    val people = peopleOf(rooms, links).filter { it.chats.size > 1 }
+    if (people.isEmpty()) return FoldedRooms(rooms, emptyMap())
+    val personOf = people.flatMap { person -> person.chats.map { it.id to person } }.toMap()
+    val roomsOf = HashMap<String, List<String>>()
+    val rows = rooms.mapNotNull { room ->
+        val person = personOf[room.id] ?: return@mapNotNull room
+        // The first of a person's chats met is their most recent; the others fold into it.
+        if (person.chats.any { it.id in roomsOf }) return@mapNotNull null
+        roomsOf[room.id] = person.chats.map { it.id }
+        room.copy(
+            unreadCount = person.chats.sumOf { it.unreadCount },
+            highlightCount = person.chats.sumOf { it.highlightCount },
+            isMarkedUnread = person.chats.any { it.isMarkedUnread }
+        )
+    }
+    return FoldedRooms(rows, roomsOf)
+}
+
 /** The name without case, accents, a network tag or extra spaces. */
 internal fun nameKey(name: String): String {
     val plain = Normalizer.normalize(name, Normalizer.Form.NFD).replace(ACCENTS, "").lowercase()

@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.phalanx.android.core.contacts.Conversations
 import org.phalanx.android.core.media.EmojiKitchen
 import org.phalanx.android.core.media.KitchenStore
 import org.phalanx.android.core.prefs.SettingsStore
@@ -19,7 +20,6 @@ import org.phalanx.android.data.model.KitchenMix
 import org.phalanx.android.data.model.KitchenPicks
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.StickerRepository
-import org.phalanx.android.data.repository.TimelineRepository
 import org.phalanx.android.ui.navigation.RoomRoute
 
 /** What the composer offers for the emoji typed so far. */
@@ -42,7 +42,7 @@ internal class KitchenViewModel @Inject constructor(
     private val kitchen: EmojiKitchen,
     private val store: KitchenStore,
     private val stickers: StickerRepository,
-    private val timelines: TimelineRepository
+    private val conversations: Conversations
 ) : ViewModel() {
     private val roomId = savedStateHandle.toRoute<RoomRoute>().roomId
 
@@ -79,7 +79,7 @@ internal class KitchenViewModel @Inject constructor(
 
     fun send(mix: KitchenMix, onFailed: () -> Unit) {
         viewModelScope.launch {
-            stickers.send(roomId, mix).fold(
+            stickers.send(conversations.targetOf(roomId), mix).fold(
                 // Remembering it is a convenience: a failed write only leaves it out of the recent row.
                 onSuccess = { store.sent(mix) },
                 onFailure = { onFailed() }
@@ -90,7 +90,7 @@ internal class KitchenViewModel @Inject constructor(
     /** Reacts to [message] with [mix]'s image, as an image reaction keyed by its uploaded URL. */
     fun react(message: TimelineEntry.Message, mix: KitchenMix, onFailed: () -> Unit) {
         viewModelScope.launch {
-            val session = timelines.open(roomId).getOrNull() ?: return@launch onFailed()
+            val session = conversations.open(roomId).getOrNull() ?: return@launch onFailed()
             val url = stickers.upload(mix).getOrElse { return@launch onFailed() }
             session.toggleReaction(message, url).fold(onSuccess = { store.sent(mix) }, onFailure = { onFailed() })
         }
