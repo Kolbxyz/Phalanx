@@ -210,7 +210,7 @@
     <string name="feature_summaries">Summaries</string>
     <string name="feature_summaries_description">Sums up unread messages.</string>
     <string name="feature_voice">Voice messages</string>
-    <string name="feature_voice_description">Writes voice messages out as text. Switched on, it does so as you scroll to them.</string>
+    <string name="feature_voice_description">Writes voice messages out as text. Switched on, it does so as you scroll to them, and in their notifications.</string>
     <string name="feature_translation">Offline translation</string>
     <string name="feature_translation_description">Translates a language pair in about a second. Each chat turns it on in its details.</string>
     <string name="feature_ready">Ready · %1$s</string>
@@ -289,6 +289,15 @@
     <string name="typing_two">%1$s and %2$s are typing…</string>
     <string name="settings_send_typing">Share typing</string>
     <string name="settings_send_typing_summary">Let others see when you’re typing a message</string>
+    <string name="settings_strip_link_trackers">Remove trackers from links</string>
+    <string name="settings_strip_link_trackers_summary">Cut tags like utm_source and fbclid from links you send, so sites can’t tell who shared them</string>
+    <string name="settings_link_previews">Link previews</string>
+    <string name="settings_link_previews_off">Off</string>
+    <string name="settings_link_previews_phone">Phone</string>
+    <string name="settings_link_previews_homeserver">Server</string>
+    <string name="settings_link_previews_off_summary">Links show as plain text. Nobody learns which links you see</string>
+    <string name="settings_link_previews_phone_summary">This phone fetches each page. The site sees your IP address, and anyone can learn it by sending you a link. Your server sees nothing</string>
+    <string name="settings_link_previews_homeserver_summary">Your homeserver fetches each page, so sites never see your IP address. Its admin can see every link previewed, even in encrypted chats</string>
     <plurals name="typing_many">
         <item quantity="one">%1$s and %2$d other are typing…</item>
         <item quantity="other">%1$s and %2$d others are typing…</item>
@@ -432,6 +441,7 @@
     <string name="notification_checking">Checking for new messages…</string>
     <string name="notification_invite">%1$s invited you</string>
     <string name="notification_new_message">New message</string>
+    <string name="notification_voice">🎤 %1$s</string>
     <string name="notification_action_mark_read">Mark as read</string>
     <string name="notification_action_reply">Reply</string>
     <string name="notification_reply_hint">Message</string>

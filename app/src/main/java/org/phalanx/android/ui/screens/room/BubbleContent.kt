@@ -107,6 +107,7 @@ private fun Content(
                 onLongPress = onLongPress,
                 modifier = textPadding
             )
+            LinkPreviewCard(body, Modifier.padding(start = MediaInset, end = MediaInset, top = 8.dp))
         }
         is MessageBody.Image -> {
             ImageContent(

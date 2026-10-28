@@ -16,6 +16,12 @@ enum class LockTimeout(val millis: Long) {
 /** How much a notification shows: the sender and message, the sender only, or neither. */
 enum class NotificationContent { Full, NameOnly, Hidden }
 
+/**
+ * Who fetches the page behind a link to preview it: nobody; this phone, which the site then sees;
+ * or the homeserver, which then sees every link previewed, encrypted rooms included.
+ */
+enum class LinkPreviewSource { Off, Phone, Homeserver }
+
 private const val ONE_MINUTE_MILLIS = 60_000L
 private const val FIVE_MINUTES_MILLIS = 300_000L
 private const val FIFTEEN_MINUTES_MILLIS = 900_000L
@@ -35,6 +41,9 @@ data class AppSettings(
     val enterToSend: Boolean = false,
     /** On: *stars*, `code` and lists in a message are sent formatted. */
     val markdown: Boolean = true,
+    /** On: tracking tags such as utm_source and fbclid are cut from the links this account sends. */
+    val stripLinkTrackers: Boolean = true,
+    val linkPreviews: LinkPreviewSource = LinkPreviewSource.Off,
     /** Off: photos are scaled down before upload. Location data is stripped either way. */
     val fullQualityImages: Boolean = false,
     /** Off: photos and video previews in conversations wait for a tap before downloading. */

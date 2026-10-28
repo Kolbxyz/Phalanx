@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -28,6 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.phalanx.android.BuildConfig
 import org.phalanx.android.R
 import org.phalanx.android.data.model.AppSettings
+import org.phalanx.android.data.model.LinkPreviewSource
 import org.phalanx.android.data.model.TextSize
 import org.phalanx.android.data.model.ThemeMode
 import org.phalanx.android.ui.components.BackButton
@@ -71,13 +73,49 @@ internal fun PrivacySettings(current: AppSettings, viewModel: SettingsViewModel)
                     viewModel::setSendTypingNotices
                 ),
                 SwitchSetting(
+                    Symbols.Link, R.string.settings_strip_link_trackers,
+                    R.string.settings_strip_link_trackers_summary, current.stripLinkTrackers,
+                    viewModel::setStripLinkTrackers
+                ),
+                SwitchSetting(
                     Symbols.Sticker, R.string.settings_emoji_kitchen,
                     R.string.settings_emoji_kitchen_summary, current.emojiKitchen,
                     viewModel::setEmojiKitchen
                 )
             )
         )
+        Text(
+            text = stringResource(R.string.settings_link_previews),
+            modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
+        )
+        ConnectedToggleGroup(
+            options = LinkPreviewSource.entries,
+            selected = current.linkPreviews,
+            label = { stringResource(it.labelRes()) },
+            onSelect = viewModel::setLinkPreviews
+        )
+        Text(
+            text = stringResource(current.linkPreviews.summaryRes()),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)
+        )
     }
+}
+
+@StringRes
+private fun LinkPreviewSource.labelRes(): Int = when (this) {
+    LinkPreviewSource.Off -> R.string.settings_link_previews_off
+    LinkPreviewSource.Phone -> R.string.settings_link_previews_phone
+    LinkPreviewSource.Homeserver -> R.string.settings_link_previews_homeserver
+}
+
+/** What each choice gives away, so the user picks knowing who sees their links. */
+@StringRes
+private fun LinkPreviewSource.summaryRes(): Int = when (this) {
+    LinkPreviewSource.Off -> R.string.settings_link_previews_off_summary
+    LinkPreviewSource.Phone -> R.string.settings_link_previews_phone_summary
+    LinkPreviewSource.Homeserver -> R.string.settings_link_previews_homeserver_summary
 }
 
 @Composable

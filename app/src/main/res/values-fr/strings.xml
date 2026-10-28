@@ -210,7 +210,7 @@
     <string name="feature_summaries">Résumés</string>
     <string name="feature_summaries_description">Résume les messages non lus.</string>
     <string name="feature_voice">Messages vocaux</string>
-    <string name="feature_voice_description">Transcrit les messages vocaux. Activé, il le fait quand vous les faites défiler.</string>
+    <string name="feature_voice_description">Transcrit les messages vocaux. Activé, il le fait quand vous les faites défiler, et dans leurs notifications.</string>
     <string name="feature_translation">Traduction hors ligne</string>
     <string name="feature_translation_description">Traduit une paire de langues en une seconde environ. Chaque discussion l’active dans ses détails.</string>
     <string name="feature_ready">Prêt · %1$s</string>
@@ -290,6 +290,15 @@
     <string name="typing_two">%1$s et %2$s écrivent…</string>
     <string name="settings_send_typing">Partager la saisie</string>
     <string name="settings_send_typing_summary">Montrer aux autres quand vous écrivez un message</string>
+    <string name="settings_strip_link_trackers">Retirer les traceurs des liens</string>
+    <string name="settings_strip_link_trackers_summary">Enlever les balises comme utm_source et fbclid des liens envoyés, pour que les sites ne sachent pas qui les a partagés</string>
+    <string name="settings_link_previews">Aperçus des liens</string>
+    <string name="settings_link_previews_off">Non</string>
+    <string name="settings_link_previews_phone">Téléphone</string>
+    <string name="settings_link_previews_homeserver">Serveur</string>
+    <string name="settings_link_previews_off_summary">Les liens restent du texte. Personne ne sait quels liens vous voyez</string>
+    <string name="settings_link_previews_phone_summary">Ce téléphone charge chaque page. Le site voit votre adresse IP, et n’importe qui peut l’apprendre en vous envoyant un lien. Votre serveur ne voit rien</string>
+    <string name="settings_link_previews_homeserver_summary">Votre serveur charge chaque page, les sites ne voient donc jamais votre adresse IP. Son administrateur peut voir chaque lien prévisualisé, même dans les discussions chiffrées</string>
     <plurals name="typing_many">
         <item quantity="one">%1$s et %2$d autre personne écrivent…</item>
         <item quantity="many">%1$s et %2$d autres personnes écrivent…</item>
@@ -436,6 +445,7 @@
     <string name="notification_checking">Recherche de nouveaux messages…</string>
     <string name="notification_invite">%1$s vous a invité</string>
     <string name="notification_new_message">Nouveau message</string>
+    <string name="notification_voice">🎤 %1$s</string>
     <string name="notification_action_mark_read">Marquer comme lu</string>
     <string name="notification_action_reply">Répondre</string>
     <string name="notification_reply_hint">Message</string>

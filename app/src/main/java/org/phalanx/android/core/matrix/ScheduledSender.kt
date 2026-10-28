@@ -14,6 +14,7 @@ import org.matrix.rustcomponents.sdk.ClientException
 import org.matrix.rustcomponents.sdk.use
 import org.phalanx.android.core.format.OutgoingMessage
 import org.phalanx.android.core.prefs.SettingsStore
+import org.phalanx.android.data.model.AppSettings
 import org.phalanx.android.data.model.ScheduledMessage
 import org.phalanx.android.data.repository.TimelineUnavailableException
 
@@ -33,7 +34,7 @@ internal class ScheduledSender @Inject constructor(
         try {
             room.use {
                 val emotes = roomEmotes.forRoom(room.ownUserId(), room.id(), room.roomInfo().bridge()).byShortcode()
-                room.sendRaw(EVENT_TYPE, contentOf(message, settings.current().markdown, emotes))
+                room.sendRaw(EVENT_TYPE, contentOf(message, settings.current(), emotes))
             }
             Result.success(Unit)
         } catch (e: ClientException) {
@@ -42,8 +43,10 @@ internal class ScheduledSender @Inject constructor(
     }
 
     /** Formatted as the composer's messages are; a reply points at the message it answers. */
-    private fun contentOf(message: ScheduledMessage, formatting: Boolean, emotes: Map<String, String>): String {
-        val outgoing = OutgoingMessage.of(message.text, mentions = emptyList(), formatting, emotes)
+    private fun contentOf(message: ScheduledMessage, current: AppSettings, emotes: Map<String, String>): String {
+        val outgoing = OutgoingMessage.of(
+            message.text, emptyList(), current.markdown, emotes, stripTrackers = current.stripLinkTrackers
+        )
         val msgtype = when (outgoing.kind) {
             OutgoingMessage.Kind.Text -> "m.text"
             OutgoingMessage.Kind.Emote -> "m.emote"

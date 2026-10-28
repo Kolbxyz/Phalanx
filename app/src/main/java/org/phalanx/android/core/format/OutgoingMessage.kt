@@ -24,14 +24,17 @@ internal data class OutgoingMessage(
 
         /**
          * [mentions] are members picked in the composer; [formatting] follows the markdown setting;
-         * [emotes] are the room's custom emoji, shortcode to `mxc://` URL.
+         * [emotes] are the room's custom emoji, shortcode to `mxc://` URL. With [stripTrackers], links
+         * lose their [TrackingParameters] in the body and the HTML alike.
          */
         fun of(
             text: String,
             mentions: List<Member>,
             formatting: Boolean,
-            emotes: Map<String, String> = emptyMap()
+            emotes: Map<String, String> = emptyMap(),
+            stripTrackers: Boolean = false
         ): OutgoingMessage {
+            val text = if (stripTrackers) LinkTrackers.strip(text) else text
             val kind = when {
                 text.startsWith(EMOTE_PREFIX) -> Kind.Emote
                 text.startsWith(SILENT_PREFIX) -> Kind.Notice
