@@ -60,10 +60,14 @@ internal suspend fun Room.toSummary(): RoomSummary = use { room ->
     )
 }
 
+// Without the user, as the server's heroes are: a named chat of two would otherwise count two
+// people in it, and be with no one.
 private suspend fun Room.smallRoomMembers(info: RoomInfo): List<RoomPerson> {
     if (info.joinedMembersCount.toLong() > SMALL_ROOM_MEMBERS) return emptyList()
     return try {
+        val own = ownUserId()
         membersNoSync().use { it.nextChunk(SMALL_ROOM_MEMBERS.toUInt()).orEmpty() }
+            .filter { it.userId != own }
             .map { RoomPerson(it.userId, it.avatarUrl) }
     } catch (_: ClientException) {
         // Members not stored yet; the next update of the room asks again.
