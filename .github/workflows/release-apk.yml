@@ -18,7 +18,7 @@ jobs:
   attach:
     name: Build & Attach Release APK
     runs-on: ubuntu-latest
-    # A release build has no ccache, and Marian, Bergamot's engine, compiles for about ten minutes.
+    # Without a warm ccache, Marian, Bergamot's engine, compiles for about ten minutes.
     timeout-minutes: 60
     env:
       GH_TOKEN: ${{ github.token }}
@@ -51,6 +51,24 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+
+      # Same settings as CI, so the objects main's CI compiled for release are hits here.
+      - name: Set up ccache
+        run: |
+          sudo apt-get install -y --no-install-recommends ccache
+          echo "CMAKE_C_COMPILER_LAUNCHER=ccache" >> "$GITHUB_ENV"
+          echo "CMAKE_CXX_COMPILER_LAUNCHER=ccache" >> "$GITHUB_ENV"
+          echo "CCACHE_DIR=$HOME/.ccache" >> "$GITHUB_ENV"
+          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+          echo "CCACHE_COMPILERCHECK=content" >> "$GITHUB_ENV"
+
+      # Restore only: a cache saved from a tag is readable by that tag alone, so main's CI keeps it.
+      - name: Restore ccache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ runner.os }}-${{ github.sha }}
+          restore-keys: ccache-${{ runner.os }}-
 
       # An unsigned release APK cannot be installed, so a missing keystore fails the run.
       - name: Write Signing Config

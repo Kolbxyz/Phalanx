@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import org.phalanx.android.R
 import org.phalanx.android.data.model.MessageBody
+import org.phalanx.android.data.model.TextMarks
 
 /** Rich text when the sender sent HTML (most clients and bridges do), linkified plain text otherwise. */
 @Composable
@@ -51,9 +52,9 @@ internal fun MessageText(
     var revealed by remember(body) { mutableStateOf(false) }
     val text = remember(body, senderName, edited, editedStyle, contentColor, background, revealed, onMention) {
         val content = body.html
-            ?.let { AnnotatedString.fromHtml(it, links).trimEnd().withInlineEmotes(body.emotes) }
+            ?.let { AnnotatedString.fromHtml(it, links).trimEnd().withBareLinks(links).withInlineEmotes(body.emotes) }
             ?.withMarks(contentColor, background, revealed, onMention) { revealed = true }
-            ?: linkify(body.text, links)
+            ?: AnnotatedString(body.text).withBareLinks(links)
         buildAnnotatedString {
             if (body.style == MessageBody.TextStyle.Emote) append("* $senderName ")
             append(content)
@@ -84,14 +85,25 @@ internal fun messageTextStyle(): TextStyle {
 private const val NOTICE_ALPHA = 0.72f
 private const val EDITED_ALPHA = 0.6f
 
-private fun linkify(text: String, styles: TextLinkStyles): AnnotatedString = buildAnnotatedString {
-    append(text)
-    Patterns.WEB_URL.toRegex().findAll(text).forEach { match ->
-        val url = match.value
-        // Bare domains ("example.org") are matched too; they still need a scheme to open.
-        val target = if (url.contains("://")) url else "https://$url"
-        if (target.startsWith("https://") || target.startsWith("http://")) {
-            addLink(LinkAnnotation.Url(target, styles), match.range.first, match.range.last + 1)
+/**
+ * Addresses typed as plain text become links, in HTML bodies too: senders' HTML only wraps the
+ * links they formatted, so a URL beside bold text arrives bare. Existing links and code are left be.
+ */
+private fun AnnotatedString.withBareLinks(styles: TextLinkStyles): AnnotatedString {
+    val source = this
+    return buildAnnotatedString {
+        append(source)
+        Patterns.WEB_URL.toRegex().findAll(source.text).forEach { match ->
+            val start = match.range.first
+            val end = match.range.last + 1
+            val taken = source.getLinkAnnotations(start, end).isNotEmpty() ||
+                source.getStringAnnotations(TextMarks.CODE, start, end).isNotEmpty()
+            val url = match.value
+            // Bare domains ("example.org") are matched too; they still need a scheme to open.
+            val target = if (url.contains("://")) url else "https://$url"
+            if (!taken && (target.startsWith("https://") || target.startsWith("http://"))) {
+                addLink(LinkAnnotation.Url(target, styles), start, end)
+            }
         }
     }
 }

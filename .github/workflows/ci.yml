@@ -82,6 +82,12 @@ jobs:
             exit 1
           }
 
+      # Releases build from a tag, which can only read caches saved on main. Compiling the release
+      # native code here puts its objects in main's ccache, so a release build reuses them.
+      - name: Release Native Code (warms the release ccache)
+        if: github.event_name == 'push'
+        run: ./gradlew :app:externalNativeBuildRelease
+
       # Skipped when an earlier step failed before ccache was installed, which would hide that failure.
       - name: ccache Stats
         if: always() && env.CCACHE_DIR != ''
