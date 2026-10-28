@@ -3,7 +3,6 @@ package org.phalanx.android.core.preview
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
-import java.net.Inet6Address
 import java.net.InetAddress
 import java.net.URL
 import java.nio.charset.Charset
@@ -62,6 +61,8 @@ internal class PageFetcher @Inject constructor() {
             throw IOException("Refused host")
         }
         val connection = url.openConnection() as HttpsURLConnection
+        // The name may resolve elsewhere when the connection opens; the address it reaches is checked too.
+        connection.sslSocketFactory = PUBLIC_ONLY
         connection.instanceFollowRedirects = false
         connection.useCaches = false
         connection.connectTimeout = TIMEOUT_MILLIS
@@ -69,17 +70,6 @@ internal class PageFetcher @Inject constructor() {
         connection.setRequestProperty("User-Agent", USER_AGENT)
         connection.setRequestProperty("Accept", accept)
         return connection
-    }
-
-    private fun InetAddress.isPrivate(): Boolean {
-        val first = address[0].toInt() and BYTE
-        // IPv6 unique local addresses, fc00::/7, which isSiteLocalAddress does not cover.
-        val uniqueLocal = this is Inet6Address && (first and ULA_MASK) == ULA_PREFIX
-        // Carrier-grade NAT, 100.64.0.0/10, as private as 10/8 in practice.
-        val sharedNat = address.size == IPV4_BYTES && first == CGNAT_FIRST &&
-            (address[1].toInt() and CGNAT_MASK) == CGNAT_SECOND
-        return isAnyLocalAddress || isLoopbackAddress || isLinkLocalAddress || isSiteLocalAddress ||
-            isMulticastAddress || uniqueLocal || sharedNat
     }
 
     private fun charsetOf(contentType: String): Charset =
@@ -111,13 +101,7 @@ internal class PageFetcher @Inject constructor() {
         const val MAX_REDIRECTS = 4
         const val MAX_PAGE_BYTES = 256 * 1024
         const val MAX_IMAGE_BYTES = 2 * 1024 * 1024
-        const val IPV4_BYTES = 4
-        const val ULA_MASK = 0xfe
-        const val ULA_PREFIX = 0xfc
-        const val CGNAT_FIRST = 100
-        const val CGNAT_MASK = 0xc0
-        const val CGNAT_SECOND = 64
-        const val BYTE = 0xff
+        val PUBLIC_ONLY = PublicOnlySocketFactory()
         val REDIRECTS = setOf(301, 302, 303, 307, 308)
         val CHARSET = Regex("charset=\"?([\\w.:-]+)", RegexOption.IGNORE_CASE)
     }
