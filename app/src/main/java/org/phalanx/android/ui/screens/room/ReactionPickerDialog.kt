@@ -50,8 +50,9 @@ internal fun ReactionPickerDialog(onPick: (String) -> Unit, onDismiss: () -> Uni
 
 /** One user-perceived character that is an emoji; plain ASCII (digits included) is never one. */
 internal fun String.isSingleEmoji(): Boolean {
-    if (isEmpty() || all { it.code < ASCII_LIMIT }) return false
-    if (codePoints().noneMatch { UCharacter.hasBinaryProperty(it, UProperty.EMOJI) }) return false
+    val hasEmoji = !all { it.code < ASCII_LIMIT } &&
+        codePoints().anyMatch { UCharacter.hasBinaryProperty(it, UProperty.EMOJI) }
+    if (!hasEmoji) return false
     val breaks = BreakIterator.getCharacterInstance()
     breaks.setText(this)
     return breaks.next() == length
