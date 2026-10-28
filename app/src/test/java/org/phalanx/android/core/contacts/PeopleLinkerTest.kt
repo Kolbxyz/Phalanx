@@ -79,4 +79,28 @@ class PeopleLinkerTest {
         val people = peopleOf(listOf(whatsapp, signal, matrix), links)
         assertEquals(listOf(2, 1), people.map { it.chats.size })
     }
+
+    @Test
+    fun `a linked person is one row, where their most recent chat was, counting every chat's unread`() {
+        val links = PeopleLinks(groups = listOf(setOf(whatsapp.dmUserId!!, signal.dmUserId!!)))
+        val rooms = listOf(
+            sms,
+            signal.copy(unreadCount = 2),
+            matrix,
+            whatsapp.copy(unreadCount = 3, highlightCount = 1)
+        )
+        val folded = foldPeople(rooms, links)
+        assertEquals(listOf(sms.id, signal.id, matrix.id), folded.rows.map { it.id })
+        assertEquals(5L, folded.rows[1].unreadCount)
+        assertEquals(1L, folded.rows[1].highlightCount)
+        assertEquals(setOf(whatsapp.id, signal.id), folded.roomsOf.getValue(signal.id).toSet())
+    }
+
+    @Test
+    fun `a person with one chat left in the list is not folded`() {
+        val links = PeopleLinks(groups = listOf(setOf(whatsapp.dmUserId!!, signal.dmUserId!!)))
+        val folded = foldPeople(listOf(signal, matrix), links)
+        assertEquals(listOf(signal.id, matrix.id), folded.rows.map { it.id })
+        assertTrue(folded.roomsOf.isEmpty())
+    }
 }

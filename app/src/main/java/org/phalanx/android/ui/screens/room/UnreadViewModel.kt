@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.phalanx.android.core.contacts.Conversations
 import org.phalanx.android.data.repository.RoomListRepository
-import org.phalanx.android.data.repository.TimelineRepository
 import org.phalanx.android.ui.navigation.RoomRoute
 
 /**
@@ -21,12 +21,12 @@ import org.phalanx.android.ui.navigation.RoomRoute
 @HiltViewModel
 class UnreadViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val timelines: TimelineRepository,
+    private val conversations: Conversations,
     roomList: RoomListRepository
 ) : ViewModel() {
     private val roomId = savedStateHandle.toRoute<RoomRoute>().roomId
     private val unreadCount = roomList.rooms.value?.firstOrNull { it.id == roomId }?.unreadCount ?: 0L
-    private val readAtOpen = ReadAtOpen(viewModelScope, timelines, roomId, unreadCount)
+    private val readAtOpen = ReadAtOpen(viewModelScope, { conversations.readUpTo(roomId) }, unreadCount)
 
     /** How many messages were unread at open, while the jump is offered; null once it is not. */
     private val mutableOffer = MutableStateFlow(unreadCount.takeIf { it >= MIN_UNREAD }?.toInt())
@@ -36,7 +36,7 @@ class UnreadViewModel @Inject constructor(
     fun jump(onFound: (String) -> Unit, onMissing: () -> Unit) {
         mutableOffer.value = null
         viewModelScope.launch {
-            val session = timelines.open(roomId).getOrNull()
+            val session = conversations.open(roomId).getOrNull()
             val eventId = session?.let { readAtOpen.firstUnreadEventId(it) }
             if (eventId != null) onFound(eventId) else onMissing()
         }

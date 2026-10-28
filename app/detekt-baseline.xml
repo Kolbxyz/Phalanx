@@ -40,6 +40,7 @@
     <ID>TooManyFunctions:ComposerController.kt:ComposerController</ID>
     <ID>TooManyFunctions:MessageScheduler.kt:MessageScheduler : ScheduleRepository</ID>
     <ID>TooManyFunctions:Notifier.kt:Notifier</ID>
+    <ID>TooManyFunctions:PersonTimelineSession.kt:PersonTimelineSession : TimelineSession</ID>
     <ID>TooManyFunctions:PushRegistrar.kt:PushRegistrar : PushRepository</ID>
     <ID>TooManyFunctions:RepositoryModule.kt:RepositoryModule</ID>
     <ID>TooManyFunctions:RustAccountRepository.kt:RustAccountRepository : AccountRepository</ID>

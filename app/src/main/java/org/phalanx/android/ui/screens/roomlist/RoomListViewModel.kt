@@ -18,11 +18,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.phalanx.android.core.contacts.foldPeople
 import org.phalanx.android.core.prefs.SettingsStore
+import org.phalanx.android.data.model.PeopleLinks
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.repository.AccountProfile
 import org.phalanx.android.data.repository.AccountRepository
 import org.phalanx.android.data.repository.DraftsRepository
+import org.phalanx.android.data.repository.PeopleRepository
 import org.phalanx.android.data.repository.ReminderRepository
 import org.phalanx.android.data.repository.RoomActionsRepository
 import org.phalanx.android.data.repository.RoomListRepository
@@ -35,7 +38,8 @@ class RoomListViewModel @Inject constructor(
     drafts: DraftsRepository,
     private val actions: RoomActionsRepository,
     settings: SettingsStore,
-    reminders: ReminderRepository
+    reminders: ReminderRepository,
+    people: PeopleRepository
 ) : ViewModel() {
     /** How many reminders are still to come, shown in the side panel. */
     val reminderCount: StateFlow<Int> = reminders.reminders.map { it.size }
@@ -51,12 +55,12 @@ class RoomListViewModel @Inject constructor(
     private val filter = MutableStateFlow(RoomFilter.All)
     private val source = MutableStateFlow<RoomSource>(RoomSource.All)
 
-    val state: StateFlow<RoomListUiState> = combine(roomList.rooms, filter, source, ::toUiState)
+    val state: StateFlow<RoomListUiState> = combine(roomList.rooms, filter, source, people.links, ::toUiState)
         .flowOn(Dispatchers.Default)
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
-            toUiState(roomList.rooms.value, filter.value, source.value)
+            toUiState(roomList.rooms.value, filter.value, source.value, people.links.value)
         )
 
     /** Unsent text by room ID, shown in place of the last message. */
@@ -78,15 +82,15 @@ class RoomListViewModel @Inject constructor(
     private val mutableFailed = MutableStateFlow(false)
     val actionFailed: StateFlow<Boolean> = mutableFailed.asStateFlow()
 
-    fun setFavourite(room: RoomSummary, favourite: Boolean) = act { actions.setFavourite(room.id, favourite) }
+    fun setFavourite(room: RoomSummary, favourite: Boolean) = act(room) { actions.setFavourite(it, favourite) }
 
-    fun setUnread(room: RoomSummary, unread: Boolean) = act { actions.setUnread(room.id, unread) }
+    fun setUnread(room: RoomSummary, unread: Boolean) = act(room) { actions.setUnread(it, unread) }
 
-    fun leave(room: RoomSummary) = act { actions.leave(room.id) }
+    fun leave(room: RoomSummary) = act(room) { actions.leave(it) }
 
-    fun setMuted(room: RoomSummary, muted: Boolean) = act { actions.setMuted(room.id, muted) }
+    fun setMuted(room: RoomSummary, muted: Boolean) = act(room) { actions.setMuted(it, muted) }
 
-    fun setArchived(room: RoomSummary, archived: Boolean) = act { actions.setArchived(room.id, archived) }
+    fun setArchived(room: RoomSummary, archived: Boolean) = act(room) { actions.setArchived(it, archived) }
 
     fun setFilter(value: RoomFilter) {
         filter.value = value
@@ -100,16 +104,28 @@ class RoomListViewModel @Inject constructor(
         mutableFailed.value = false
     }
 
-    private fun act(block: suspend () -> Result<Unit>) {
-        viewModelScope.launch { block().onFailure { mutableFailed.value = true } }
+    // A person's row stands for every chat of theirs, so an action on it applies to each.
+    private fun act(room: RoomSummary, block: suspend (roomId: String) -> Result<Unit>) {
+        val roomIds = (state.value as? RoomListUiState.Loaded)?.roomsOf?.get(room.id) ?: listOf(room.id)
+        viewModelScope.launch {
+            if (roomIds.map { block(it) }.any { it.isFailure }) mutableFailed.value = true
+        }
     }
 
-    private fun toUiState(rooms: List<RoomSummary>?, filter: RoomFilter, source: RoomSource): RoomListUiState {
+    private fun toUiState(
+        rooms: List<RoomSummary>?,
+        filter: RoomFilter,
+        source: RoomSource,
+        links: PeopleLinks?
+    ): RoomListUiState {
         rooms ?: return RoomListUiState.Loading
         val now = System.currentTimeMillis()
         val filtered = rooms.filter { filter.matches(it, now) }
+        // Folded within the source, so a network's list still shows that network's chat alone.
+        val folded = foldPeople(filtered.filter(source::matches), links ?: PeopleLinks())
         return RoomListUiState.Loaded(
-            rooms = filtered.filter(source::matches),
+            rooms = folded.rows,
+            roomsOf = folded.roomsOf,
             filter = filter,
             archivedCount = rooms.count { it.isArchived(now) },
             source = source,

@@ -95,7 +95,8 @@ internal class RustTimelineRepository @Inject constructor(
     }
 
     private companion object {
-        const val CACHE_SIZE = 5
+        // Room for a person's thread, which keeps each of their chats open, beside a few rooms.
+        const val CACHE_SIZE = 8
         const val LOAD_FACTOR = 0.75f
     }
 }

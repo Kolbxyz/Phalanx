@@ -71,6 +71,7 @@ internal fun TimelineList(
     onFocused: () -> Unit
 ) {
     val listState = rememberLazyListState()
+    val thread = LocalPersonThread.current
     val motion = MaterialTheme.motionScheme
     val reducedMotion = LocalReducedMotion.current
     // Whether the list sticks to the newest message as they arrive; see below. Saved, like the
@@ -173,6 +174,7 @@ internal fun TimelineList(
                             val older = state.entries.getOrNull(index + 1)
                             val newer = state.entries.getOrNull(index - 1)
                             Column(animated.fillMaxWidth()) {
+                                thread?.runStarts?.get(entry.id)?.let { NetworkTag(it, entry.isOwn) }
                                 MessageBubble(
                                     message = entry,
                                     isGroupChat = !state.isDirect,

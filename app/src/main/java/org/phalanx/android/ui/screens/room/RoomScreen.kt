@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -58,6 +59,7 @@ fun RoomScreen(
     val header by viewModel.header.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val focus by viewModel.focus.collectAsStateWithLifecycle()
+    val thread by viewModel.thread.collectAsStateWithLifecycle()
     var selected by remember { mutableStateOf<TimelineEntry.Message?>(null) }
     var profileOf by remember { mutableStateOf<String?>(null) }
     var attaching by remember { mutableStateOf(false) }
@@ -76,7 +78,8 @@ fun RoomScreen(
 
     val actions = remember(viewModel) {
         MessageActions(
-            onOpenMedia = { onOpenMedia(viewModel.roomId, it.id) },
+            // In a person's thread, the media sits in the chat it came from, under that chat's row ID.
+            onOpenMedia = { viewModel.originOf(it.id).let { (room, id) -> onOpenMedia(room, id) } },
             onOpenFile = viewModel::openFile,
             resolveFile = viewModel::fileUri,
             onToggleReaction = viewModel::toggleReaction,
@@ -129,13 +132,19 @@ fun RoomScreen(
         },
         bottomBar = {
             if (ready != null) {
-                Composer(
-                    composerState,
-                    composerActions,
-                    enterToSend = settings?.enterToSend == true,
-                    scheduled = scheduled,
-                    canDictate = canDictate
-                )
+                Column {
+                    thread?.let {
+                        val roomOf = { id: String -> viewModel.originOf(id).first }
+                        NetworkPicker(it, composerState.mode, roomOf, viewModel::chooseNetwork)
+                    }
+                    Composer(
+                        composerState,
+                        composerActions,
+                        enterToSend = settings?.enterToSend == true,
+                        scheduled = scheduled,
+                        canDictate = canDictate
+                    )
+                }
             }
         }
     ) { padding ->
@@ -158,7 +167,8 @@ fun RoomScreen(
                     LocalTimelinePrefs provides prefs,
                     LocalTranscripts provides transcripts,
                     LocalLinkPreviews provides linkPreviews,
-                    LocalAutoTranslations provides autoTranslations
+                    LocalAutoTranslations provides autoTranslations,
+                    LocalPersonThread provides thread
                 ) {
                     Box(Modifier.fillMaxSize()) {
                         val checkpoints by summary.marks.collectAsStateWithLifecycle()
