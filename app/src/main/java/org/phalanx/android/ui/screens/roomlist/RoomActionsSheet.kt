@@ -49,28 +49,24 @@ internal fun RoomActionsSheet(
         MenuActions(
             actions = listOf(
                 if (room.hasUnread) {
-                    MenuAction(Symbols.MarkChatRead, R.string.room_action_mark_read, onToggleRead)
+                    MenuAction(Symbols.MarkChatRead, R.string.menu_mark_read, onToggleRead)
                 } else {
-                    MenuAction(Symbols.MarkChatUnread, R.string.room_action_mark_unread, onToggleRead)
+                    MenuAction(Symbols.MarkChatUnread, R.string.menu_mark_unread, onToggleRead)
                 },
+                // Toggles keep one short label: whether they are on shows in the button itself.
                 MenuAction(
                     if (room.isFavourite) Symbols.Star else Symbols.StarOutline,
-                    if (room.isFavourite) R.string.room_action_unfavourite else R.string.room_action_favourite,
+                    R.string.menu_favorite,
                     onToggleFavourite,
                     room.isFavourite
                 ),
                 MenuAction(
                     if (room.isMuted) Symbols.NotificationsOff else Symbols.Notifications,
-                    if (room.isMuted) R.string.room_action_unmute else R.string.room_action_mute,
+                    R.string.menu_mute,
                     onToggleMuted,
                     room.isMuted
                 ),
-                MenuAction(
-                    if (room.isLowPriority) Symbols.Unarchive else Symbols.Archive,
-                    if (room.isLowPriority) R.string.room_action_unarchive else R.string.room_action_archive,
-                    onToggleArchived,
-                    room.isLowPriority
-                ),
+                MenuAction(Symbols.Archive, R.string.menu_archive, onToggleArchived, room.isLowPriority),
                 MenuAction(Symbols.Info, R.string.room_action_details, onDetails)
             ),
             danger = listOf(MenuAction(Symbols.Logout, R.string.room_action_leave, onLeave))

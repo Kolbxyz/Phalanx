@@ -153,7 +153,7 @@ private fun ProfileSheet(
                 }),
                 MenuAction(
                     if (muted) Symbols.NotificationsOff else Symbols.NotificationsActive,
-                    if (muted) R.string.action_unmute else R.string.action_mute,
+                    R.string.menu_mute,
                     onToggleMute,
                     muted
                 )

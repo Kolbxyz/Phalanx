@@ -83,8 +83,6 @@ internal object Symbols {
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_sunny)
     val Videocam: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_videocam)
-    val Unarchive: ImageVector
-        @Composable get() = ImageVector.vectorResource(R.drawable.sym_unarchive)
     val Timer: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_timer)
     val Shield: ImageVector
