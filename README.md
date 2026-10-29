@@ -29,6 +29,10 @@ Designed for hardened phones like GrapheneOS: no Google services, push through *
 
 Messaging only: no voice or video calls, ever.
 
+<p align="center">
+  <img width="1600" height="1000" alt="Phalanx showing a group chat with a photo, reactions and a reply, the chat list, and a message's actions" src="docs/assets/mockups/promo-messaging.jpg" />
+</p>
+
 ---
 
 ## Welcome to Phalanx! (FAQ for Newcomers)
@@ -91,6 +95,11 @@ No. There is no analytics, no crash reporting and no tracking SDK of any kind. P
 ---
 
 ## Battery & Privacy Discipline
+
+<p align="center">
+  <img width="1600" height="1000" alt="Phalanx's privacy settings, the settings menu and the on-device AI models" src="docs/assets/mockups/promo-privacy.jpg" />
+  <br><sub>Screenshots use placeholder accounts and chats.</sub>
+</p>
 
 ### Battery First
 * **Zero Polling Loops**: Sync runs while the app is on screen or in answer to a push, never on a timer.
