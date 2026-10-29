@@ -113,7 +113,7 @@ fun RoomDetailsScreen(
                     onMuted = viewModel::setMuted
                 )
             }
-            if (current.dmUserId != null) item { AlsoOnSection(onOpenRoom) }
+            item { AlsoOnSection(onOpenRoom) }
             pinnedSection(pinned) { eventId -> onJumpTo(viewModel.roomId, eventId) }
             membersSection(members, showAllMembers) { showAllMembers = true }
             mediaSections(media, hasMore, onShowAll = { files -> onShowAll(viewModel.roomId, files) }, onOpen = open)

@@ -2,9 +2,11 @@ package org.phalanx.android.ui.screens.room
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -12,6 +14,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -43,7 +46,15 @@ internal fun AudioTranscript(key: String, body: MessageBody.Audio) {
                 Text(stringResource(R.string.transcript_action), modifier = Modifier.padding(start = 6.dp))
             }
         }
-        is TranscriptState.Writing -> Muted(state.text.ifEmpty { stringResource(R.string.transcript_writing) }, padding)
+        is TranscriptState.Writing -> Row(
+            padding,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // The bubble's own content colour: an own message's bubble is not the surface.
+            LoadingIndicator(Modifier.size(20.dp), color = LocalContentColor.current)
+            Muted(state.text.ifEmpty { stringResource(R.string.transcript_writing) }, Modifier.weight(1f))
+        }
         is TranscriptState.Done -> Column(padding, verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 state.transcript.text.ifEmpty { stringResource(R.string.transcript_empty) },

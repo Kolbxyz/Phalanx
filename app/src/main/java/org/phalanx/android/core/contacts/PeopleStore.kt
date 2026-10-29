@@ -61,8 +61,8 @@ internal class PeopleStore @Inject constructor(
         links.copy(groups = links.groups - joined.toSet() + setOf(joined.flatten().toSet() + a + b))
     }
 
-    override suspend fun unlink(userId: String) = update { links ->
-        links.copy(groups = links.groups.map { it - userId }.filter { it.size > 1 })
+    override suspend fun unlink(keys: Set<String>) = update { links ->
+        links.copy(groups = links.groups.map { it - keys }.filter { it.size > 1 })
     }
 
     override suspend fun dismiss(a: String, b: String) = update { it.copy(dismissed = it.dismissed + pairKey(a, b)) }

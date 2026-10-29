@@ -1,7 +1,6 @@
 package org.phalanx.android.ui.screens.room
 
 import android.content.ClipData
-import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,9 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,8 +22,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.stringResource
@@ -41,6 +35,8 @@ import org.phalanx.android.R
 import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.UserTrust
 import org.phalanx.android.ui.components.MatrixAvatar
+import org.phalanx.android.ui.components.MenuAction
+import org.phalanx.android.ui.components.MenuActions
 import org.phalanx.android.ui.components.ModalSheet
 import org.phalanx.android.ui.components.TrustLabel
 import org.phalanx.android.ui.theme.Symbols
@@ -148,33 +144,21 @@ private fun ProfileSheet(
             TrustLabel(it, Modifier.fillMaxWidth().padding(top = 4.dp).wrapContentWidth(Alignment.CenterHorizontally))
         }
         Spacer(Modifier.height(8.dp))
-        ProfileAction(Symbols.Chat, R.string.profile_message, onClick = onMessage)
-        ProfileAction(Symbols.ContentCopy, R.string.profile_copy_id) {
-            scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, member.userId))) }
-            onDismiss()
-        }
-        if (muted) {
-            ProfileAction(Symbols.NotificationsActive, R.string.action_unmute, onClick = onToggleMute)
-        } else {
-            ProfileAction(Symbols.NotificationsOff, R.string.action_mute, onClick = onToggleMute)
-        }
-        ProfileAction(Symbols.Block, R.string.action_block, MaterialTheme.colorScheme.error, onBlock)
-        Spacer(Modifier.height(8.dp))
+        MenuActions(
+            actions = listOf(
+                MenuAction(Symbols.Chat, R.string.profile_message, onMessage),
+                MenuAction(Symbols.ContentCopy, R.string.profile_copy_id, {
+                    scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, member.userId))) }
+                    onDismiss()
+                }),
+                MenuAction(
+                    if (muted) Symbols.NotificationsOff else Symbols.NotificationsActive,
+                    if (muted) R.string.action_unmute else R.string.action_mute,
+                    onToggleMute,
+                    muted
+                )
+            ),
+            danger = listOf(MenuAction(Symbols.Block, R.string.action_block, onBlock))
+        )
     }
-}
-
-@Composable
-private fun ProfileAction(
-    icon: ImageVector,
-    @StringRes label: Int,
-    color: Color = Color.Unspecified,
-    onClick: () -> Unit
-) {
-    val tint = if (color == Color.Unspecified) MaterialTheme.colorScheme.onSurface else color
-    ListItem(
-        headlineContent = { Text(stringResource(label)) },
-        leadingContent = { Icon(icon, contentDescription = null) },
-        colors = ListItemDefaults.colors(headlineColor = tint, leadingIconColor = tint),
-        modifier = Modifier.clickable(role = Role.Button, onClick = onClick)
-    )
 }

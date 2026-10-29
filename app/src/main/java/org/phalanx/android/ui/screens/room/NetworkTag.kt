@@ -1,14 +1,20 @@
 package org.phalanx.android.ui.screens.room
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
@@ -33,17 +39,24 @@ internal val LocalPersonThread = compositionLocalOf<PersonThread?> { null }
 @Composable
 internal fun NetworkTag(chat: RoomSummary, isOwn: Boolean) {
     val source = sourceOf(chat)
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(4.dp, if (isOwn) Alignment.End else Alignment.Start),
-        verticalAlignment = Alignment.CenterVertically,
+    Box(
+        contentAlignment = if (isOwn) Alignment.CenterEnd else Alignment.CenterStart,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        SourceIcon(source, size = 14.dp)
-        Text(
-            stringResource(source.label),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+            ) {
+                SourceIcon(source, size = 14.dp)
+                Text(
+                    stringResource(source.label),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 
@@ -63,11 +76,26 @@ internal fun NetworkPicker(
     val shown = replyingIn ?: thread.target
     var open by remember { mutableStateOf(false) }
     Box(Modifier.padding(start = 12.dp)) {
+        val fade = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
         AssistChip(
             onClick = { open = true },
             enabled = replyingIn == null,
-            label = { Text(stringResource(R.string.composer_network, stringResource(sourceOf(shown).label))) },
-            leadingIcon = { SourceIcon(sourceOf(shown), size = 18.dp) }
+            // Follows the others to the network they last wrote from: the change has to be seen.
+            label = {
+                AnimatedContent(
+                    targetState = shown,
+                    contentKey = { it.id },
+                    transitionSpec = { fadeIn(fade) togetherWith fadeOut(fade) }
+                ) { chat ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        SourceIcon(sourceOf(chat), size = 18.dp)
+                        Text(stringResource(R.string.composer_network, stringResource(sourceOf(chat).label)))
+                    }
+                }
+            }
         )
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             thread.chats.forEach { chat ->

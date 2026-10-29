@@ -103,4 +103,20 @@ class PeopleLinkerTest {
         assertEquals(listOf(signal.id, matrix.id), folded.rows.map { it.id })
         assertTrue(folded.roomsOf.isEmpty())
     }
+
+    @Test
+    fun `group chats link by room, however many people are in them`() {
+        val discord = dm("!g1", "Climbing crew", "", Bridge.Discord).copy(isDirect = false, dmUserId = null)
+        val messenger = dm("!g2", "Climbing", "", Bridge.Messenger).copy(isDirect = false, dmUserId = null)
+        val links = PeopleLinks(groups = listOf(setOf(linkKey(discord), linkKey(messenger))))
+        assertEquals("!g1", linkKey(discord))
+        val people = peopleOf(listOf(discord, messenger, whatsapp), links)
+        assertEquals(setOf(discord.id, messenger.id), people.first().chats.map { it.id }.toSet())
+    }
+
+    @Test
+    fun `a chat linked by its room still counts once who it is with is known`() {
+        val links = PeopleLinks(groups = listOf(setOf(whatsapp.id, signal.dmUserId!!)))
+        assertEquals(listOf(2, 1), peopleOf(listOf(whatsapp, signal, matrix), links).map { it.chats.size })
+    }
 }

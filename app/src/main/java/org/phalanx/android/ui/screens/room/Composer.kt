@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -15,11 +16,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +47,8 @@ internal fun Composer(
     scheduled: List<ScheduledMessage>,
     /** A speech model is there, so a recording can become text. */
     canDictate: Boolean,
+    /** A recording is being written out into the draft. */
+    dictating: Boolean,
     modifier: Modifier = Modifier
 ) {
     val motion = MaterialTheme.motionScheme
@@ -81,6 +87,13 @@ internal fun Composer(
             if (state.attachments.isEmpty() && state.mode !is ComposerMode.Edit) {
                 KitchenSuggestions(state.draft, actions.onSendMix)
             }
+            AnimatedVisibility(
+                visible = dictating,
+                enter = expandVertically(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
+                exit = shrinkVertically(motion.defaultSpatialSpec()) + fadeOut(motion.defaultEffectsSpec())
+            ) {
+                DictatingRow()
+            }
             val fade = motion.defaultEffectsSpec<Float>()
             AnimatedContent(
                 targetState = state.recording != null,
@@ -98,6 +111,23 @@ internal fun Composer(
                 }
             }
         }
+    }
+}
+
+/** While a recording turns into text: the words land in the draft as they are written. */
+@Composable
+private fun DictatingRow() {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        LoadingIndicator(Modifier.size(24.dp))
+        Text(
+            text = stringResource(R.string.composer_dictating),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

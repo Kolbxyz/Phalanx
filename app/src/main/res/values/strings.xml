@@ -228,6 +228,7 @@
     <string name="settings_speech_model_rejected">That file is not a supported speech model, so it was not kept.</string>
     <string name="settings_translation_rejected">That file is not a supported translation model, so it was not kept.</string>
     <string name="transcript_action">Transcribe</string>
+    <string name="composer_dictating">Writing out your voice message…</string>
     <string name="transcript_writing">Transcribing…</string>
     <string name="transcript_empty">No speech heard</string>
     <string name="transcript_partial">Only the first 10 minutes were transcribed</string>
@@ -365,7 +366,7 @@
     <string name="bookmarks_other_device">Saved on another device. Open it to read the message.</string>
     <string name="bookmarks_sync_failed">Couldn’t reach your account, so this list may be out of date.</string>
     <string name="people_title">People</string>
-    <string name="people_empty">No one linked yet. When the same person has chats on two networks, they are suggested here for you to confirm. You can also link chats yourself from a chat’s details, with “Link a chat”.</string>
+    <string name="people_empty">Nothing linked yet. When the same person has chats on two networks, they are suggested here for you to confirm. You can also link any chats yourself, one-to-one or group, from a chat’s details, with “Link a chat”.</string>
     <string name="people_suggested">Same person?</string>
     <string name="people_same_name">Same name on two networks</string>
     <string name="people_same_phone">Same phone number on two networks</string>
@@ -376,9 +377,9 @@
     <string name="people_failed">This couldn’t be saved</string>
     <string name="details_also_on">Also on</string>
     <string name="details_link_chat">Link a chat</string>
-    <string name="details_link_chat_title">Same person as…</string>
+    <string name="details_link_chat_title">Same conversation as…</string>
     <string name="details_link_chat_search">Search your chats</string>
-    <string name="details_link_chat_none">No other one-to-one chat matches</string>
+    <string name="details_link_chat_none">No other chat matches</string>
     <string name="notification_channel_reminders">Reminders</string>
     <string name="reminder_title">%1$s in %2$s</string>
     <string name="reminder_title_hidden">Reminder</string>

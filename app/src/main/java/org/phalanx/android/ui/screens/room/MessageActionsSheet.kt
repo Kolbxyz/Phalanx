@@ -1,7 +1,5 @@
 package org.phalanx.android.ui.screens.room
 
-import androidx.annotation.StringRes
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -12,8 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -24,14 +20,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
 import org.phalanx.android.data.model.CustomEmote
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
+import org.phalanx.android.ui.components.MenuAction
+import org.phalanx.android.ui.components.MenuActions
 import org.phalanx.android.ui.components.ModalSheet
 import org.phalanx.android.ui.theme.Symbols
 
@@ -119,42 +115,42 @@ internal fun MessageActionsSheet(
             }
             if (emotes.isNotEmpty()) EmoteReactions(message, emotes, onReact)
         }
-        if (message.canReply) Action(Symbols.Reply, R.string.action_reply, onReply)
-        if (message.body is MessageBody.Text) Action(Symbols.ContentCopy, R.string.action_copy, onCopy)
-        onTranslate?.let { Action(Symbols.Translate, R.string.action_translate, it) }
-        onSummarize?.let { Action(Symbols.Summarize, R.string.action_summarize_message, it) }
-        LinkActions(remember(message.body) { linksOf(message.body) }, onCopyLink, onShareLink)
-        if (live && message.eventId != null && message.body.isForwardable()) {
-            Action(Symbols.Forward, R.string.action_forward, onForward)
+        val sent = live && message.eventId != null
+        val actions = buildList {
+            if (message.canReply) add(MenuAction(Symbols.Reply, R.string.action_reply, onReply))
+            if (message.body is MessageBody.Text) add(MenuAction(Symbols.ContentCopy, R.string.action_copy, onCopy))
+            if (message.canEdit && message.body is MessageBody.Text) {
+                add(MenuAction(Symbols.Edit, R.string.action_edit, onEdit))
+            }
+            if (sent && message.body.isForwardable()) {
+                add(MenuAction(Symbols.Forward, R.string.action_forward, onForward))
+            }
+            if (sent) {
+                val pinLabel = if (pinned) R.string.action_unpin else R.string.action_pin
+                add(MenuAction(Symbols.PushPin, pinLabel, onTogglePin, pinned))
+                add(
+                    MenuAction(
+                        if (bookmarked) Symbols.BookmarkFilled else Symbols.Bookmark,
+                        if (bookmarked) R.string.action_unbookmark else R.string.action_bookmark,
+                        onToggleBookmark,
+                        bookmarked
+                    )
+                )
+            }
+            onTranslate?.let { add(MenuAction(Symbols.Translate, R.string.action_translate, it)) }
+            onSummarize?.let { add(MenuAction(Symbols.Summarize, R.string.action_summarize_message, it)) }
+            if (live) onRemind?.let { add(MenuAction(Symbols.AlarmOn, R.string.action_remind, it)) }
+            onShowVersions?.let { add(MenuAction(Symbols.History, R.string.action_edit_history, it)) }
         }
-        if (live && message.eventId != null) {
-            Action(Symbols.PushPin, if (pinned) R.string.action_unpin else R.string.action_pin, onTogglePin)
-            Action(
-                if (bookmarked) Symbols.BookmarkFilled else Symbols.Bookmark,
-                if (bookmarked) R.string.action_unbookmark else R.string.action_bookmark,
-                onToggleBookmark
-            )
+        val danger = buildList {
+            if (!message.isOwn) add(MenuAction(Symbols.Block, R.string.action_block, onBlock))
+            if (message.isOwn && live) add(MenuAction(Symbols.Delete, R.string.action_delete, onDelete))
         }
-        if (message.canEdit && message.body is MessageBody.Text) {
-            Action(Symbols.Edit, R.string.action_edit, onEdit)
+        MenuActions(actions, danger) {
+            LinkActions(remember(message.body) { linksOf(message.body) }, onCopyLink, onShareLink)
         }
-        onShowVersions?.let { Action(Symbols.History, R.string.action_edit_history, it) }
-        if (live) onRemind?.let { Action(Symbols.AlarmOn, R.string.action_remind, it) }
-        if (!message.isOwn) Action(Symbols.Block, R.string.action_block, onBlock, destructive = true)
-        if (message.isOwn && live) Action(Symbols.Delete, R.string.action_delete, onDelete, destructive = true)
         Spacer(Modifier.height(8.dp))
     }
-}
-
-@Composable
-private fun Action(icon: ImageVector, @StringRes label: Int, onClick: () -> Unit, destructive: Boolean = false) {
-    val color = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-    ListItem(
-        headlineContent = { Text(stringResource(label)) },
-        leadingContent = { Icon(icon, contentDescription = null) },
-        colors = ListItemDefaults.colors(headlineColor = color, leadingIconColor = color),
-        modifier = Modifier.clickable(role = Role.Button, onClick = onClick)
-    )
 }
 
 @Composable

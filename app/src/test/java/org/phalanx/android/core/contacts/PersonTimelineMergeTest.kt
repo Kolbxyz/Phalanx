@@ -81,4 +81,12 @@ class PersonTimelineMergeTest {
         assertEquals("!sig", lastUsedChat(listOf(whatsapp, signal)))
         assertNull(lastUsedChat(listOf(ChatPart("!wa", emptyList(), false))))
     }
+
+    @Test
+    fun `knows when the others last wrote, leaving the user's own messages out`() {
+        val whatsapp = ChatPart("!wa", listOf(message("theirs", 10), message("mine", 90, own = true)), false)
+        val signal = ChatPart("!sig", listOf(message("theirs", 50)), hasMore = false)
+        assertEquals(50L, lastTheirsMillis(listOf(whatsapp, signal)))
+        assertNull(lastTheirsMillis(listOf(ChatPart("!wa", listOf(message("mine", 5, own = true)), false))))
+    }
 }

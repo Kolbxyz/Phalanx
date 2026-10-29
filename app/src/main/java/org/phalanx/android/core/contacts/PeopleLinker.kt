@@ -32,14 +32,26 @@ internal fun suggestLinks(rooms: List<RoomSummary>, links: PeopleLinks): List<Li
     }.map { (first, second, reason) -> LinkSuggestion(first, second, reason) }
 }
 
-/** The user's one-to-one chats as people: linked chats together, every other chat on its own. */
+/**
+ * What a chat is linked by: for a one-to-one chat the person, who outlives the room; for any other
+ * chat, a group on Discord or Messenger say, the room itself.
+ */
+internal fun linkKey(room: RoomSummary): String = room.dmUserId ?: room.id
+
+/** Every key [room] may have been linked by: who a chat is with can be told only after it was linked. */
+internal fun linkKeys(room: RoomSummary): Set<String> = setOfNotNull(room.id, room.dmUserId)
+
+/**
+ * The user's chats as conversations: chats linked together, however many people each holds, then
+ * every other chat on its own.
+ */
 internal fun peopleOf(rooms: List<RoomSummary>, links: PeopleLinks): List<Person> {
-    val dms = rooms.filter { it.dmUserId != null }
-    val byUser = dms.associateBy { checkNotNull(it.dmUserId) }
-    val linked = links.groups.map { group -> group.mapNotNull(byUser::get) }.filter { it.size > 1 }
+    val byKey = HashMap<String, RoomSummary>()
+    rooms.forEach { room -> linkKeys(room).forEach { byKey.putIfAbsent(it, room) } }
+    val linked = links.groups.map { group -> group.mapNotNull(byKey::get).distinctBy { it.id } }.filter { it.size > 1 }
     val inGroups = linked.flatten().map { it.id }.toSet()
     return linked.map { Person(it.first().name, it) } +
-        dms.filter { it.id !in inGroups }.map { Person(it.name, listOf(it)) }
+        rooms.filter { it.id !in inGroups }.map { Person(it.name, listOf(it)) }
 }
 
 /** [rooms] with each linked person on one row, and every row's rooms by the row's room ID. */
