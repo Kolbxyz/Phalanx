@@ -228,6 +228,7 @@
     <string name="settings_speech_model_rejected">Ce fichier n’est pas un modèle vocal pris en charge, il n’a donc pas été gardé.</string>
     <string name="settings_translation_rejected">Ce fichier n’est pas un modèle de traduction pris en charge, il n’a donc pas été gardé.</string>
     <string name="transcript_action">Retranscrire</string>
+    <string name="composer_dictating">Retranscription de votre message vocal…</string>
     <string name="transcript_writing">Retranscription…</string>
     <string name="transcript_empty">Aucune parole entendue</string>
     <string name="transcript_partial">Seules les 10 premières minutes ont été retranscrites</string>
@@ -368,7 +369,7 @@
     <string name="bookmarks_other_device">Enregistré sur un autre appareil. Ouvrez-le pour lire le message.</string>
     <string name="bookmarks_sync_failed">Impossible de joindre votre compte, cette liste est peut-être périmée.</string>
     <string name="people_title">Contacts</string>
-    <string name="people_empty">Personne n’est encore lié. Quand une même personne a des discussions sur deux réseaux, elles vous sont proposées ici pour confirmation. Vous pouvez aussi lier des discussions vous-même depuis les détails d’une discussion, avec « Lier une discussion ».</string>
+    <string name="people_empty">Rien n’est encore lié. Quand une même personne a des discussions sur deux réseaux, elles vous sont proposées ici pour confirmation. Vous pouvez aussi lier vous-même n’importe quelles discussions, à deux ou en groupe, depuis les détails d’une discussion, avec « Lier une discussion ».</string>
     <string name="people_suggested">La même personne ?</string>
     <string name="people_same_name">Même nom sur deux réseaux</string>
     <string name="people_same_phone">Même numéro sur deux réseaux</string>
@@ -379,9 +380,9 @@
     <string name="people_failed">Impossible d’enregistrer</string>
     <string name="details_also_on">Aussi sur</string>
     <string name="details_link_chat">Lier une discussion</string>
-    <string name="details_link_chat_title">Même personne que…</string>
+    <string name="details_link_chat_title">Même conversation que…</string>
     <string name="details_link_chat_search">Rechercher vos discussions</string>
-    <string name="details_link_chat_none">Aucune autre discussion à deux ne correspond</string>
+    <string name="details_link_chat_none">Aucune autre discussion ne correspond</string>
     <string name="notification_channel_reminders">Rappels</string>
     <string name="reminder_title">%1$s dans %2$s</string>
     <string name="reminder_title_hidden">Rappel</string>

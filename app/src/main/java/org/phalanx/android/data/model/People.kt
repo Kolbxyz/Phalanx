@@ -4,14 +4,15 @@ import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 
 /**
- * Who the user said are one person: each group is the Matrix IDs of that person's one-to-one chats
- * across networks. [dismissed] are the suggested pairs the user said are not, as [pairKey]s.
+ * Which chats the user said are one conversation: each group holds the link keys of its chats
+ * across networks, the person's Matrix ID for a one-to-one chat and the room ID for any other.
+ * [dismissed] are the suggested pairs the user said are not, as [pairKey]s.
  */
 @Immutable
 @Serializable
 data class PeopleLinks(val groups: List<Set<String>> = emptyList(), val dismissed: Set<String> = emptySet())
 
-/** One person and their one-to-one chats, one per network they were linked on. */
+/** One person, or one group, and their chats: one per network they were linked on. */
 @Immutable
 data class Person(val name: String, val chats: List<RoomSummary>)
 

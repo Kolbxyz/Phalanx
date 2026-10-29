@@ -52,6 +52,7 @@ fun RoomScreen(
     val autoTranslations: AutoTranslateViewModel = hiltViewModel()
     val dictation: DictationViewModel = hiltViewModel()
     val canDictate by dictation.available.collectAsStateWithLifecycle()
+    val dictating by dictation.writing.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val composerState by viewModel.composer.state.collectAsStateWithLifecycle()
     val notice by viewModel.notice.collectAsStateWithLifecycle()
@@ -142,7 +143,8 @@ fun RoomScreen(
                         composerActions,
                         enterToSend = settings?.enterToSend == true,
                         scheduled = scheduled,
-                        canDictate = canDictate
+                        canDictate = canDictate,
+                        dictating = dictating
                     )
                 }
             }

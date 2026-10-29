@@ -18,8 +18,8 @@ import org.phalanx.android.data.repository.TimelineSession
 import org.phalanx.android.di.ApplicationScope
 
 /**
- * The conversation a room is part of: for a chat linked to the same person on other networks, one
- * thread across all of them; for any other room, its own timeline. Everything on a conversation's
+ * The conversation a room is part of: for a chat linked to the same person or group on other
+ * networks, one thread across all of them; for any other room, its own timeline. Everything on a conversation's
  * screen opens it here, so all of it sees the same rows.
  */
 @Singleton
@@ -45,16 +45,23 @@ class Conversations @Inject constructor(
         val roomIds = person.chats.map { it.id }.sorted()
         val opened = roomIds.map { timelines.open(it) }
         val failure = opened.firstOrNull { it.isFailure }
-        return failure ?: Result.success(thread(roomIds, opened.map { it.getOrThrow() }, person.name).session)
+        // Any group among them puts sender names back on the messages.
+        val isDirect = person.chats.all { it.isDirect || it.dmUserId != null }
+        return failure ?: Result.success(thread(roomIds, opened.map { it.getOrThrow() }, person.name, isDirect).session)
     }
 
-    private suspend fun thread(roomIds: List<String>, chats: List<TimelineSession>, name: String) = lock.withLock {
+    private suspend fun thread(
+        roomIds: List<String>,
+        chats: List<TimelineSession>,
+        name: String,
+        isDirect: Boolean
+    ) = lock.withLock {
         val kept = threads.remove(roomIds)
         // A chat closed and reopened since (evicted, or another account): its old timeline is dead.
         val thread = kept?.takeIf { it.chats == chats } ?: run {
             kept?.scope?.cancel()
             val threadScope = CoroutineScope(scope.coroutineContext + SupervisorJob(scope.coroutineContext.job))
-            Thread(PersonTimelineSession(roomIds.zip(chats).toMap(), name, threadScope), chats, threadScope)
+            Thread(PersonTimelineSession(roomIds.zip(chats).toMap(), name, isDirect, threadScope), chats, threadScope)
         }
         threads[roomIds] = thread
         while (threads.size > MAX_THREADS) threads.remove(threads.keys.first())?.scope?.cancel()
@@ -80,7 +87,7 @@ class Conversations @Inject constructor(
     suspend fun roomsOf(roomId: String): List<String> =
         personOf(roomId)?.chats?.map { it.id }?.sorted() ?: listOf(roomId)
 
-    /** The person [roomId] is one of two linked chats or more with; null when it is not linked. */
+    /** The person or group [roomId] is one of two linked chats or more of; null when it is not linked. */
     private suspend fun personOf(roomId: String): Person? {
         val links = people.links.filterNotNull().first()
         if (links.groups.isEmpty()) return null

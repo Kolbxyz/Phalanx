@@ -6,10 +6,12 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.UUID
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.phalanx.android.core.ai.speech.SpeechModelStore
 import org.phalanx.android.core.ai.speech.Transcriber
@@ -29,11 +31,18 @@ class DictationViewModel @Inject constructor(
         .map { it != null && WhisperNative.isAvailable }
         .stateIn(viewModelScope, SharingStarted.Eagerly, models.installed.value != null && WhisperNative.isAvailable)
 
+    private val pending = MutableStateFlow(0)
+
+    /** Recordings still being written out, so the composer can show that text is on its way. */
+    val writing: StateFlow<Boolean> = pending.map { it > 0 }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     /**
      * Writes [voice] out, calling [show] with the text so far as it grows, then deletes the
      * recording: it is never sent.
      */
     fun dictate(voice: OutgoingMedia.Voice, show: (String) -> Unit, onFailed: (Int) -> Unit) {
+        pending.update { it + 1 }
         viewModelScope.launch {
             try {
                 // Its own key: a dictation is never shown again, so it must not come from the cache.
@@ -42,6 +51,7 @@ class DictationViewModel @Inject constructor(
                     onFailure = { onFailed(transcriptFailure(it)) }
                 )
             } finally {
+                pending.update { it - 1 }
                 preparer.discard(voice)
             }
         }

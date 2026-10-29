@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.phalanx.android.core.contacts.linkKey
+import org.phalanx.android.core.contacts.linkKeys
 import org.phalanx.android.core.contacts.peopleOf
 import org.phalanx.android.core.contacts.suggestLinks
 import org.phalanx.android.data.model.LinkSuggestion
@@ -40,14 +42,14 @@ class PeopleViewModel @Inject constructor(
     val failed: StateFlow<Boolean> = mutableFailed.asStateFlow()
 
     fun link(suggestion: LinkSuggestion) = save {
-        repository.link(checkNotNull(suggestion.first.dmUserId), checkNotNull(suggestion.second.dmUserId))
+        repository.link(linkKey(suggestion.first), linkKey(suggestion.second))
     }
 
     fun dismiss(suggestion: LinkSuggestion) = save {
-        repository.dismiss(checkNotNull(suggestion.first.dmUserId), checkNotNull(suggestion.second.dmUserId))
+        repository.dismiss(linkKey(suggestion.first), linkKey(suggestion.second))
     }
 
-    fun unlink(person: Person) = save { person.chats.mapNotNull { it.dmUserId }.forEach { repository.unlink(it) } }
+    fun unlink(person: Person) = save { repository.unlink(person.chats.flatMap(::linkKeys).toSet()) }
 
     fun dismissFailure() {
         mutableFailed.value = false

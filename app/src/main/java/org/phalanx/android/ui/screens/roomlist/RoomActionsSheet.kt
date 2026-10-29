@@ -1,7 +1,5 @@
 package org.phalanx.android.ui.screens.roomlist
 
-import androidx.annotation.StringRes
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,22 +7,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.ui.components.MatrixAvatar
+import org.phalanx.android.ui.components.MenuAction
+import org.phalanx.android.ui.components.MenuActions
 import org.phalanx.android.ui.components.ModalSheet
 import org.phalanx.android.ui.theme.Symbols
 
@@ -50,41 +46,37 @@ internal fun RoomActionsSheet(
             Text(room.name, style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Spacer(Modifier.height(8.dp))
-        if (room.hasUnread) {
-            Action(Symbols.MarkChatRead, R.string.room_action_mark_read, onToggleRead)
-        } else {
-            Action(Symbols.MarkChatUnread, R.string.room_action_mark_unread, onToggleRead)
-        }
-        if (room.isFavourite) {
-            Action(Symbols.StarOutline, R.string.room_action_unfavourite, onToggleFavourite)
-        } else {
-            Action(Symbols.Star, R.string.room_action_favourite, onToggleFavourite)
-        }
-        if (room.isMuted) {
-            Action(Symbols.Notifications, R.string.room_action_unmute, onToggleMuted)
-        } else {
-            Action(Symbols.NotificationsOff, R.string.room_action_mute, onToggleMuted)
-        }
-        if (room.isLowPriority) {
-            Action(Symbols.Unarchive, R.string.room_action_unarchive, onToggleArchived)
-        } else {
-            Action(Symbols.Archive, R.string.room_action_archive, onToggleArchived)
-        }
-        Action(Symbols.Info, R.string.room_action_details, onDetails)
-        Action(Symbols.Logout, R.string.room_action_leave, onLeave, destructive = true)
+        MenuActions(
+            actions = listOf(
+                if (room.hasUnread) {
+                    MenuAction(Symbols.MarkChatRead, R.string.room_action_mark_read, onToggleRead)
+                } else {
+                    MenuAction(Symbols.MarkChatUnread, R.string.room_action_mark_unread, onToggleRead)
+                },
+                MenuAction(
+                    if (room.isFavourite) Symbols.Star else Symbols.StarOutline,
+                    if (room.isFavourite) R.string.room_action_unfavourite else R.string.room_action_favourite,
+                    onToggleFavourite,
+                    room.isFavourite
+                ),
+                MenuAction(
+                    if (room.isMuted) Symbols.NotificationsOff else Symbols.Notifications,
+                    if (room.isMuted) R.string.room_action_unmute else R.string.room_action_mute,
+                    onToggleMuted,
+                    room.isMuted
+                ),
+                MenuAction(
+                    if (room.isLowPriority) Symbols.Unarchive else Symbols.Archive,
+                    if (room.isLowPriority) R.string.room_action_unarchive else R.string.room_action_archive,
+                    onToggleArchived,
+                    room.isLowPriority
+                ),
+                MenuAction(Symbols.Info, R.string.room_action_details, onDetails)
+            ),
+            danger = listOf(MenuAction(Symbols.Logout, R.string.room_action_leave, onLeave))
+        )
         Spacer(Modifier.height(8.dp))
     }
-}
-
-@Composable
-private fun Action(icon: ImageVector, @StringRes label: Int, onClick: () -> Unit, destructive: Boolean = false) {
-    val color = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-    ListItem(
-        headlineContent = { Text(stringResource(label)) },
-        leadingContent = { Icon(icon, contentDescription = null) },
-        colors = ListItemDefaults.colors(headlineColor = color, leadingIconColor = color),
-        modifier = Modifier.clickable(role = Role.Button, onClick = onClick)
-    )
 }
 
 /** Leaving can't be undone from here: an invite-only room needs a new invite to come back. */

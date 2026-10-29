@@ -25,8 +25,8 @@ import org.phalanx.android.ui.screens.roomlist.label
 import org.phalanx.android.ui.theme.Symbols
 
 /**
- * "Also on": the same person's chats on other networks, each opening that chat, and a chip to link
- * another of the user's one-to-one chats to them by hand.
+ * "Also on": the same conversation's chats on other networks, each opening that chat, and a chip to
+ * link another of the user's chats to it by hand, one-to-one or group.
  */
 @Composable
 internal fun AlsoOnSection(onOpenRoom: (String) -> Unit, viewModel: AlsoOnViewModel = hiltViewModel()) {

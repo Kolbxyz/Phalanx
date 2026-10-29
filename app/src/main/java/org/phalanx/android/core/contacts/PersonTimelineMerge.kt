@@ -67,7 +67,13 @@ internal fun loadedBackTo(parts: List<ChatPart>): Long? {
 internal fun laggingChat(parts: List<ChatPart>): String? = parts.filter { it.hasMore }
     .maxByOrNull { it.oldestMillis() ?: Long.MAX_VALUE }?.roomId
 
-/** The chat the person last wrote from, else the one with the latest message; null with no message. */
+/** When anyone but the user last wrote, in any of the chats; null before anyone has. */
+internal fun lastTheirsMillis(parts: List<ChatPart>): Long? = parts.flatMap { it.entries }
+    .filterIsInstance<TimelineEntry.Message>()
+    .filter { !it.isOwn }
+    .maxOfOrNull { it.timestampMillis }
+
+/** The chat the others last wrote from, else the one with the latest message; null with no message. */
 internal fun lastUsedChat(parts: List<ChatPart>): String? {
     val messages = parts.flatMap { part ->
         part.entries.filterIsInstance<TimelineEntry.Message>().map { part.roomId to it }

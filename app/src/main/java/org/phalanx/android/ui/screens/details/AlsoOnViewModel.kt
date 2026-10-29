@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.phalanx.android.core.contacts.linkKey
 import org.phalanx.android.core.contacts.peopleOf
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.repository.PeopleRepository
@@ -22,8 +23,8 @@ import org.phalanx.android.data.repository.RoomListRepository
 import org.phalanx.android.ui.navigation.RoomDetailsRoute
 
 /**
- * This one-to-one chat's person: their chats on other networks, as the user linked them, and the
- * other one-to-one chats the user can link to them by hand.
+ * This chat's conversation: the same person's or group's chats on other networks, as the user
+ * linked them, and every other chat the user can link to it by hand.
  */
 data class AlsoOnState(val others: List<RoomSummary>, val candidates: List<RoomSummary>)
 
@@ -55,13 +56,12 @@ class AlsoOnViewModel @Inject constructor(
     /** The last link could not be saved. */
     val failed: StateFlow<Boolean> = mutableFailed.asStateFlow()
 
-    /** Makes [other]'s person and this chat's one person. */
+    /** Makes [other]'s conversation and this chat's one. */
     fun link(other: RoomSummary) {
-        val mine = roomList.rooms.value?.firstOrNull { it.id == roomId }?.dmUserId ?: return
-        val theirs = other.dmUserId ?: return
+        val mine = roomList.rooms.value?.firstOrNull { it.id == roomId } ?: return
         viewModelScope.launch {
             mutableFailed.value = try {
-                people.link(mine, theirs)
+                people.link(linkKey(mine), linkKey(other))
                 false
             } catch (_: IOException) {
                 true

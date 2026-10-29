@@ -28,7 +28,7 @@ import org.phalanx.android.ui.screens.roomlist.SourceIcon
 import org.phalanx.android.ui.screens.roomlist.label
 import org.phalanx.android.ui.theme.Symbols
 
-/** The user's other one-to-one chats, filtered by name, to pick the one that is the same person. */
+/** The user's other chats, filtered by name, to pick the one that is the same conversation. */
 @Composable
 internal fun LinkChatSheet(candidates: List<RoomSummary>, onPick: (RoomSummary) -> Unit, onDismiss: () -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }

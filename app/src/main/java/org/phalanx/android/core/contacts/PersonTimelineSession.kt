@@ -19,18 +19,19 @@ import org.phalanx.android.data.repository.TimelineSession
 import org.phalanx.android.data.repository.TimelineUnavailableException
 
 /**
- * One person's chats on every network they were linked on, as one conversation. A message is acted
- * on in the chat it came from, a reply goes where the quoted message is, and anything new goes to
- * [target]: the network the person last wrote from, until the user picks another.
+ * One person's or group's chats on every network they were linked on, as one conversation. A
+ * message is acted on in the chat it came from, a reply goes where the quoted message is, and
+ * anything new goes to [target]: the network the others last wrote from, or the one the user
+ * picked, until the others write again.
  */
 class PersonTimelineSession internal constructor(
     /** Room ID to its open timeline, in the person's order; the first keeps the draft. */
     private val chats: Map<String, TimelineSession>,
     override val title: String,
+    /** False once a group is among the chats, so messages carry their sender's name. */
+    override val isDirect: Boolean,
     scope: CoroutineScope
 ) : TimelineSession {
-    override val isDirect: Boolean = true
-
     val roomIds: List<String> = chats.keys.toList()
 
     private val parts: StateFlow<List<ChatPart>> = combine(
@@ -52,12 +53,15 @@ class PersonTimelineSession internal constructor(
         lists.flatMap { it }.distinctBy { it.userId }
     }.stateIn(scope, SharingStarted.Eagerly, emptyList())
 
-    // Set once the user picks a network; until then the target follows the person.
-    private val chosen = MutableStateFlow<String?>(null)
+    // The user's pick, with when the others had last written then: a newer message from them, on
+    // whichever network, takes the target back to where they are.
+    private data class Choice(val roomId: String, val theirsAt: Long?)
+
+    private val chosen = MutableStateFlow<Choice?>(null)
 
     /** Where a new message goes. */
-    val target: StateFlow<String> = combine(parts, chosen) { all, pick -> pick ?: lastUsedChat(all) ?: roomIds.first() }
-        .stateIn(scope, SharingStarted.Eagerly, lastUsedChat(parts.value) ?: roomIds.first())
+    val target: StateFlow<String> = combine(parts, chosen) { all, pick -> targetOf(all, pick) }
+        .stateIn(scope, SharingStarted.Eagerly, targetOf(parts.value, null))
 
     init {
         require(chats.size > 1) { "A person's thread joins two chats or more" }
@@ -67,7 +71,12 @@ class PersonTimelineSession internal constructor(
 
     fun choose(roomId: String) {
         require(roomId in chats) { "Not one of this person's chats" }
-        chosen.value = roomId
+        chosen.value = Choice(roomId, lastTheirsMillis(parts.value))
+    }
+
+    private fun targetOf(all: List<ChatPart>, pick: Choice?): String {
+        val kept = pick?.takeIf { (lastTheirsMillis(all) ?: Long.MIN_VALUE) <= (it.theirsAt ?: Long.MIN_VALUE) }
+        return kept?.roomId ?: lastUsedChat(all) ?: roomIds.first()
     }
 
     /**
