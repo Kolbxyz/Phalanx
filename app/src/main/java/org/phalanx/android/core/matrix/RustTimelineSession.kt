@@ -15,23 +15,13 @@ import org.matrix.rustcomponents.sdk.ClientException
 import org.matrix.rustcomponents.sdk.ComposerDraft
 import org.matrix.rustcomponents.sdk.ComposerDraftType
 import org.matrix.rustcomponents.sdk.EditedContent
-import org.matrix.rustcomponents.sdk.EmoteMessageContent
-import org.matrix.rustcomponents.sdk.EventOrTransactionId
-import org.matrix.rustcomponents.sdk.FormattedBody
-import org.matrix.rustcomponents.sdk.Mentions
-import org.matrix.rustcomponents.sdk.MessageFormat
-import org.matrix.rustcomponents.sdk.MessageType
-import org.matrix.rustcomponents.sdk.NoticeMessageContent
 import org.matrix.rustcomponents.sdk.ReceiptType
 import org.matrix.rustcomponents.sdk.Room
-import org.matrix.rustcomponents.sdk.RoomException
-import org.matrix.rustcomponents.sdk.RoomMessageEventContentWithoutRelation
+import org.matrix.rustcomponents.sdk.SendTarget
 import org.matrix.rustcomponents.sdk.TaskHandle
-import org.matrix.rustcomponents.sdk.TextMessageContent
 import org.matrix.rustcomponents.sdk.Timeline
 import org.matrix.rustcomponents.sdk.TimelineDiff
 import org.matrix.rustcomponents.sdk.TimelineListener
-import org.matrix.rustcomponents.sdk.messageEventContentNew
 import org.matrix.rustcomponents.sdk.use
 import org.phalanx.android.core.format.LinkTrackers
 import org.phalanx.android.core.format.OutgoingMessage
@@ -41,16 +31,15 @@ import org.phalanx.android.data.model.CustomEmote
 import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.OutgoingMedia
 import org.phalanx.android.data.model.TimelineEntry
-import org.phalanx.android.data.repository.NotForwardableException
 import org.phalanx.android.data.repository.TimelineSession
 
 internal class RustTimelineSession private constructor(
     private val room: Room,
-    private val timeline: Timeline,
-    private val settings: SettingsStore,
+    internal val timeline: Timeline,
+    internal val settings: SettingsStore,
     private val attachments: AttachmentPreparer,
     private val drafts: RustDraftsRepository,
-    private val emotes: SessionEmotes,
+    internal val emotes: SessionEmotes,
     override val title: String,
     override val isDirect: Boolean
 ) : TimelineSession {
@@ -105,19 +94,6 @@ internal class RustTimelineSession private constructor(
             timeline.edit(target, EditedContent.RoomMessage(contentOf(text, mentions)))
         }
 
-    /** Markdown follows the user's setting; mentions are rendered and listed either way. */
-    private suspend fun contentOf(text: String, mentions: List<Member>): RoomMessageEventContentWithoutRelation {
-        val prefs = settings.current()
-        val message = OutgoingMessage.of(text, mentions, prefs.markdown, emotes.byShortcode(), prefs.stripLinkTrackers)
-        val formatted = message.html?.let { FormattedBody(MessageFormat.Html, it) }
-        val type = when (message.kind) {
-            OutgoingMessage.Kind.Text -> MessageType.Text(TextMessageContent(message.body, formatted))
-            OutgoingMessage.Kind.Emote -> MessageType.Emote(EmoteMessageContent(message.body, formatted))
-            OutgoingMessage.Kind.Notice -> MessageType.Notice(NoticeMessageContent(message.body, formatted))
-        }
-        return messageEventContentNew(type).use { it.withMentions(Mentions(message.userIds, message.mentionsRoom)) }
-    }
-
     override suspend fun loadDraft(): String? = withContext(Dispatchers.IO) {
         try {
             room.loadComposerDraft(threadRoot = null)?.use { it.plainText }?.takeIf { it.isNotBlank() }
@@ -150,30 +126,14 @@ internal class RustTimelineSession private constructor(
         timeline.redactEvent(target, reason = null)
     }
 
+    override suspend fun retrySend(message: TimelineEntry.Message): Result<Unit> = io {
+        val target = message.target() ?: return@io
+        timeline.retrySend(target, SendTarget.Event)
+    }
+
     override suspend fun setPinned(message: TimelineEntry.Message, pinned: Boolean): Result<Unit> = io {
         val eventId = message.eventId ?: return@io
         if (pinned) timeline.pinEvent(eventId) else timeline.unpinEvent(eventId)
-    }
-
-    private fun TimelineEntry.Message.target(): EventOrTransactionId? =
-        eventId?.let { EventOrTransactionId.EventId(it) }
-            ?: transactionId?.let { EventOrTransactionId.TransactionId(it) }
-
-    private suspend fun io(block: suspend () -> Unit): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            runCatchingSdk(block)
-        } catch (e: NotForwardableException) {
-            Result.failure(e)
-        }
-    }
-
-    private suspend fun runCatchingSdk(block: suspend () -> Unit): Result<Unit> = try {
-        block()
-        Result.success(Unit)
-    } catch (e: ClientException) {
-        Result.failure(e)
-    } catch (e: RoomException) {
-        Result.failure(e)
     }
 
     override suspend fun loadOlder(): Result<Unit> {
@@ -213,12 +173,6 @@ internal class RustTimelineSession private constructor(
     }
 
     override fun setTyping(typing: Boolean) = typingState.notice(typing)
-
-    /** Sends [eventId]'s content again through [to]'s timeline, as Element X does. */
-    suspend fun forward(eventId: String, to: RustTimelineSession): Result<Unit> = io {
-        val content = timeline.forwardableContent(eventId) ?: throw NotForwardableException()
-        to.timeline.send(content).close()
-    }
 
     override suspend fun members(userIds: List<String>): List<Member> = withContext(Dispatchers.IO) {
         userIds.map { userId ->

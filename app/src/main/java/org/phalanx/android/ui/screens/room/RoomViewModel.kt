@@ -160,6 +160,8 @@ class RoomViewModel @Inject constructor(
 
     fun redact(message: TimelineEntry.Message) = act { it.redact(message) }
 
+    fun retrySend(message: TimelineEntry.Message) = act { it.retrySend(message) }
+
     fun setPinned(message: TimelineEntry.Message, pinned: Boolean) = act { it.setPinned(message, pinned) }
 
     fun forward(message: TimelineEntry.Message, toRoomId: String) {

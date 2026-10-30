@@ -86,6 +86,7 @@ fun RoomScreen(
             onToggleReaction = viewModel::toggleReaction,
             onShowReactors = reactorsModel::show,
             onReply = viewModel.composer::reply,
+            onRetry = viewModel::retrySend,
             onLongPress = { selected = it },
             onOpenProfile = { profileOf = it },
             onJumpTo = viewModel::jumpTo

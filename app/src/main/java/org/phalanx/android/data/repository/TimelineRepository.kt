@@ -73,6 +73,9 @@ interface TimelineSession {
 
     suspend fun redact(message: TimelineEntry.Message): Result<Unit>
 
+    /** Retries this account's [message] after it failed to send; does nothing once it went out. */
+    suspend fun retrySend(message: TimelineEntry.Message): Result<Unit>
+
     /** Pins or unpins [message] for everyone in the room; needs the right to change pins. */
 
     suspend fun setPinned(message: TimelineEntry.Message, pinned: Boolean): Result<Unit>

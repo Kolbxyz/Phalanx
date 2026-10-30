@@ -32,7 +32,9 @@ data class ComposerState(
     val mentions: List<Member> = emptyList(),
     val suggestions: List<MentionSuggestion> = emptyList(),
     /** The room's custom emoji matching the ":name" being typed. */
-    val emoteSuggestions: List<CustomEmote> = emptyList()
+    val emoteSuggestions: List<CustomEmote> = emptyList(),
+    /** True between tapping send/edit and the SDK accepting it, so a second tap can't fire twice. */
+    val sending: Boolean = false
 ) {
     val draft: String
         get() = input.text
@@ -41,9 +43,9 @@ data class ComposerState(
     fun withDraft(text: String): ComposerState = copy(input = TextFieldValue(text, TextRange(text.length)))
 
     val canSend: Boolean
-        get() = attachments.any { it.media != null } || draft.isNotBlank()
+        get() = !sending && (attachments.any { it.media != null } || draft.isNotBlank())
 
     /** The send button turns into a microphone when there is nothing else to send. */
     val showsMic: Boolean
-        get() = !canSend && attachments.isEmpty() && mode !is ComposerMode.Edit
+        get() = !sending && !canSend && attachments.isEmpty() && mode !is ComposerMode.Edit
 }

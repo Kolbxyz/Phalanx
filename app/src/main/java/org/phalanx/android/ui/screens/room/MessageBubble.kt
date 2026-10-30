@@ -100,7 +100,13 @@ internal fun MessageBubble(
                 }
                 Spacer(Modifier.width(8.dp))
             }
-            if (own) SendStatus(message.sendState, Modifier.padding(end = 6.dp, bottom = 6.dp))
+            if (own) {
+                SendStatus(
+                    state = message.sendState,
+                    onRetry = { actions.onRetry(message) },
+                    modifier = Modifier.padding(end = 6.dp, bottom = 6.dp)
+                )
+            }
             Column(horizontalAlignment = if (own) Alignment.End else Alignment.Start) {
                 if (showAvatar && startsRun) {
                     Text(
@@ -155,7 +161,7 @@ private fun Modifier.appear(isNew: Boolean, own: Boolean, sent: Boolean): Modifi
 
 /** Only shown while something is pending or wrong; a sent message needs no badge. */
 @Composable
-private fun SendStatus(state: SendState, modifier: Modifier = Modifier) {
+private fun SendStatus(state: SendState, onRetry: () -> Unit, modifier: Modifier = Modifier) {
     when (state) {
         SendState.Sent -> Unit
         SendState.Sending -> Icon(
@@ -168,7 +174,7 @@ private fun SendStatus(state: SendState, modifier: Modifier = Modifier) {
             Symbols.ErrorOutline,
             contentDescription = stringResource(R.string.timeline_failed),
             tint = MaterialTheme.colorScheme.error,
-            modifier = modifier.size(16.dp)
+            modifier = modifier.size(16.dp).clickable(role = Role.Button, onClick = onRetry)
         )
     }
 }
