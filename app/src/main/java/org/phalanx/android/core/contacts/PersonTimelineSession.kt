@@ -111,6 +111,9 @@ class PersonTimelineSession internal constructor(
     override suspend fun redact(message: TimelineEntry.Message) =
         on(message) { chat, original -> chat.redact(original) }
 
+    override suspend fun retrySend(message: TimelineEntry.Message) =
+        on(message) { chat, original -> chat.retrySend(original) }
+
     override suspend fun setPinned(message: TimelineEntry.Message, pinned: Boolean) =
         on(message) { chat, original -> chat.setPinned(original, pinned) }
 

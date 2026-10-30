@@ -101,7 +101,7 @@
     <string name="room_unavailable">Cette discussion n’est pas disponible.</string>
     <string name="timeline_edited">modifié</string>
     <string name="timeline_sending">Envoi…</string>
-    <string name="timeline_failed">Non envoyé</string>
+    <string name="timeline_failed">Non envoyé. Touchez pour réessayer.</string>
     <string name="timeline_redacted">Message supprimé</string>
     <string name="timeline_undecryptable">Message encore indéchiffrable. Les clés de l’expéditeur ne sont pas arrivées sur cet appareil.</string>
     <string name="timeline_kind_image">Photo</string>

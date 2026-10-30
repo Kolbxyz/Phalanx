@@ -46,6 +46,8 @@ internal class ComposerController(
 
     private var session: TimelineSession? = null
     private val completions: DraftCompletions = DraftCompletions(scope, { session }) { update(completions::refresh) }
+    private val voice =
+        VoiceMessageRecorder(scope, recorder, preparer, { session }, { mutableState.value }, ::update, notify)
 
     init {
         scope.launch {
@@ -176,11 +178,17 @@ internal class ComposerController(
         if (!snapshot.canSend) return
         val text = snapshot.draft.trim()
         when (val mode = snapshot.mode) {
-            is ComposerMode.Edit -> scope.launch {
-                current.edit(mode.message, text, snapshot.mentions).fold(
-                    onSuccess = { update { if (it.mode == mode) ComposerState() else it } },
-                    onFailure = { notify(SEND_FAILED) }
-                )
+            is ComposerMode.Edit -> {
+                update { it.copy(sending = true) }
+                scope.launch {
+                    current.edit(mode.message, text, snapshot.mentions).fold(
+                        onSuccess = { update { if (it.mode == mode) ComposerState() else it.copy(sending = false) } },
+                        onFailure = {
+                            update { it.copy(sending = false) }
+                            notify(SEND_FAILED)
+                        }
+                    )
+                }
             }
             else -> sendNew(current, snapshot, text, (mode as? ComposerMode.Reply)?.message)
         }
@@ -194,16 +202,20 @@ internal class ComposerController(
     ) {
         val media = snapshot.attachments.mapNotNull { it.media }
         if (media.isEmpty()) {
+            update { it.copy(sending = true) }
             scope.launch {
                 // The text is only cleared once the SDK accepted it, so a failure never loses it.
                 current.send(text, snapshot.mentions, replyTo).fold(
                     onSuccess = {
                         update {
-                            if (it.draft.trim() != text) return@update it
-                            it.withDraft("").copy(mode = ComposerMode.New, mentions = emptyList())
+                            if (it.draft.trim() != text) return@update it.copy(sending = false)
+                            it.withDraft("").copy(mode = ComposerMode.New, mentions = emptyList(), sending = false)
                         }
                     },
-                    onFailure = { notify(SEND_FAILED) }
+                    onFailure = {
+                        update { it.copy(sending = false) }
+                        notify(SEND_FAILED)
+                    }
                 )
             }
             return
@@ -239,33 +251,14 @@ internal class ComposerController(
         }
     }
 
-    fun startRecording() {
-        recorder.start(scope).fold(
-            onSuccess = { update { it.copy(recording = emptyList()) } },
-            onFailure = { notify(Notice(R.string.composer_record_failed, NoticeKind.Error)) }
-        )
-    }
+    fun startRecording() = voice.start()
 
-    fun cancelRecording() {
-        recorder.cancel()
-        update { it.copy(recording = null) }
-    }
+    fun cancelRecording() = voice.cancel()
 
-    fun sendRecording() {
-        val voice = stopRecording() ?: return
-        val replyTo = (mutableState.value.mode as? ComposerMode.Reply)?.message
-        val current = session ?: return preparer.discard(voice)
-        if (replyTo != null) update { it.copy(mode = ComposerMode.New) }
-        scope.launch { current.sendMedia(voice, null, replyTo).onFailure { notify(SEND_FAILED) } }
-    }
+    fun sendRecording() = voice.send()
 
     /** Ends the recording and hands its audio over; null when it was too short, which the user is told. */
-    fun stopRecording(): OutgoingMedia.Voice? {
-        val voice = recorder.stop()
-        update { it.copy(recording = null) }
-        if (voice == null) notify(Notice(R.string.composer_record_too_short, NoticeKind.Error))
-        return voice
-    }
+    fun stopRecording(): OutgoingMedia.Voice? = voice.stop()
 
     /** Shows [text], dictated so far, after [before]: the draft as it was when the dictation began. */
     fun dictated(before: String, text: String) =
@@ -282,7 +275,7 @@ internal class ComposerController(
         if (snapshot.mode !is ComposerMode.Edit) session?.saveDraft(snapshot.draft)
     }
 
-    private inline fun update(transform: (ComposerState) -> ComposerState) = mutableState.update(transform)
+    private fun update(transform: (ComposerState) -> ComposerState) = mutableState.update(transform)
 
     private companion object {
         const val DRAFT_SAVE_DELAY_MILLIS = 600L

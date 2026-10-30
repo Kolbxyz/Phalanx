@@ -15,6 +15,8 @@ internal class MessageActions(
     val onToggleReaction: (TimelineEntry.Message, String) -> Unit,
     val onShowReactors: (TimelineEntry.Message, String) -> Unit,
     val onReply: (TimelineEntry.Message) -> Unit,
+    /** A message that failed to send was tapped: send it again. */
+    val onRetry: (TimelineEntry.Message) -> Unit,
     val onLongPress: (TimelineEntry.Message) -> Unit,
     /** A mention, an avatar or a sender's name was tapped. */
     val onOpenProfile: (userId: String) -> Unit,

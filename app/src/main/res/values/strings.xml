@@ -101,7 +101,7 @@
     <string name="room_unavailable">This chat isn’t available.</string>
     <string name="timeline_edited">edited</string>
     <string name="timeline_sending">Sending…</string>
-    <string name="timeline_failed">Not sent</string>
+    <string name="timeline_failed">Not sent. Tap to retry.</string>
     <string name="timeline_redacted">Message deleted</string>
     <string name="timeline_undecryptable">Can’t decrypt this message yet. The sender’s keys haven’t reached this device.</string>
     <string name="timeline_kind_image">Photo</string>
