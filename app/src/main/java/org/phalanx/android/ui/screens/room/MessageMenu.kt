@@ -17,6 +17,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
+import org.phalanx.android.core.format.FoundEntity
 import org.phalanx.android.data.model.AppSettings
 import org.phalanx.android.data.model.CustomEmote
 import org.phalanx.android.data.model.MessageBody
@@ -33,7 +34,8 @@ internal fun MessageMenu(
     assist: AssistViewModel = hiltViewModel(),
     reminder: ReminderViewModel = hiltViewModel(),
     bookmarks: BookmarkViewModel = hiltViewModel(),
-    transcripts: TranscriptViewModel = hiltViewModel()
+    transcripts: TranscriptViewModel = hiltViewModel(),
+    entities: EntitiesViewModel = hiltViewModel()
 ) {
     val clipboard = LocalClipboard.current
     val context = LocalContext.current
@@ -60,6 +62,9 @@ internal fun MessageMenu(
     val offlinePairs by assist.pairs.collectAsStateWithLifecycle()
     val emotes by produceState(emptyList<CustomEmote>(), message != null) {
         if (message != null) value = viewModel.emotes()
+    }
+    val found by produceState(emptyList<FoundEntity>(), readable) {
+        value = readable?.let { entities.find(it) }.orEmpty()
     }
 
     fun copy(value: String) {
@@ -88,6 +93,10 @@ internal fun MessageMenu(
                 ?.let { then { assist.summarize(it) } },
             onCopyLink = { link -> then { copy(link) }() },
             onShareLink = { link -> then { shareText(context, link) }() },
+            found = found,
+            onEntityAction = { action ->
+                then { if (!action.launch(context)) viewModel.notify(R.string.entity_action_failed) }()
+            },
             onForward = then { forwarding = message },
             onRemind = message.eventId?.let { then { remindingOf = message } },
             pinned = message.eventId in header?.pinnedEventIds.orEmpty(),

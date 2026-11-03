@@ -13,6 +13,8 @@ internal class MessageActions(
     /** A local URI the player can read, or null when the download failed. */
     val resolveFile: suspend (media: MediaRef, filename: String, mimeType: String?) -> Uri?,
     val onToggleReaction: (TimelineEntry.Message, String) -> Unit,
+    /** A poll's choices changed: the answer IDs to send, empty to take the vote back. */
+    val onVote: (TimelineEntry.Message, List<String>) -> Unit,
     val onShowReactors: (TimelineEntry.Message, String) -> Unit,
     val onReply: (TimelineEntry.Message) -> Unit,
     /** A message that failed to send was tapped: send it again. */

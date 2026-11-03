@@ -84,6 +84,7 @@ fun RoomScreen(
             onOpenFile = viewModel::openFile,
             resolveFile = viewModel::fileUri,
             onToggleReaction = viewModel::toggleReaction,
+            onVote = viewModel::vote,
             onShowReactors = reactorsModel::show,
             onReply = viewModel.composer::reply,
             onRetry = viewModel::retrySend,

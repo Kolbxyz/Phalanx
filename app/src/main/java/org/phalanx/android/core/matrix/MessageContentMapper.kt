@@ -12,8 +12,11 @@ import org.phalanx.android.data.model.UnsupportedKind
 /** Upper bound of an MSC3246 waveform sample. */
 private const val WAVEFORM_MAX = 1024f
 
-/** [isReply] lets plain-text bodies drop the quoted fallback some bridges still prepend. */
-internal fun MsgLikeKind.toBody(isReply: Boolean): MessageBody = when (this) {
+/**
+ * [isReply] lets plain-text bodies drop the quoted fallback some bridges still prepend; [ownUserId]
+ * tells which of a poll's votes are this account's.
+ */
+internal fun MsgLikeKind.toBody(isReply: Boolean, ownUserId: String? = null): MessageBody = when (this) {
     is MsgLikeKind.Message -> content.toBody(isReply)
     is MsgLikeKind.Sticker -> MessageBody.Image(
         media = source.toRef(),
@@ -27,7 +30,7 @@ internal fun MsgLikeKind.toBody(isReply: Boolean): MessageBody = when (this) {
     )
     is MsgLikeKind.Redacted -> MessageBody.Redacted
     is MsgLikeKind.UnableToDecrypt -> MessageBody.Undecryptable
-    is MsgLikeKind.Poll -> MessageBody.Unsupported(UnsupportedKind.Poll)
+    is MsgLikeKind.Poll -> toPoll(ownUserId)
     is MsgLikeKind.LiveLocation -> MessageBody.Unsupported(UnsupportedKind.LiveLocation)
     is MsgLikeKind.Other -> MessageBody.Unsupported(UnsupportedKind.Other)
 }

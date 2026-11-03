@@ -3,6 +3,8 @@ package org.phalanx.android.ui.screens.settings
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,7 +22,7 @@ import org.phalanx.android.ui.components.SegmentedSection
 import org.phalanx.android.ui.screens.lock.canLockApp
 import org.phalanx.android.ui.theme.Symbols
 
-/** App lock, screenshot blocking and the incognito keyboard: who can see what is on the screen. */
+/** App lock and its duress code, screenshot blocking and the incognito keyboard: who can see what is on the screen. */
 @Composable
 internal fun ScreenPrivacySection(current: AppSettings, viewModel: SettingsViewModel) {
     val context = LocalContext.current
@@ -59,6 +61,8 @@ internal fun ScreenPrivacySection(current: AppSettings, viewModel: SettingsViewM
                 label = { stringResource(it.labelRes()) },
                 onSelect = viewModel::setLockTimeout
             )
+            Spacer(Modifier.height(16.dp))
+            DuressSetting()
         }
     }
 }

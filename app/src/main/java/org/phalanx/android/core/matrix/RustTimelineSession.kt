@@ -121,6 +121,11 @@ internal class RustTimelineSession private constructor(
         timeline.toggleReaction(target, key)
     }
 
+    override suspend fun vote(poll: TimelineEntry.Message, answerIds: List<String>): Result<Unit> = io {
+        val eventId = poll.eventId ?: return@io
+        timeline.sendPollResponse(eventId, answerIds)
+    }
+
     override suspend fun redact(message: TimelineEntry.Message): Result<Unit> = io {
         val target = message.target() ?: return@io
         timeline.redactEvent(target, reason = null)

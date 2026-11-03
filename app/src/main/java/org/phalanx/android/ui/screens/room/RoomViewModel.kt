@@ -155,6 +155,8 @@ class RoomViewModel @Inject constructor(
 
     fun toggleReaction(message: TimelineEntry.Message, key: String) = act { it.toggleReaction(message, key) }
 
+    fun vote(poll: TimelineEntry.Message, answerIds: List<String>) = act { it.vote(poll, answerIds) }
+
     /** The custom emoji that make sense in this room; none until it is open. */
     suspend fun emotes(): List<CustomEmote> = session?.emotes().orEmpty()
 

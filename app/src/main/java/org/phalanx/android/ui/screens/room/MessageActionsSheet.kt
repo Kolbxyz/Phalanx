@@ -23,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
+import org.phalanx.android.core.format.EntityAction
+import org.phalanx.android.core.format.FoundEntity
 import org.phalanx.android.data.model.CustomEmote
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
@@ -53,6 +55,9 @@ internal fun MessageActionsSheet(
     onSummarize: (() -> Unit)?,
     onCopyLink: (String) -> Unit,
     onShareLink: (String) -> Unit,
+    /** Dates, numbers and addresses the phone found in the text, with what to do with each. */
+    found: List<FoundEntity>,
+    onEntityAction: (EntityAction) -> Unit,
     onEdit: () -> Unit,
     /** Null when the message's versions are not offered: not edited, or the setting is off. */
     onShowVersions: (() -> Unit)?,
@@ -147,6 +152,7 @@ internal fun MessageActionsSheet(
             if (message.isOwn && live) add(MenuAction(Symbols.Delete, R.string.action_delete, onDelete))
         }
         MenuActions(actions, danger) {
+            EntityRows(found, onEntityAction)
             LinkActions(remember(message.body) { linksOf(message.body) }, onCopyLink, onShareLink)
         }
         Spacer(Modifier.height(8.dp))
@@ -181,5 +187,5 @@ internal fun BlockUserDialog(name: String, onConfirm: () -> Unit, onDismiss: () 
 private fun MessageBody.isForwardable(): Boolean = when (this) {
     is MessageBody.Text, is MessageBody.Image, is MessageBody.Video, is MessageBody.Audio,
     is MessageBody.File, is MessageBody.Location -> true
-    is MessageBody.Unsupported, MessageBody.Redacted, MessageBody.Undecryptable -> false
+    is MessageBody.Poll, is MessageBody.Unsupported, MessageBody.Redacted, MessageBody.Undecryptable -> false
 }

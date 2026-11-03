@@ -71,6 +71,12 @@ interface TimelineSession {
     /** Adds the reaction [key], or removes it when this account already reacted with it. */
     suspend fun toggleReaction(message: TimelineEntry.Message, key: String): Result<Unit>
 
+    /**
+     * Votes for [answerIds] in [poll], replacing this account's earlier vote; an empty list takes
+     * it back. Bridges pass the vote on to the network the poll came from.
+     */
+    suspend fun vote(poll: TimelineEntry.Message, answerIds: List<String>): Result<Unit>
+
     suspend fun redact(message: TimelineEntry.Message): Result<Unit>
 
     /** Retries this account's [message] after it failed to send; does nothing once it went out. */

@@ -187,4 +187,12 @@ internal object Symbols {
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_speech_to_text)
     val Call: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_call)
+    val Poll: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_bar_chart)
+    val Event: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_event)
+    val Mail: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_mail)
+    val Flight: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_flight)
 }
