@@ -27,6 +27,10 @@ android {
     namespace = "org.phalanx.android"
     compileSdk = 37
 
+    // Pinned rather than left to AGP's default, so CI can install this exact NDK before Gradle
+    // runs (.github/scripts/install-ndk.sh reads it from here).
+    ndkVersion = "28.2.13676358"
+
     defaultConfig {
         applicationId = "org.phalanx.android"
         minSdk = 26
