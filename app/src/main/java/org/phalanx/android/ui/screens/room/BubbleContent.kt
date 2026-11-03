@@ -131,6 +131,7 @@ private fun Content(
         is MessageBody.Audio -> AudioContent(message.id, message.eventId ?: message.id, body, actions.resolveFile)
         is MessageBody.File -> FileContent(body, actions.onOpenFile, onLongPress)
         is MessageBody.Location -> LocationContent(body, onLongPress)
+        is MessageBody.Poll -> PollContent(body, { actions.onVote(message, it) }, onLongPress, textPadding)
         MessageBody.Redacted, MessageBody.Undecryptable, is MessageBody.Unsupported -> Text(
             text = stringResource(kindLabel(body)),
             style = MaterialTheme.typography.bodyMedium,

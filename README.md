@@ -80,6 +80,8 @@ No. There is no analytics, no crash reporting and no tracking SDK of any kind. P
 * **Reminders & scheduled sending**: Be reminded of a message later, or write one now and send it at a set time.
 * **Custom emoji**: Matrix image packs, reactions with any emoji, and optional Emoji Kitchen mixes.
 * **Media**: Room galleries, an image editor before sending, voice messages and stickers.
+* **Polls**: Vote in polls from WhatsApp, Signal or Telegram through their bridges, and in Matrix ones; the bridge passes your vote on.
+* **Dates, numbers and addresses**: Underlined in messages by Android's own on-device text classifier; tap one to call, add it to your calendar or open it in your maps app.
 
 ### On the phone, offline
 * **Catch me up**: A summary across rooms of what you missed, with dates, tasks and places pulled out.
@@ -88,6 +90,7 @@ No. There is no analytics, no crash reporting and no tracking SDK of any kind. P
 
 ### Privacy at hand
 * **App lock**: The system's biometric prompt, with the phone's PIN as fallback; sync and notifications carry on.
+* **Duress code**: A code typed on the lock screen instead of unlocking signs out and erases Phalanx from the phone, as if it had never been set up.
 * **Screenshot blocking**: App-wide or per room; Recents shows no picture of a locked app.
 * **Incognito keyboard**: Every text field asks the keyboard not to learn from what you type.
 * **Link hygiene**: Tracking parameters stripped from links before you send them.

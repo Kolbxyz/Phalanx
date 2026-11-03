@@ -17,19 +17,25 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.phalanx.android.R
 import org.phalanx.android.ui.theme.Symbols
 
 /**
  * Covers the app until the user unlocks it. The system prompt opens by itself once; backing out of
- * it leaves this screen, whose button asks again.
+ * it leaves this screen, whose button asks again. With a duress code set, a code field shows too.
  */
 @Composable
 internal fun LockScreen(onAuthenticating: () -> Unit, onResult: (Boolean) -> Unit) {
+    val viewModel: LockViewModel = hiltViewModel()
+    val offersCode by viewModel.offersCode.collectAsStateWithLifecycle()
+    val check by viewModel.check.collectAsStateWithLifecycle()
     val prompt = rememberUnlockPrompt(onResult)
     val ask = {
         onAuthenticating()
@@ -64,6 +70,7 @@ internal fun LockScreen(onAuthenticating: () -> Unit, onResult: (Boolean) -> Uni
                 Icon(Symbols.Fingerprint, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
                 Text(stringResource(R.string.lock_unlock))
             }
+            if (offersCode) CodeEntry(check, viewModel::submit, viewModel::edited)
         }
     }
 }

@@ -27,6 +27,7 @@ import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import org.phalanx.android.R
+import org.phalanx.android.core.format.EntitySpan
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TextMarks
 
@@ -50,14 +51,19 @@ internal fun MessageText(
     val contentColor = LocalContentColor.current
     val background = LocalBubbleColor.current.takeOrElse { MaterialTheme.colorScheme.surface }
     var revealed by remember(body) { mutableStateOf(false) }
-    val text = remember(body, senderName, edited, editedStyle, contentColor, background, revealed, onMention) {
-        val content = body.html
+    val content = remember(body, contentColor, background, revealed, onMention) {
+        body.html
             ?.let { AnnotatedString.fromHtml(it, links).trimEnd().withBareLinks(links).withInlineEmotes(body.emotes) }
             ?.withMarks(contentColor, background, revealed, onMention) { revealed = true }
             ?: AnnotatedString(body.text).withBareLinks(links)
+    }
+    // Dates, numbers and addresses, found on the text as shown so their offsets line up.
+    val entities = rememberEntitySpans(content.text)
+    var tapped by remember(body) { mutableStateOf<EntitySpan?>(null) }
+    val text = remember(content, entities, senderName, edited, editedStyle) {
         buildAnnotatedString {
             if (body.style == MessageBody.TextStyle.Emote) append("* $senderName ")
-            append(content)
+            append(content.withEntityLinks(entities, links) { tapped = it })
             if (edited) withStyle(editedStyle) { append("  ($editedLabel)") }
         }
     }
@@ -72,6 +78,7 @@ internal fun MessageText(
         color = if (notice) LocalContentColor.current.copy(alpha = NOTICE_ALPHA) else LocalContentColor.current,
         fontStyle = if (body.style == MessageBody.TextStyle.Emote) FontStyle.Italic else null
     )
+    tapped?.let { span -> EntitySheet(content.text, span) { tapped = null } }
 }
 
 /** Body text at the size chosen in settings. */

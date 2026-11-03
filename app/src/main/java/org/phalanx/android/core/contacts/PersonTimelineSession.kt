@@ -108,6 +108,9 @@ class PersonTimelineSession internal constructor(
     override suspend fun toggleReaction(message: TimelineEntry.Message, key: String) =
         on(message) { chat, original -> chat.toggleReaction(original, key) }
 
+    override suspend fun vote(poll: TimelineEntry.Message, answerIds: List<String>) =
+        on(poll) { chat, original -> chat.vote(original, answerIds) }
+
     override suspend fun redact(message: TimelineEntry.Message) =
         on(message) { chat, original -> chat.redact(original) }
 

@@ -57,7 +57,7 @@ private fun EventTimelineItem.toMessage(id: String, context: MappingContext): Ti
         senderName = nameOf(sender, senderProfile),
         senderAvatar = mediaRefOf((senderProfile as? ProfileDetails.Ready)?.avatarUrl),
         isOwn = isOwn,
-        body = withGifFlag(msgLike.kind.toBody(isReply = reply != null)),
+        body = withGifFlag(msgLike.kind.toBody(isReply = reply != null, context.ownUserId)),
         replyTo = reply?.toPreview(eventId, context),
         reactions = reactions.map { it.toSummary(context.ownUserId) },
         timestampMillis = timestamp.toLong(),

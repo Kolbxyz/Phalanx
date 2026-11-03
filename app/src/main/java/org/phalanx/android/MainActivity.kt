@@ -25,6 +25,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import org.phalanx.android.core.format.TextEntities
 import org.phalanx.android.core.matrix.OidcCallbacks
 import org.phalanx.android.core.matrix.SyncController
 import org.phalanx.android.core.prefs.SettingsStore
@@ -38,6 +39,7 @@ import org.phalanx.android.ui.components.LocalSecureScreens
 import org.phalanx.android.ui.components.SecureScreens
 import org.phalanx.android.ui.navigation.RoomRoute
 import org.phalanx.android.ui.screens.lock.LockScreen
+import org.phalanx.android.ui.screens.room.LocalTextEntities
 import org.phalanx.android.ui.share.ShareInbox
 import org.phalanx.android.ui.share.sharedContent
 import org.phalanx.android.ui.theme.PhalanxTheme
@@ -58,6 +60,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var appLock: AppLock
+
+    @Inject
+    lateinit var textEntities: TextEntities
 
     private val secureScreens = SecureScreens()
 
@@ -101,7 +106,8 @@ class MainActivity : ComponentActivity() {
                 val room by pendingRoom.collectAsStateWithLifecycle()
                 CompositionLocalProvider(
                     LocalSecureScreens provides secureScreens,
-                    LocalIncognitoKeyboard provides current.incognitoKeyboard
+                    LocalIncognitoKeyboard provides current.incognitoKeyboard,
+                    LocalTextEntities provides textEntities
                 ) {
                     Box {
                         // Kept composed under the lock, so unlocking returns to the same screen;

@@ -61,6 +61,19 @@ sealed interface MessageBody {
 
     data class Location(val geoUri: String, val description: String?) : MessageBody
 
+    /**
+     * A poll, as Matrix clients and bridges (WhatsApp, Signal, Telegram) send it. [myAnswers] are
+     * the IDs this account voted for; with [disclosed] false, counts stay hidden until it [ended].
+     */
+    data class Poll(
+        val question: String,
+        val answers: List<PollAnswer>,
+        val maxSelections: Int,
+        val disclosed: Boolean,
+        val ended: Boolean,
+        val myAnswers: Set<String>
+    ) : MessageBody
+
     /** A message of a kind this build cannot show yet. */
     data class Unsupported(val kind: UnsupportedKind) : MessageBody
 
@@ -72,4 +85,7 @@ sealed interface MessageBody {
     enum class TextStyle { Normal, Notice, Emote }
 }
 
-enum class UnsupportedKind { Poll, Gallery, LiveLocation, Other }
+/** One choice of a [MessageBody.Poll], with how many voted for it. */
+data class PollAnswer(val id: String, val text: String, val votes: Int)
+
+enum class UnsupportedKind { Gallery, LiveLocation, Other }

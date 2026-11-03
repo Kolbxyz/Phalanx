@@ -20,7 +20,6 @@ import org.phalanx.android.data.model.IncomingMessage
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.NotificationContent
 import org.phalanx.android.data.model.NotificationPicture
-import org.phalanx.android.data.model.UnsupportedKind
 
 /** Turns a push's event ID into a message, through the SDK's short notification sync and local decryption. */
 @Singleton
@@ -108,7 +107,7 @@ private fun NotificationItem.toIncoming(roomId: String, eventId: String): Incomi
                 is MessageLikeEventContent.RoomMessage ->
                     content.messageType.toBody(isReply = content.inReplyToEventId != null)
                 MessageLikeEventContent.RoomEncrypted -> MessageBody.Undecryptable
-                is MessageLikeEventContent.Poll -> MessageBody.Unsupported(UnsupportedKind.Poll)
+                is MessageLikeEventContent.Poll -> pollQuestion(content.question)
                 else -> return null
             }
             sender = senderInfo.displayName ?: notified.event.senderId()

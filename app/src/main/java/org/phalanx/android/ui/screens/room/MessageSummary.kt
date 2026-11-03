@@ -18,6 +18,8 @@ internal fun summaryOf(body: MessageBody, label: (Int) -> String): String = when
     is MessageBody.Video -> body.caption?.text ?: label(kindLabel(body))
     is MessageBody.File -> body.caption?.text ?: body.filename
     is MessageBody.Location -> body.description ?: label(kindLabel(body))
+    // The chart marks it as a poll in any language, where a label would need its own punctuation.
+    is MessageBody.Poll -> "\uD83D\uDCCA ${body.question}"
     else -> label(kindLabel(body))
 }
 
@@ -29,10 +31,10 @@ internal fun kindLabel(body: MessageBody): Int = when (body) {
     is MessageBody.Audio -> if (body.isVoice) R.string.timeline_kind_voice else R.string.timeline_kind_audio
     is MessageBody.File -> R.string.timeline_kind_file
     is MessageBody.Location -> R.string.timeline_kind_location
+    is MessageBody.Poll -> R.string.timeline_kind_poll
     MessageBody.Redacted -> R.string.timeline_redacted
     MessageBody.Undecryptable -> R.string.timeline_undecryptable
     is MessageBody.Unsupported -> when (body.kind) {
-        UnsupportedKind.Poll -> R.string.timeline_kind_poll
         UnsupportedKind.Gallery -> R.string.timeline_kind_gallery
         UnsupportedKind.LiveLocation -> R.string.timeline_kind_live_location
         UnsupportedKind.Other -> R.string.timeline_kind_other
