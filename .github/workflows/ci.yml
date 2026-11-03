@@ -65,6 +65,9 @@ jobs:
           key: ccache-${{ runner.os }}-${{ github.sha }}
           restore-keys: ccache-${{ runner.os }}-
 
+      - name: Install the NDK
+        run: .github/scripts/install-ndk.sh
+
       # One Gradle invocation, so independent tasks run in parallel and the APK reuses the
       # compilation already done for tests and lint.
       - name: Detekt, Unit Tests, Coverage, Lint & Debug APK
