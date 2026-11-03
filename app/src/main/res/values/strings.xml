@@ -125,6 +125,7 @@
     <string name="timeline_reply_loading">Loading the original message…</string>
     <string name="timeline_open_failed">Couldn’t open this file.</string>
     <string name="entity_action_failed">Couldn’t open the app for this.</string>
+    <string name="entity_no_action">No app on this phone can do anything with “%1$s”.</string>
     <string name="timeline_play">Play</string>
     <string name="timeline_pause">Pause</string>
     <string name="timeline_action_failed">That didn’t work. Try again.</string>

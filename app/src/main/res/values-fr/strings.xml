@@ -126,6 +126,7 @@
     <string name="timeline_reply_loading">Chargement du message d’origine…</string>
     <string name="timeline_open_failed">Impossible d’ouvrir ce fichier.</string>
     <string name="entity_action_failed">Impossible d’ouvrir l’app pour cette action.</string>
+    <string name="entity_no_action">Aucune app de ce téléphone ne peut agir sur « %1$s ».</string>
     <string name="timeline_play">Lire</string>
     <string name="timeline_pause">Pause</string>
     <string name="timeline_action_failed">Ça n’a pas marché. Réessayez.</string>

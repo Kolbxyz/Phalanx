@@ -81,7 +81,7 @@ No. There is no analytics, no crash reporting and no tracking SDK of any kind. P
 * **Custom emoji**: Matrix image packs, reactions with any emoji, and optional Emoji Kitchen mixes.
 * **Media**: Room galleries, an image editor before sending, voice messages and stickers.
 * **Polls**: Vote in polls from WhatsApp, Signal or Telegram through their bridges, and in Matrix ones; the bridge passes your vote on.
-* **Dates, numbers and addresses**: Long-press a message to call a number, add a date to your calendar or open an address, found by Android's own on-device text classifier.
+* **Dates, numbers and addresses**: Underlined in messages by Android's own on-device text classifier; tap one to call, add it to your calendar or open it in your maps app.
 
 ### On the phone, offline
 * **Catch me up**: A summary across rooms of what you missed, with dates, tasks and places pulled out.
