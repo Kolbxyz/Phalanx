@@ -181,6 +181,8 @@
     <string name="settings_enter_to_send">Entrée pour envoyer</string>
     <string name="settings_enter_to_send_summary">La touche Entrée du clavier envoie au lieu d’aller à la ligne</string>
     <string name="settings_markdown">Mise en forme</string>
+    <string name="settings_split_long_messages">Découper les longs messages</string>
+    <string name="settings_split_long_messages_summary">Dans une discussion pontée, un message plus long que ce que l’autre réseau accepte, comme les 2 000 caractères de Discord, est envoyé en plusieurs fois</string>
     <string name="settings_markdown_summary">Transformer les *étoiles*, le `code` et les listes en texte mis en forme, au format Markdown</string>
     <string name="settings_media">Médias</string>
     <string name="settings_auto_load_media">Charger les médias automatiquement</string>

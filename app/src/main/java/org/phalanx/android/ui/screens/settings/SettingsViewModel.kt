@@ -65,6 +65,8 @@ class SettingsViewModel @Inject constructor(
 
     fun setMarkdown(enabled: Boolean) = edit { store.setMarkdown(enabled) }
 
+    fun setSplitLongMessages(enabled: Boolean) = edit { store.setSplitLongMessages(enabled) }
+
     fun setStripLinkTrackers(enabled: Boolean) = edit { store.setStripLinkTrackers(enabled) }
 
     fun setLinkPreviews(source: LinkPreviewSource) = edit { store.setLinkPreviews(source) }

@@ -43,6 +43,8 @@ data class AppSettings(
     val markdown: Boolean = true,
     /** On: tracking tags such as utm_source and fbclid are cut from the links this account sends. */
     val stripLinkTrackers: Boolean = true,
+    /** On: in a bridged chat, a message too long for the other network is sent as several. */
+    val splitLongMessages: Boolean = true,
     val linkPreviews: LinkPreviewSource = LinkPreviewSource.Off,
     /** Off: photos are scaled down before upload. Location data is stripped either way. */
     val fullQualityImages: Boolean = false,

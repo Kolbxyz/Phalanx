@@ -1,5 +1,7 @@
 package org.phalanx.android.core.format
 
+import org.phalanx.android.data.model.AppSettings
+import org.phalanx.android.data.model.Bridge
 import org.phalanx.android.data.model.Member
 
 /**
@@ -21,6 +23,21 @@ internal data class OutgoingMessage(
     companion object {
         private const val EMOTE_PREFIX = "/me "
         private const val SILENT_PREFIX = "@silent "
+        private const val BUDGET_PERCENT = 95
+
+        /**
+         * [text] as the messages to send to a room bridged to [bridge], its link trackers cut first
+         * when [settings] say so: several when it is longer than the network takes and splitting is
+         * on, each keeping a "/me" or "@silent" it starts with.
+         */
+        fun parts(text: String, settings: AppSettings, bridge: Bridge?): List<String> {
+            val text = if (settings.stripLinkTrackers) LinkTrackers.strip(text) else text
+            val limit = bridge?.messageLimit?.takeIf { settings.splitLongMessages } ?: return listOf(text)
+            // Bridges rewrite formatting and mentions in their own way, often longer.
+            val budget = limit * BUDGET_PERCENT / 100
+            val prefix = listOf(EMOTE_PREFIX, SILENT_PREFIX).firstOrNull(text::startsWith).orEmpty()
+            return MessageSplitter.split(text.removePrefix(prefix), budget - prefix.length).map { prefix + it }
+        }
 
         /**
          * [mentions] are members picked in the composer; [formatting] follows the markdown setting;

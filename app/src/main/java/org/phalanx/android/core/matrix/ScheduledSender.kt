@@ -33,8 +33,14 @@ internal class ScheduledSender @Inject constructor(
         val room = active.room(message.roomId) ?: return@withContext Result.failure(TimelineUnavailableException())
         try {
             room.use {
-                val emotes = roomEmotes.forRoom(room.ownUserId(), room.id(), room.roomInfo().bridge()).byShortcode()
-                room.sendRaw(EVENT_TYPE, contentOf(message, settings.current(), emotes))
+                val bridge = room.roomInfo().bridge()
+                val emotes = roomEmotes.forRoom(room.ownUserId(), room.id(), bridge).byShortcode()
+                val current = settings.current()
+                // One by one, each sent before the next; only the first part answers the reply.
+                OutgoingMessage.parts(message.text, current, bridge).forEachIndexed { index, part ->
+                    val replyTo = message.replyToEventId.takeIf { index == 0 }
+                    room.sendRaw(EVENT_TYPE, contentOf(part, replyTo, current, emotes))
+                }
             }
             Result.success(Unit)
         } catch (e: ClientException) {
@@ -43,10 +49,8 @@ internal class ScheduledSender @Inject constructor(
     }
 
     /** Formatted as the composer's messages are; a reply points at the message it answers. */
-    private fun contentOf(message: ScheduledMessage, current: AppSettings, emotes: Map<String, String>): String {
-        val outgoing = OutgoingMessage.of(
-            message.text, emptyList(), current.markdown, emotes, stripTrackers = current.stripLinkTrackers
-        )
+    private fun contentOf(text: String, replyTo: String?, current: AppSettings, emotes: Map<String, String>): String {
+        val outgoing = OutgoingMessage.of(text, emptyList(), current.markdown, emotes)
         val msgtype = when (outgoing.kind) {
             OutgoingMessage.Kind.Text -> "m.text"
             OutgoingMessage.Kind.Emote -> "m.emote"
@@ -63,7 +67,7 @@ internal class ScheduledSender @Inject constructor(
                 put("user_ids", JsonArray(outgoing.userIds.map(::JsonPrimitive)))
                 if (outgoing.mentionsRoom) put("room", true)
             }
-            message.replyToEventId?.let { eventId ->
+            replyTo?.let { eventId ->
                 putJsonObject("m.relates_to") { putJsonObject("m.in_reply_to") { put("event_id", eventId) } }
             }
         }.toString()
