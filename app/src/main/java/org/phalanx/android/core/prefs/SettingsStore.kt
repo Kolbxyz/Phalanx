@@ -51,6 +51,8 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
 
     suspend fun setStripLinkTrackers(enabled: Boolean) = store.edit { it[STRIP_LINK_TRACKERS] = enabled }
 
+    suspend fun setSplitLongMessages(enabled: Boolean) = store.edit { it[SPLIT_LONG_MESSAGES] = enabled }
+
     suspend fun setLinkPreviews(source: LinkPreviewSource) = store.edit { it[LINK_PREVIEWS] = source.name }
 
     suspend fun setFullQualityImages(enabled: Boolean) = store.edit { it[FULL_QUALITY_IMAGES] = enabled }
@@ -103,6 +105,7 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
             enterToSend = this[ENTER_TO_SEND] ?: defaults.enterToSend,
             markdown = this[MARKDOWN] ?: defaults.markdown,
             stripLinkTrackers = this[STRIP_LINK_TRACKERS] ?: defaults.stripLinkTrackers,
+            splitLongMessages = this[SPLIT_LONG_MESSAGES] ?: defaults.splitLongMessages,
             linkPreviews = LinkPreviewSource.entries.firstOrNull { it.name == this[LINK_PREVIEWS] }
                 ?: defaults.linkPreviews,
             fullQualityImages = this[FULL_QUALITY_IMAGES] ?: defaults.fullQualityImages,
@@ -137,6 +140,7 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
         val ENTER_TO_SEND = booleanPreferencesKey("enter_to_send")
         val MARKDOWN = booleanPreferencesKey("markdown")
         val STRIP_LINK_TRACKERS = booleanPreferencesKey("strip_link_trackers")
+        val SPLIT_LONG_MESSAGES = booleanPreferencesKey("split_long_messages")
         val LINK_PREVIEWS = stringPreferencesKey("link_previews")
         val FULL_QUALITY_IMAGES = booleanPreferencesKey("full_quality_images")
         val AUTO_LOAD_MEDIA = booleanPreferencesKey("auto_load_media")

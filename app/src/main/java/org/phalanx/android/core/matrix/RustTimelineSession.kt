@@ -27,6 +27,7 @@ import org.phalanx.android.core.format.LinkTrackers
 import org.phalanx.android.core.format.OutgoingMessage
 import org.phalanx.android.core.media.AttachmentPreparer
 import org.phalanx.android.core.prefs.SettingsStore
+import org.phalanx.android.data.model.Bridge
 import org.phalanx.android.data.model.CustomEmote
 import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.OutgoingMedia
@@ -40,6 +41,7 @@ internal class RustTimelineSession private constructor(
     private val attachments: AttachmentPreparer,
     private val drafts: RustDraftsRepository,
     internal val emotes: SessionEmotes,
+    private val bridge: Bridge?,
     override val title: String,
     override val isDirect: Boolean
 ) : TimelineSession {
@@ -70,9 +72,12 @@ internal class RustTimelineSession private constructor(
 
     override suspend fun send(text: String, mentions: List<Member>, replyTo: TimelineEntry.Message?): Result<Unit> =
         io {
-            val content = contentOf(text, mentions)
-            val eventId = replyTo?.eventId
-            if (eventId != null) timeline.sendReply(content, eventId).close() else timeline.send(content).close()
+            // Queued in order, which the SDK's send queue keeps; only the first part answers [replyTo].
+            OutgoingMessage.parts(text, settings.current(), bridge).forEachIndexed { index, part ->
+                val content = contentOf(part, mentions)
+                val eventId = replyTo?.eventId?.takeIf { index == 0 }
+                if (eventId != null) timeline.sendReply(content, eventId).close() else timeline.send(content).close()
+            }
         }
 
     // On the session's scope, so leaving the room doesn't stop the upload or leak its files.
@@ -246,9 +251,11 @@ internal class RustTimelineSession private constructor(
         ): RustTimelineSession {
             val timeline = room.timeline()
             val title = room.displayName() ?: room.id()
-            val emotes = roomEmotes.forRoom(room.ownUserId(), room.id(), room.roomInfo().bridge())
-            val session =
-                RustTimelineSession(room, timeline, settings, attachments, drafts, emotes, title, room.isDirect())
+            val bridge = room.roomInfo().bridge()
+            val emotes = roomEmotes.forRoom(room.ownUserId(), room.id(), bridge)
+            val session = RustTimelineSession(
+                room, timeline, settings, attachments, drafts, emotes, bridge, title, room.isDirect()
+            )
             session.start()
             return session
         }

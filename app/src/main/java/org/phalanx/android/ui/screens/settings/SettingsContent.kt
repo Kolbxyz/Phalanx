@@ -191,6 +191,11 @@ internal fun ConversationSettings(current: AppSettings, viewModel: SettingsViewM
                 SwitchSetting(
                     Symbols.FormatBold, R.string.settings_markdown,
                     R.string.settings_markdown_summary, current.markdown, viewModel::setMarkdown
+                ),
+                SwitchSetting(
+                    Symbols.CallSplit, R.string.settings_split_long_messages,
+                    R.string.settings_split_long_messages_summary, current.splitLongMessages,
+                    viewModel::setSplitLongMessages
                 )
             )
         )

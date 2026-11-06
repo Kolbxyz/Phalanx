@@ -131,6 +131,8 @@ internal object Symbols {
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_gpp_maybe)
     val FormatBold: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_format_bold)
+    val CallSplit: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_call_split)
     val EditCalendar: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_edit_calendar)
     val Edit: ImageVector

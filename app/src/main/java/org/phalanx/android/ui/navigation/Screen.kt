@@ -7,15 +7,9 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -57,7 +51,7 @@ internal inline fun <reified T : Any> NavGraphBuilder.screen(
 
 /**
  * While [entry] leaves, its touches are swallowed; once another entry is on top, the screen is
- * frozen into a picture of its last frame and its content unplaced, so it holds no hit target at
+ * frozen on its last frame and its content unplaced, so it holds no hit target at
  * all and taps reach the screen underneath. Screens sharing an element with the media viewer stay
  * live instead, as the element morphs out of their content.
  */
@@ -65,20 +59,14 @@ internal inline fun <reified T : Any> NavGraphBuilder.screen(
 internal fun TouchesWhileShown(scope: AnimatedContentScope, entry: NavBackStackEntry, content: @Composable () -> Unit) {
     val leaving = scope.transition.targetState != EnterExitState.Visible
     val handedOver = leaving && handsOver(entry, LocalTopEntry.current)
+    // Frozen by drawing the layer's last recording again, not by copying it to a bitmap: that copy
+    // renders on a second, short-lived RenderThread context, which crashed Android's renderer.
     val layer = rememberGraphicsLayer()
-    var frozen by remember { mutableStateOf<ImageBitmap?>(null) }
-    LaunchedEffect(handedOver) { frozen = if (handedOver) layer.toImageBitmap() else null }
-    val still = frozen.takeIf { handedOver }
-
     val drawing = Modifier.drawWithContent {
-        if (still != null) {
-            drawImage(still)
-        } else {
-            layer.record { this@drawWithContent.drawContent() }
-            drawLayer(layer)
-        }
+        if (!handedOver) layer.record { this@drawWithContent.drawContent() }
+        drawLayer(layer)
     }
-    val touches = if (leaving && still == null) {
+    val touches = if (leaving && !handedOver) {
         // Consumed on the way down, before any child sees it, so nothing under it reacts.
         Modifier.pointerInput(Unit) {
             awaitPointerEventScope {
@@ -94,7 +82,7 @@ internal fun TouchesWhileShown(scope: AnimatedContentScope, entry: NavBackStackE
         val height = placeables.maxOfOrNull { it.height } ?: constraints.minHeight
         layout(width, height) {
             // Unplaced content keeps its state but is skipped by hit testing.
-            if (still == null) placeables.forEach { it.place(0, 0) }
+            if (!handedOver) placeables.forEach { it.place(0, 0) }
         }
     }
 }

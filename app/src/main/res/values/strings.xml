@@ -180,6 +180,8 @@
     <string name="settings_enter_to_send">Enter to send</string>
     <string name="settings_enter_to_send_summary">The keyboard’s Enter key sends instead of starting a new line</string>
     <string name="settings_markdown">Formatting</string>
+    <string name="settings_split_long_messages">Split long messages</string>
+    <string name="settings_split_long_messages_summary">In a bridged chat, a message longer than the other network allows, such as Discord’s 2,000 characters, is sent as several</string>
     <string name="settings_markdown_summary">Turn *stars*, `code` and lists into formatted text, written as Markdown</string>
     <string name="settings_media">Media</string>
     <string name="settings_auto_load_media">Load media automatically</string>
