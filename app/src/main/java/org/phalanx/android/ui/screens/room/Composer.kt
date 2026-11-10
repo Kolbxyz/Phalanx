@@ -49,7 +49,9 @@ internal fun Composer(
     canDictate: Boolean,
     /** A recording is being written out into the draft. */
     dictating: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** How many messages the draft goes out as, when a network splits it. */
+    parts: Int = 1
 ) {
     val motion = MaterialTheme.motionScheme
     Surface(color = MaterialTheme.colorScheme.surfaceContainer, modifier = modifier) {
@@ -107,7 +109,7 @@ internal fun Composer(
                         onDictate = actions.onDictateRecording.takeIf { canDictate }
                     )
                 } else {
-                    InputRow(state, actions, enterToSend)
+                    InputRow(state, actions, enterToSend, parts)
                 }
             }
         }

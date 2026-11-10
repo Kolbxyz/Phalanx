@@ -119,4 +119,12 @@ class PeopleLinkerTest {
         val links = PeopleLinks(groups = listOf(setOf(whatsapp.id, signal.dmUserId!!)))
         assertEquals(listOf(2, 1), peopleOf(listOf(whatsapp, signal, matrix), links).map { it.chats.size })
     }
+
+    @Test
+    fun `a folded row carries the network of each of its chats`() {
+        val links = PeopleLinks(groups = listOf(setOf(whatsapp.dmUserId!!, signal.dmUserId!!)))
+        val folded = foldPeople(listOf(whatsapp, signal, sms), links)
+        assertEquals(listOf(Bridge.WhatsApp, Bridge.Signal), folded.bridgesOf[whatsapp.id])
+        assertNull(folded.bridgesOf[sms.id])
+    }
 }

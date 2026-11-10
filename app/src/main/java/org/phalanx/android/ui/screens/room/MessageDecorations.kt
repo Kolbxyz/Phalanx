@@ -140,8 +140,8 @@ internal fun ReactionRow(
             // Ringed in the background colour, so a chip overlapping the bubble's edge stays distinct from it.
             Surface(
                 shape = CircleShape,
-                color = if (reaction.byMe) colors.primaryContainer else colors.surfaceContainerHighest,
-                contentColor = if (reaction.byMe) colors.onPrimaryContainer else colors.onSurface,
+                color = if (reaction.byMe) colors.secondaryContainer else colors.surfaceContainerHighest,
+                contentColor = if (reaction.byMe) colors.onSecondaryContainer else colors.onSurface,
                 border = BorderStroke(2.dp, colors.background),
                 modifier = Modifier
                     .clip(CircleShape)

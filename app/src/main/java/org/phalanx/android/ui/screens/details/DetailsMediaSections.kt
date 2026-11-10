@@ -59,10 +59,8 @@ internal fun LazyListScope.mediaSections(
         media == null -> item(key = "media-placeholder") { GridPlaceholder() }
         shared.visual.isEmpty() -> item { EmptyNote(stringResource(noneNote(R.string.details_media_none, hasMore))) }
     }
-    val rows = shared.visual.take(MEDIA_CAP).chunked(COLUMNS)
-    itemsIndexed(rows, key = { _, row -> "row-${row.first().id}" }) { _, row ->
-        MediaGridRow(row, COLUMNS, onOpen)
-        Spacer(Modifier.height(4.dp))
+    if (shared.visual.isNotEmpty()) {
+        item(key = "media-mosaic") { MediaMosaic(shared.visual.take(MEDIA_CAP), onOpen) }
     }
     if (media != null && (shared.visual.size > MEDIA_CAP || hasMore)) {
         item(key = "media-all") { ShowAllButton { onShowAll(false) } }

@@ -23,15 +23,16 @@ import androidx.compose.ui.unit.dp
 import org.phalanx.android.R
 import org.phalanx.android.core.ai.SummaryPoint
 import org.phalanx.android.core.ai.SummaryScope
+import org.phalanx.android.ui.components.CloudNote
 import org.phalanx.android.ui.components.ModalSheet
 import org.phalanx.android.ui.theme.Symbols
 
 /**
  * The summary as it is written, then as points that each lead to the message they cite, with
- * how many messages it covers, and a reminder it can be wrong.
+ * how many messages it covers, and a reminder it can be wrong. [inCloud] says so when Claude writes it.
  */
 @Composable
-internal fun SummarySheet(state: SummaryState, actions: SummaryActions) {
+internal fun SummarySheet(state: SummaryState, inCloud: Boolean, actions: SummaryActions) {
     if (state == SummaryState.Idle) return
     ModalSheet(onDismissRequest = actions.onDismiss) {
         Column(
@@ -42,6 +43,7 @@ internal fun SummarySheet(state: SummaryState, actions: SummaryActions) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(stringResource(R.string.summary_title), style = MaterialTheme.typography.titleLarge)
+            if (inCloud) CloudNote()
             when (state) {
                 is SummaryState.Running -> {
                     Working(R.string.summary_working)

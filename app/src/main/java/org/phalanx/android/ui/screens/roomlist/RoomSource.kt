@@ -25,19 +25,23 @@ sealed interface RoomSource {
     }
 }
 
-/** A source in the side panel, with how many rooms in view it holds. */
+/**
+ * A tab above the list: how many rooms it holds, and how many unread messages wait in them. Muted
+ * rooms are left out of [unread], as a tab's badge should only ever grow for what asks for attention.
+ */
 @Immutable
-data class SourceCount(val source: RoomSource, val count: Int)
+data class SourceCount(val source: RoomSource, val count: Int, val unread: Long = 0)
 
 /** All, Matrix, then each network present, busiest first. */
 internal fun sourcesOf(rooms: List<RoomSummary>): List<SourceCount> {
+    fun countOf(source: RoomSource): SourceCount {
+        val held = rooms.filter(source::matches)
+        return SourceCount(source, held.size, held.filterNot { it.isMuted }.sumOf { it.unreadCount })
+    }
     val networks = rooms.mapNotNull { it.bridge }.groupingBy { it }.eachCount()
         .entries.sortedByDescending { it.value }
-        .map { SourceCount(RoomSource.Network(it.key), it.value) }
-    return listOf(
-        SourceCount(RoomSource.All, rooms.size),
-        SourceCount(RoomSource.Matrix, rooms.count { it.bridge == null })
-    ) + networks
+        .map { countOf(RoomSource.Network(it.key)) }
+    return listOf(countOf(RoomSource.All), countOf(RoomSource.Matrix)) + networks
 }
 
 /** Brand names stay as they are in every language. */

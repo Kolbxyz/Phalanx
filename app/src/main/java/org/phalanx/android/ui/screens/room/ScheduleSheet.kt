@@ -42,9 +42,6 @@ import org.phalanx.android.R
 import org.phalanx.android.ui.components.ModalSheet
 import org.phalanx.android.ui.theme.Symbols
 
-private const val EVENING_HOUR = 20
-private const val MORNING_HOUR = 9
-
 /**
  * A time in the future: a few one-tap choices, or any date and time. When to send the message
  * being typed, or when to be reminded of one, as [title] says.
@@ -65,14 +62,8 @@ internal fun ScheduleSheet(
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(start = 24.dp, bottom = 8.dp)
         )
-        Choice(Symbols.Timer, stringResource(R.string.schedule_in_hour)) { onPick(now.plusHours(1).millis()) }
-        if (now.hour < EVENING_HOUR - 1) {
-            Choice(Symbols.Bedtime, stringResource(R.string.schedule_tonight)) {
-                onPick(now.with(LocalTime.of(EVENING_HOUR, 0)).millis())
-            }
-        }
-        Choice(Symbols.WbSunny, stringResource(R.string.schedule_tomorrow_morning)) {
-            onPick(now.plusDays(1).with(LocalTime.of(MORNING_HOUR, 0)).millis())
+        TimePreset.available(now).forEach { preset ->
+            Choice(preset.icon, stringResource(preset.label)) { onPick(preset.at(now)) }
         }
         Choice(Symbols.EditCalendar, stringResource(R.string.schedule_pick)) { picking = true }
         if (!exact) ExactTimingRow()
@@ -80,6 +71,13 @@ internal fun ScheduleSheet(
     }
     if (picking) DateTimeDialog(onDismiss = { picking = false }, onPick = onPick)
 }
+
+private val TimePreset.icon: ImageVector
+    @Composable get() = when (this) {
+        TimePreset.InAnHour -> Symbols.Timer
+        TimePreset.Tonight -> Symbols.Bedtime
+        TimePreset.TomorrowMorning -> Symbols.WbSunny
+    }
 
 @Composable
 private fun Choice(icon: ImageVector, label: String, onClick: () -> Unit) {

@@ -54,8 +54,15 @@ internal fun peopleOf(rooms: List<RoomSummary>, links: PeopleLinks): List<Person
         rooms.filter { it.id !in inGroups }.map { Person(it.name, listOf(it)) }
 }
 
-/** [rooms] with each linked person on one row, and every row's rooms by the row's room ID. */
-internal data class FoldedRooms(val rows: List<RoomSummary>, val roomsOf: Map<String, List<String>>)
+/**
+ * [rooms] with each linked person on one row, every row's rooms by the row's room ID, and the
+ * networks a folded row's chats are on, so its avatar can show each of them.
+ */
+internal data class FoldedRooms(
+    val rows: List<RoomSummary>,
+    val roomsOf: Map<String, List<String>>,
+    val bridgesOf: Map<String, List<Bridge>> = emptyMap()
+)
 
 /**
  * [rooms], most recent first, with each linked person's chats folded into the most recent of them:
@@ -66,18 +73,20 @@ internal fun foldPeople(rooms: List<RoomSummary>, links: PeopleLinks): FoldedRoo
     if (people.isEmpty()) return FoldedRooms(rooms, emptyMap())
     val personOf = people.flatMap { person -> person.chats.map { it.id to person } }.toMap()
     val roomsOf = HashMap<String, List<String>>()
+    val bridgesOf = HashMap<String, List<Bridge>>()
     val rows = rooms.mapNotNull { room ->
         val person = personOf[room.id] ?: return@mapNotNull room
         // The first of a person's chats met is their most recent; the others fold into it.
         if (person.chats.any { it.id in roomsOf }) return@mapNotNull null
         roomsOf[room.id] = person.chats.map { it.id }
+        bridgesOf[room.id] = person.chats.mapNotNull { it.bridge }.distinct()
         room.copy(
             unreadCount = person.chats.sumOf { it.unreadCount },
             highlightCount = person.chats.sumOf { it.highlightCount },
             isMarkedUnread = person.chats.any { it.isMarkedUnread }
         )
     }
-    return FoldedRooms(rows, roomsOf)
+    return FoldedRooms(rows, roomsOf, bridgesOf)
 }
 
 /** The name without case, accents, a network tag or extra spaces. */

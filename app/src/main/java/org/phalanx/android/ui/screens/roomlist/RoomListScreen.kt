@@ -4,13 +4,12 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -34,7 +33,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.data.model.RoomSummary
+import org.phalanx.android.ui.components.LiftOverlay
+import org.phalanx.android.ui.components.PhalanxSnackbarHost
 import org.phalanx.android.ui.components.RoomListPlaceholder
+import org.phalanx.android.ui.components.ScrollHairline
+import org.phalanx.android.ui.components.showReport
+import org.phalanx.android.ui.components.showUndo
 import org.phalanx.android.ui.screens.search.SearchOverlay
 import org.phalanx.android.ui.theme.Symbols
 
@@ -44,6 +48,7 @@ fun RoomListScreen(
     onOpenMessage: (roomId: String, eventId: String) -> Unit,
     onOpenDetails: (String) -> Unit,
     onOpenAccount: () -> Unit,
+    onOpenSettings: () -> Unit,
     onOpenCatchUp: () -> Unit,
     onOpenReminders: () -> Unit,
     onOpenBookmarks: () -> Unit,
@@ -55,10 +60,11 @@ fun RoomListScreen(
     val avatar by viewModel.avatar.collectAsStateWithLifecycle()
     val actionFailed by viewModel.actionFailed.collectAsStateWithLifecycle()
     val drafts by viewModel.drafts.collectAsStateWithLifecycle()
-    val canCatchUp by viewModel.canCatchUp.collectAsStateWithLifecycle()
+    val catchUp by viewModel.catchUp.collectAsStateWithLifecycle()
     val reminders by viewModel.reminderCount.collectAsStateWithLifecycle()
     var menuFor by remember { mutableStateOf<RoomSummary?>(null) }
-    var leaving by remember { mutableStateOf<RoomSummary?>(null) }
+    val peek: PeekViewModel = hiltViewModel()
+    val peekLines by peek.lines.collectAsStateWithLifecycle()
     var searching by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
     val failure = stringResource(R.string.timeline_action_failed)
@@ -72,14 +78,9 @@ fun RoomListScreen(
     val drawer = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val loaded = state as? RoomListUiState.Loaded
-    SourcesDrawer(
+    RoomListDrawer(
         drawerState = drawer,
-        sources = loaded?.sources.orEmpty(),
-        selected = loaded?.source ?: RoomSource.All,
-        onSelect = { source ->
-            viewModel.setSource(source)
-            scope.launch { drawer.close() }
-        },
+        enabled = loaded != null,
         reminders = reminders,
         onOpenReminders = {
             scope.launch { drawer.close() }
@@ -92,41 +93,48 @@ fun RoomListScreen(
         onOpenPeople = {
             scope.launch { drawer.close() }
             onOpenPeople()
+        },
+        onOpenSettings = {
+            scope.launch { drawer.close() }
+            onOpenSettings()
         }
     ) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
-                // One row: the title and the account button share it, so there is no empty band above
-                // the title as with a large app bar.
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(R.string.roomlist_title),
-                            style = MaterialTheme.typography.headlineLarge
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawer.open() } }, enabled = loaded != null) {
-                            Icon(Symbols.Hub, contentDescription = stringResource(R.string.sources_open))
-                        }
-                    },
-                    actions = {
-                        if (canCatchUp) {
-                            IconButton(onClick = onOpenCatchUp) {
-                                Icon(Symbols.Summarize, contentDescription = stringResource(R.string.catch_up_open))
+                Column {
+                    // One row: the title and the account button share it, so there is no empty band above
+                    // the title as with a large app bar.
+                    TopAppBar(
+                        title = {
+                            Text(
+                                text = stringResource(R.string.roomlist_title),
+                                style = MaterialTheme.typography.headlineLarge
+                            )
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = { scope.launch { drawer.open() } }, enabled = loaded != null) {
+                                Icon(Symbols.Menu, contentDescription = stringResource(R.string.roomlist_menu_open))
                             }
-                        }
-                        IconButton(onClick = { searching = true }) {
-                            Icon(Symbols.Search, contentDescription = stringResource(R.string.search_open))
-                        }
-                        AccountButton(profile?.label.orEmpty(), avatar, onOpenAccount)
-                    },
-                    expandedHeight = 72.dp,
-                    scrollBehavior = scrollBehavior
-                )
+                        },
+                        actions = {
+                            IconButton(onClick = { searching = true }) {
+                                Icon(Symbols.Search, contentDescription = stringResource(R.string.search_open))
+                            }
+                            AccountButton(profile?.label.orEmpty(), avatar, onOpenAccount)
+                        },
+                        expandedHeight = 72.dp,
+                        // One colour however far the list scrolls; the hairline below marks the edge.
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            scrolledContainerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        scrollBehavior = scrollBehavior
+                    )
+                    if (loaded != null) NetworkTabs(loaded.sources, loaded.source, viewModel::setSource)
+                    ScrollHairline(scrollBehavior.state.overlappedFraction > 0f)
+                }
             },
-            snackbarHost = { SnackbarHost(snackbar) }
+            snackbarHost = { PhalanxSnackbarHost(snackbar) }
         ) { padding ->
             // Keyed on the kind of state, so the skeleton fades into the list once, not on every update.
             val fade = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
@@ -141,10 +149,15 @@ fun RoomListScreen(
                         current,
                         drafts,
                         padding,
+                        catchUp,
                         viewModel::setFilter,
-                        onClearSource = { viewModel.setSource(RoomSource.All) },
+                        onOpenCatchUp,
                         onOpenRoom,
-                        onLongClick = { menuFor = it }
+                        onLongClick = {
+                            menuFor = it
+                            peek.peek(it.id)
+                        },
+                        liftedId = menuFor?.id
                     )
                 }
             }
@@ -155,30 +168,42 @@ fun RoomListScreen(
         SearchOverlay(onClose = { searching = false }, onOpenRoom = onOpenRoom, onOpenMessage = onOpenMessage)
     }
 
-    menuFor?.let { room ->
-        fun then(action: () -> Unit): () -> Unit = {
-            action()
-            menuFor = null
+    // The menu follows the room as its actions land, so a toggle shows its new state at once.
+    val menuRoom = menuFor?.let { picked -> loaded?.rooms?.firstOrNull { it.id == picked.id } ?: picked }
+    val archived = stringResource(R.string.roomlist_archived, menuRoom?.name.orEmpty())
+    val left = stringResource(R.string.roomlist_left, menuRoom?.name.orEmpty())
+    val undo = stringResource(R.string.undo)
+    LiftOverlay(
+        item = menuRoom,
+        onDismiss = { menuFor = null },
+        closeLabel = stringResource(R.string.menu_close),
+        stage = { room -> PeekCard(room, peekLines) },
+        sheet = { room ->
+            RoomActions(
+                room = room,
+                onToggleRead = { viewModel.setUnread(room, !room.hasUnread) },
+                onToggleFavourite = { viewModel.setFavourite(room, !room.isFavourite) },
+                onToggleMuted = { viewModel.setMuted(room, !room.isMuted) },
+                onArchive = {
+                    menuFor = null
+                    val archiving = !room.isLowPriority
+                    viewModel.setArchived(room, archiving)
+                    if (archiving) {
+                        scope.launch {
+                            snackbar.showUndo(archived, undo) { viewModel.setArchived(room, false) }
+                        }
+                    }
+                },
+                onDetails = {
+                    menuFor = null
+                    onOpenDetails(room.id)
+                },
+                onLeave = {
+                    menuFor = null
+                    viewModel.leave(room)
+                    scope.launch { snackbar.showReport(left) }
+                }
+            )
         }
-        RoomActionsSheet(
-            room = room,
-            onDismiss = { menuFor = null },
-            onToggleRead = then { viewModel.setUnread(room, !room.hasUnread) },
-            onToggleFavourite = then { viewModel.setFavourite(room, !room.isFavourite) },
-            onToggleArchived = then { viewModel.setArchived(room, !room.isLowPriority) },
-            onToggleMuted = then { viewModel.setMuted(room, !room.isMuted) },
-            onDetails = then { onOpenDetails(room.id) },
-            onLeave = then { leaving = room }
-        )
-    }
-    leaving?.let { room ->
-        LeaveRoomDialog(
-            name = room.name,
-            onConfirm = {
-                viewModel.leave(room)
-                leaving = null
-            },
-            onDismiss = { leaving = null }
-        )
-    }
+    )
 }

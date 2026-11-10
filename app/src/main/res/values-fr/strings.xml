@@ -35,9 +35,6 @@
     </plurals>
 
     <string name="account_title">Compte</string>
-    <string name="account_section_profile">Profil</string>
-    <string name="account_display_name">Nom affiché</string>
-    <string name="account_display_name_unset">Non défini</string>
     <string name="account_name_failed">Impossible de changer votre nom. Réessayez.</string>
     <string name="account_save">Enregistrer</string>
     <string name="account_cancel">Annuler</string>
@@ -50,7 +47,6 @@
     <string name="account_manage_summary">Mot de passe, e-mail et plus, sur le site de votre serveur</string>
     <string name="account_devices">Appareils</string>
     <string name="account_devices_summary">Voir et déconnecter vos autres sessions</string>
-    <string name="account_devices_summary_this">Cet appareil est %1$s. Voir et déconnecter les autres.</string>
     <string name="account_section_app">Application</string>
     <string name="account_sign_out">Se déconnecter</string>
     <string name="account_sign_out_title">Se déconnecter ?</string>
@@ -515,7 +511,7 @@
     <string name="roomlist_filter_people">Personnes</string>
     <string name="roomlist_filter_groups">Groupes</string>
     <string name="roomlist_filter_archived">Archivées</string>
-    <string name="roomlist_filter_archived_count">Archivées · %1$d</string>
+    <string name="roomlist_filter_archived_count">Archivées (%1$d)</string>
     <string name="roomlist_filter_empty">Rien ici</string>
     <string name="search_all">Tout</string>
     <string name="search_chats">Conversations</string>
@@ -587,11 +583,8 @@
     <string name="details_member_invited">Invité</string>
     <string name="action_pin">Épingler</string>
     <string name="action_unpin">Désépingler</string>
-    <string name="sources_title">Sources</string>
     <string name="sources_all">Toutes les sources</string>
     <string name="sources_matrix">Matrix</string>
-    <string name="sources_open">Afficher les sources</string>
-    <string name="sources_clear">Afficher toutes les sources</string>
     <string name="timeline_reaction_custom">émoji personnalisé</string>
     <string name="composer_mention_room">Notifier tout le salon</string>
     <string name="composer_mention_silent">Envoyer sans notifier personne</string>
@@ -642,4 +635,112 @@
     <string name="bridges_logged_out">Déconnecté : reconnectez-vous pour recevoir les messages</string>
     <string name="bridges_connected">Connecté</string>
     <string name="bridges_reconnect">Reconnecter</string>
+    <string name="settings_ai_intro_cloud">Les résumés, les mises à jour des salons et les traductions sont écrits par Claude : les messages concernés sont envoyés à Anthropic. Les messages vocaux sont toujours transcrits sur ce téléphone.</string>
+    <string name="settings_cloud_title">Écrire avec Claude</string>
+    <string name="settings_cloud_summary">Plus rapide et plus précis que le modèle de ce téléphone, mais les messages sont envoyés à Anthropic.</string>
+    <string name="settings_cloud_key">Clé d’API Claude</string>
+    <string name="settings_cloud_key_added">Ajoutée · scellée sur ce téléphone</string>
+    <string name="settings_cloud_key_none">Non ajoutée</string>
+    <string name="settings_cloud_key_hint">Une clé de votre compte Anthropic. Ce que Claude écrit lui est facturé.</string>
+    <string name="settings_cloud_key_remove">Retirer la clé</string>
+    <string name="settings_cloud_confirm_title">Envoyer des messages à Claude ?</string>
+    <string name="settings_cloud_confirm_text">Pour écrire un résumé, une mise à jour ou une traduction, Phalanx enverra les messages concernés à Anthropic, une société des États-Unis. Cela inclut ce que les autres ont écrit, et se fait hors du chiffrement de bout en bout. Chaque demande est facturée à votre clé. Les messages vocaux restent sur ce téléphone.</string>
+    <string name="settings_cloud_confirm">Activer</string>
+    <string name="cloud_key_refused">Claude a besoin d’une clé d’API valide. Vérifiez-la dans Paramètres → IA.</string>
+    <string name="cloud_failed">Impossible de joindre Claude. Réessayez.</string>
+    <string name="cloud_note">Écrit par Claude · les messages sont envoyés à Anthropic</string>
+    <string name="confirm_expanded">Demande de confirmation</string>
+    <string name="confirm_collapsed">Touchez pour confirmer</string>
+    <string name="copied">Copié</string>
+    <string name="undo">Annuler</string>
+    <plurals name="catch_up_card_unread">
+        <item quantity="one">%1$d non lu dans %2$d discussion</item>
+        <item quantity="many">%1$d non lus dans %2$d discussions</item>
+        <item quantity="other">%1$d non lus dans %2$d discussions</item>
+    </plurals>
+    <plurals name="catch_up_card_mentions">
+        <item quantity="one">%d mention</item>
+        <item quantity="many">%d mentions</item>
+        <item quantity="other">%d mentions</item>
+    </plurals>
+    <string name="catch_up_card_with_mentions">%1$s · %2$s</string>
+    <string name="roomlist_menu_open">Ouvrir le menu</string>
+    <string name="room_thread_subtitle">%1$s, une seule discussion</string>
+    <string name="network_limit">%1$s caractères par message</string>
+    <string name="network_no_limit">Aucune limite de longueur</string>
+    <string name="split_meter_near">%1$s / %2$s</string>
+    <string name="split_meter_near_description">%1$s caractères sur %2$s</string>
+    <string name="split_preview_subtitle">%1$s accepte %2$s caractères à la fois.</string>
+    <string name="split_preview_close">Fermer l’aperçu du découpage</string>
+    <string name="split_cut_paragraph">Coupé entre deux paragraphes</string>
+    <string name="split_cut_line">Coupé à un retour à la ligne</string>
+    <string name="split_cut_word">Coupé entre deux mots</string>
+    <string name="split_cut_mid_word">Coupé au milieu d’un mot</string>
+    <string name="split_send_instead">Envoyer plutôt sur %1$s, en un seul message</string>
+    <plurals name="split_meter_parts">
+        <item quantity="one">%d message</item>
+        <item quantity="many">%d messages</item>
+        <item quantity="other">%d messages</item>
+    </plurals>
+    <plurals name="split_meter_parts_description">
+        <item quantity="one">Part en %d message. Voir où il est coupé.</item>
+        <item quantity="many">Part en %d messages. Voir où il est coupé.</item>
+        <item quantity="other">Part en %d messages. Voir où il est coupé.</item>
+    </plurals>
+    <plurals name="split_preview_title">
+        <item quantity="one">Part en %d message</item>
+        <item quantity="many">Part en %d messages</item>
+        <item quantity="other">Part en %d messages</item>
+    </plurals>
+    <plurals name="composer_send_parts">
+        <item quantity="one">Envoyer en %d message</item>
+        <item quantity="many">Envoyer en %d messages</item>
+        <item quantity="other">Envoyer en %d messages</item>
+    </plurals>
+    <string name="catch_up_on_phone">Sur ce téléphone</string>
+    <string name="catch_up_in_cloud">Envoyé à Claude</string>
+    <string name="catch_up_needs">Vous attend · %1$d</string>
+    <string name="catch_up_nothing_waiting">Rien ne vous attend.</string>
+    <string name="catch_up_what_happened">Ce qui s’est passé</string>
+    <string name="catch_up_reply">Répondre</string>
+    <string name="catch_up_mark_done">Marquer comme fait</string>
+    <string name="catch_up_marked_done">Marqué comme fait</string>
+    <string name="catch_up_mark_read">Marquer comme lu</string>
+    <string name="catch_up_marked_read">Marqué comme lu</string>
+    <string name="catch_up_open_chat">Ouvrir la discussion</string>
+    <string name="catch_up_cancel_reminder">Annuler le rappel</string>
+    <string name="catch_up_need_label">%1$s · %2$s</string>
+    <string name="catch_up_card_meta">%1$s · %2$s</string>
+    <plurals name="catch_up_progress">
+        <item quantity="one">%1$d discussion lue sur %2$d</item>
+        <item quantity="many">%1$d discussions lues sur %2$d</item>
+        <item quantity="other">%1$d discussions lues sur %2$d</item>
+    </plurals>
+    <plurals name="catch_up_all_read">
+        <item quantity="one">%d discussion lue</item>
+        <item quantity="many">Les %d discussions lues</item>
+        <item quantity="other">Les %d discussions lues</item>
+    </plurals>
+    <string name="account_how_others_see">Ce que voient les autres</string>
+    <string name="account_preview_bubble">Votre nom et votre photo, tels qu’une discussion les montre.</string>
+    <string name="account_copy_id">Copier votre identifiant Matrix</string>
+    <string name="account_edit_name">Modifier votre nom affiché</string>
+    <string name="account_deactivating">Désactivation…</string>
+    <string name="account_signing_out">Déconnexion…</string>
+    <string name="menu_unarchive">Désarchiver</string>
+    <string name="menu_close">Fermer le menu</string>
+    <string name="roomlist_archived">%1$s archivée</string>
+    <string name="roomlist_left">Vous avez quitté %1$s</string>
+    <string name="peek_caption">Aperçu. Regarder ici ne marque pas comme lu.</string>
+    <string name="peek_marked_unread">marquée non lue</string>
+    <string name="details_leave_title">Quitter cette discussion ?</string>
+    <string name="text_copied">Texte copié</string>
+    <string name="blocked_done">Bloqué. Vous ne verrez plus ses messages.</string>
+    <string name="message_pinned">Épinglé</string>
+    <string name="message_bookmarked">Enregistré</string>
+    <string name="trust_changed_short">Identité modifiée</string>
+    <string name="trust_changed_body">Vérifiez avec cette personne par un autre moyen avant de faire confiance aux nouveaux messages.</string>
+    <string name="profile_mention">Mentionner</string>
+    <string name="profile_copy_their_id">Copier son identifiant Matrix</string>
+    <string name="profile_close">Fermer le profil</string>
 </resources>

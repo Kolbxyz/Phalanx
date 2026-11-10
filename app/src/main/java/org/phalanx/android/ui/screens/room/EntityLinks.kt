@@ -87,9 +87,9 @@ internal fun EntitySheet(text: String, span: EntitySpan, onDismiss: () -> Unit) 
             when {
                 loaded == null -> LoadingIndicator(Modifier.align(Alignment.CenterHorizontally))
                 loaded.isEmpty() -> Text(stringResource(R.string.entity_no_action, shown))
-                else -> EntityRows(listOf(FoundEntity(shown, span.kind, loaded))) { action ->
+                else -> SmartChips(listOf(FoundEntity(shown, span.kind, loaded)), onAction = { action ->
                     if (action.launch(context)) onDismiss() else failed = true
-                }
+                })
             }
             if (failed) {
                 Text(

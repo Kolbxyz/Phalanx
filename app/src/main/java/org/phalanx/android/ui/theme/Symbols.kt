@@ -197,4 +197,16 @@ internal object Symbols {
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_mail)
     val Flight: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.sym_flight)
+    val VisibilityOff: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_visibility_off)
+    val Unarchive: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_unarchive)
+    val AlternateEmail: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_alternate_email)
+    val Dns: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_dns)
+    val Settings: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_settings)
+    val Menu: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.sym_menu)
 }

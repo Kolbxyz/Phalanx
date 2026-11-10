@@ -73,6 +73,8 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
 
     suspend fun setAiOnDisk(enabled: Boolean) = store.edit { it[AI_ON_DISK] = enabled }
 
+    suspend fun setAiCloud(enabled: Boolean) = store.edit { it[AI_CLOUD] = enabled }
+
     suspend fun setAutoTranscribe(enabled: Boolean) = store.edit { it[AUTO_TRANSCRIBE] = enabled }
 
     suspend fun setAppLock(enabled: Boolean) = store.edit { it[APP_LOCK] = enabled }
@@ -117,6 +119,7 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
             keepDeletedMessages = this[KEEP_DELETED] ?: defaults.keepDeletedMessages,
             aiSummaries = this[AI_SUMMARIES] ?: defaults.aiSummaries,
             aiOnDisk = this[AI_ON_DISK] ?: defaults.aiOnDisk,
+            aiCloud = this[AI_CLOUD] ?: defaults.aiCloud,
             autoTranscribe = this[AUTO_TRANSCRIBE] ?: defaults.autoTranscribe,
             appLock = this[APP_LOCK] ?: defaults.appLock,
             lockTimeout = LockTimeout.entries.firstOrNull { it.name == this[LOCK_TIMEOUT] } ?: defaults.lockTimeout,
@@ -151,6 +154,7 @@ class SettingsStore @Inject constructor(@ApplicationContext context: Context) {
         val KEEP_DELETED = booleanPreferencesKey("keep_deleted_messages")
         val AI_SUMMARIES = booleanPreferencesKey("ai_summaries")
         val AI_ON_DISK = booleanPreferencesKey("ai_on_disk")
+        val AI_CLOUD = booleanPreferencesKey("ai_cloud")
         val AUTO_TRANSCRIBE = booleanPreferencesKey("auto_transcribe")
         val APP_LOCK = booleanPreferencesKey("app_lock")
         val LOCK_TIMEOUT = stringPreferencesKey("lock_timeout")

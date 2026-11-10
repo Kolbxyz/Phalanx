@@ -8,13 +8,36 @@ import org.phalanx.android.data.model.RoomSummary
 
 class CatchUpTest {
     @Test
-    fun `a catch-up reads its points and lines`() = assertEquals(
-        CatchUp(listOf("Dinner moves to Friday 20h"), "Can you bring wine?", null),
-        catchUpOf("""{"points":["Dinner moves to Friday 20h "],"waiting":"Can you bring wine?","promised":" "}""")
+    fun `a catch-up reads its points and what the picked lines say`() = assertEquals(
+        CatchUp(listOf("Dinner moves to Friday 20h"), "Ana asks you to bring wine", null),
+        catchUpOf(
+            """{"points":["Dinner moves to Friday 20h "],"ask_line":4,"ask":"Ana asks you to bring wine",""" +
+                """"promise_line":0,"promise":null}""",
+            asks = setOf(4),
+            promises = setOf(2)
+        )
     )
 
     @Test
-    fun `a reply that is not the shape asked for gives nothing`() = assertNull(catchUpOf("Sure!"))
+    fun `a line the code did not offer is not kept`() = assertEquals(
+        CatchUp(listOf("Dinner moves to Friday 20h"), null, null),
+        catchUpOf(
+            """{"points":["Dinner moves to Friday 20h"],"ask_line":7,"ask":"Bo wants an answer",""" +
+                """"promise_line":2,"promise":" "}""",
+            asks = setOf(4),
+            promises = setOf(2)
+        )
+    )
+
+    @Test
+    fun `points alone make a catch-up`() = assertEquals(
+        CatchUp(listOf("Nothing was decided"), null, null),
+        catchUpOf("""{"points":["Nothing was decided"]}""", emptySet(), emptySet())
+    )
+
+    @Test
+    fun `a reply that is not the shape asked for gives nothing`() =
+        assertNull(catchUpOf("Sure!", emptySet(), emptySet()))
 
     @Test
     fun `mentions come first, then direct chats and questions, and muted rooms not at all`() {

@@ -70,6 +70,11 @@ data class AppSettings(
      * written again. Turning it off, or signing out, deletes it.
      */
     val aiOnDisk: Boolean = false,
+    /**
+     * On: summaries, catch-ups and translations are written by Claude, through the API key the user
+     * gave, instead of the model on this phone. The messages they are about then leave the phone.
+     */
+    val aiCloud: Boolean = false,
     /** On: voice messages are written out as they come into view, once a speech model is imported. */
     val autoTranscribe: Boolean = false,
     /** On: opening the app asks for a fingerprint, face or the phone's PIN. */

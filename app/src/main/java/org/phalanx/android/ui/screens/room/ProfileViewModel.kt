@@ -6,14 +6,21 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import org.phalanx.android.core.contacts.Conversations
+import org.phalanx.android.core.contacts.peopleOf
 import org.phalanx.android.data.model.Member
+import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.model.UserTrust
+import org.phalanx.android.data.repository.PeopleRepository
 import org.phalanx.android.data.repository.RoomActionsRepository
+import org.phalanx.android.data.repository.RoomListRepository
 import org.phalanx.android.data.repository.SecurityRepository
 import org.phalanx.android.ui.navigation.RoomRoute
 
@@ -23,7 +30,9 @@ internal class ProfileViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val actions: RoomActionsRepository,
     private val conversations: Conversations,
-    private val security: SecurityRepository
+    private val security: SecurityRepository,
+    private val roomList: RoomListRepository,
+    private val people: PeopleRepository
 ) : ViewModel() {
     private val roomId = savedStateHandle.toRoute<RoomRoute>().roomId
 
@@ -45,4 +54,11 @@ internal class ProfileViewModel @Inject constructor(
         conversations.open(roomId).getOrNull()?.members(listOf(userId))?.firstOrNull() ?: Member(userId, userId, null)
 
     suspend fun trustOf(userId: String): UserTrust? = security.trustOf(userId)
+
+    /** [userId]'s chats on the networks the user linked to them, their chat in this room left out. */
+    fun alsoOn(userId: String): Flow<List<RoomSummary>> =
+        combine(roomList.rooms.filterNotNull(), people.links.filterNotNull()) { rooms, links ->
+            val person = peopleOf(rooms, links).firstOrNull { person -> person.chats.any { it.dmUserId == userId } }
+            person?.chats.orEmpty().filter { it.id != roomId }
+        }
 }

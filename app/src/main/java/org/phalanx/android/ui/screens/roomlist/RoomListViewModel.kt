@@ -45,15 +45,19 @@ class RoomListViewModel @Inject constructor(
     val reminderCount: StateFlow<Int> = reminders.reminders.map { it.size }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), 0)
 
-    /** Offered with on-device AI on and something unread to catch up on. */
-    val canCatchUp: StateFlow<Boolean> = combine(settings.settings, roomList.rooms) { current, rooms ->
-        current.aiSummaries && rooms.orEmpty().any { it.hasUnread && !it.isMuted && !it.isLowPriority }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), false)
-
     // Starts from the repository's current list, so coming back to this screen never flashes a
     // loading state.
     private val filter = MutableStateFlow(RoomFilter.All)
     private val source = MutableStateFlow<RoomSource>(RoomSource.All)
+
+    /**
+     * What a catch-up would read, over every room as the catch-up screen reads them; null with
+     * on-device AI off or nothing to read.
+     */
+    val catchUp: StateFlow<CatchUpSummary?> = combine(settings.settings, roomList.rooms) { current, rooms ->
+        if (current.aiSummaries) catchUpOf(rooms.orEmpty()) else null
+    }.flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), null)
 
     val state: StateFlow<RoomListUiState> = combine(roomList.rooms, filter, source, people.links, ::toUiState)
         .flowOn(Dispatchers.Default)
@@ -126,10 +130,12 @@ class RoomListViewModel @Inject constructor(
         return RoomListUiState.Loaded(
             rooms = folded.rows,
             roomsOf = folded.roomsOf,
+            bridgesOf = folded.bridgesOf,
             filter = filter,
             archivedCount = rooms.count { it.isArchived(now) },
             source = source,
-            sources = sourcesOf(filtered)
+            // Over every room in view whatever the chip, so the tabs stay put as chips change.
+            sources = sourcesOf(rooms.filterNot { it.isArchived(now) })
         )
     }
 

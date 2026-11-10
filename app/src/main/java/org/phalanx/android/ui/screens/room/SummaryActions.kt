@@ -16,6 +16,7 @@ internal class SummaryActions(
 @Composable
 internal fun SummaryHost(summary: SummaryViewModel, room: RoomViewModel) {
     val state by summary.state.collectAsStateWithLifecycle()
+    val inCloud by summary.inCloud.collectAsStateWithLifecycle()
     val actions = remember(summary, room) {
         SummaryActions(
             onDismiss = summary::dismiss,
@@ -25,5 +26,5 @@ internal fun SummaryHost(summary: SummaryViewModel, room: RoomViewModel) {
             }
         )
     }
-    SummarySheet(state, actions)
+    SummarySheet(state, inCloud, actions)
 }
