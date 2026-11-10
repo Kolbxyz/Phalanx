@@ -76,6 +76,9 @@ class SummaryViewModel @Inject constructor(
 
     private val mutableState = MutableStateFlow<SummaryState>(SummaryState.Idle)
     val state: StateFlow<SummaryState> = mutableState.asStateFlow()
+
+    /** True while Claude writes the summaries, so the sheet says the messages are sent out. */
+    val inCloud: StateFlow<Boolean> = summarizer.inCloud.stateIn(viewModelScope, SharingStarted.Eagerly, false)
     private var job: Job? = null
 
     /** This room's checkpoints, oldest first, each shown after the last message its summary covers. */

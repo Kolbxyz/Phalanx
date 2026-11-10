@@ -10,8 +10,10 @@ import java.io.IOException
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -20,17 +22,16 @@ import org.phalanx.android.R
 import org.phalanx.android.core.ai.AiDisk
 import org.phalanx.android.core.ai.CatchUp
 import org.phalanx.android.core.ai.LocalSummarizer
-import org.phalanx.android.core.ai.SummaryLine
 import org.phalanx.android.core.ai.roomsToCatchUp
 import org.phalanx.android.data.model.Reminder
 import org.phalanx.android.data.model.RoomSummary
+import org.phalanx.android.data.repository.AccountRepository
 import org.phalanx.android.data.repository.ReminderRepository
 import org.phalanx.android.data.repository.RoomListRepository
 import org.phalanx.android.data.repository.ScheduleRepository
 import org.phalanx.android.data.repository.TimelineRepository
 import org.phalanx.android.ui.screens.room.ReadAtOpen
 import org.phalanx.android.ui.screens.room.aiFailureMessage
-import org.phalanx.android.ui.screens.room.summaryOf
 
 /** Where one room's catch-up stands. */
 sealed interface CardState {
@@ -49,9 +50,9 @@ data class CatchUpCard(val room: RoomSummary, val state: CardState)
 
 /**
  * Every room with unread messages, most worth reading first, each caught up on in turn by the
- * local model: the first card fills in within seconds and the rest follow. Only [BATCH] rooms are
- * read at first, as the model is slow on a busy room; "More" reads the next ones. Nothing is
- * marked as read.
+ * model, on this phone or in the cloud: the first card fills in within seconds and the rest
+ * follow. Only [BATCH] rooms are read at first, as the model on the phone is slow on a busy room;
+ * "More" reads the next ones. Nothing is marked as read.
  */
 @HiltViewModel
 class CatchUpViewModel @Inject constructor(
@@ -61,6 +62,7 @@ class CatchUpViewModel @Inject constructor(
     private val disk: AiDisk,
     private val reminders: ReminderRepository,
     private val schedules: ScheduleRepository,
+    private val account: AccountRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
     private val mutableCards = MutableStateFlow(
@@ -68,6 +70,10 @@ class CatchUpViewModel @Inject constructor(
             .map { CatchUpCard(it, CardState.Waiting) }
     )
     val cards: StateFlow<List<CatchUpCard>> = mutableCards.asStateFlow()
+
+    /** True while Claude writes the catch-ups, so the screen says the messages are sent out. */
+    val inCloud: StateFlow<Boolean> =
+        summarizer.inCloud.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     // One room at a time: the model runs one request at a time anyway, and in this order.
     private val reading = Mutex()
@@ -92,20 +98,28 @@ class CatchUpViewModel @Inject constructor(
         val readUpTo = suspend { timelines.readUpTo(room.id).getOrNull().orEmpty() }
         val readAtOpen = ReadAtOpen(viewModelScope, readUpTo, room.unreadCount)
         val unread = readAtOpen.unread(session, MAX_MESSAGES)
-        val you = context.getString(R.string.summary_you)
-        val lines = unread.map {
-            SummaryLine(if (it.isOwn) you else it.senderName, summaryOf(it.body, context::getString), it.eventId)
+        val last = unread.mapNotNull { it.eventId }.lastOrNull()
+        if (last == null) {
+            set(room.id, CardState.Failed(R.string.catch_up_nothing))
+            return
         }
-        val last = lines.mapNotNull { it.eventId }.lastOrNull()
-        set(room.id, last?.let { catchUp(room.id, lines, it, you) } ?: CardState.Failed(R.string.catch_up_nothing))
+        // Past MAX_MESSAGES the oldest unread ones are left out, and what came before them with them.
+        val before = if (unread.size < MAX_MESSAGES) readAtOpen.before(session, READ_MESSAGES) else emptyList()
+        val reader = account.profile.value
+        // Signed as the others name them: read as "You" next to that name, they are two people.
+        val you = reader?.firstName() ?: context.getString(R.string.summary_you)
+        val lines = catchUpLines(before, unread, you, reader, context::getString)
+        val state = catchUp("${room.id} $last", last) {
+            summarizer.catchUp(lines, you, session.isDirect)
+        }
+        set(room.id, state)
     }
 
-    // The same unread messages as last time: the catch-up kept then still holds.
-    private suspend fun catchUp(roomId: String, lines: List<SummaryLine>, last: String, you: String): CardState {
-        val key = "$roomId $last"
+    // The same unread messages as last time: the catch-up kept then as [key] still holds.
+    private suspend fun catchUp(key: String, last: String, write: suspend () -> Result<CatchUp>): CardState {
         val kept = disk.read(disk.catchUps, key)
         if (kept != null) return CardState.Done(kept, last)
-        return summarizer.catchUp(lines, you).fold(
+        return write().fold(
             onSuccess = {
                 disk.keep(disk.catchUps, key, it)
                 CardState.Done(it, last)
@@ -152,5 +166,8 @@ class CatchUpViewModel @Inject constructor(
 
         // The newest unread ones: past this, the start of a long backlog matters less than its end.
         const val MAX_MESSAGES = 60
+
+        // Read already, just before the unread ones: what those answer, and what the user said last.
+        const val READ_MESSAGES = 12
     }
 }

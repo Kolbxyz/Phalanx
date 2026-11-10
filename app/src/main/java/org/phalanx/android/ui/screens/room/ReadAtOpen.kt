@@ -30,6 +30,15 @@ internal class ReadAtOpen(
         return if (anchor == null) emptyList() else messagesOf(session).dropWhile { it.id != anchor }.takeLast(max)
     }
 
+    /**
+     * The [count] messages just before the first one unread at open, oldest first: what the unread
+     * ones answer. Only those already loaded, and none when nothing was unread.
+     */
+    suspend fun before(session: TimelineSession, count: Int): List<TimelineEntry.Message> {
+        val anchor = firstUnreadId ?: find(session)?.also { firstUnreadId = it }
+        return if (anchor == null) emptyList() else messagesOf(session).takeWhile { it.id != anchor }.takeLast(count)
+    }
+
     /** The event ID of the first message unread at open, or null when there was none. */
     suspend fun firstUnreadEventId(session: TimelineSession): String? = unread(session, Int.MAX_VALUE)
         .firstOrNull()?.eventId

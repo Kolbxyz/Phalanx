@@ -25,7 +25,7 @@
 
 Phalanx is a Matrix client built on the **[Matrix Rust SDK](https://github.com/matrix-org/matrix-rust-sdk)**, with every chat end-to-end encrypted by the same crypto, sync and storage code the reference clients use, and a strict **Material 3 Expressive** interface on top.
 
-Designed for hardened phones like GrapheneOS: no Google services, push through **UnifiedPush**, zero telemetry, Keystore-backed secrets and HTTPS only. Its AI features (summaries, transcription, translation) run **on the phone**, from models you choose to download.
+Designed for hardened phones like GrapheneOS: no Google services, push through **UnifiedPush**, zero telemetry, Keystore-backed secrets and HTTPS only. Its AI features (summaries, transcription, translation) run **on the phone**, from models you choose to download; an opt-in setting can hand the text ones to Claude with your own API key.
 
 Messaging only: no voice or video calls, ever.
 
@@ -58,7 +58,9 @@ Through <a href="https://unifiedpush.org">UnifiedPush</a>, with the distributor 
 <details>
 <summary><b>"On-device AI"? Does anything leave my phone?</b></summary>
 <br>
-No. Summaries and catch-ups run a local language model (Mistral's Ministral 3B, through llama.cpp); voice messages are transcribed by Whisper; rooms translate offline with Bergamot, the engine Firefox uses. Nothing downloads until you tap Download, every model file is checked against a built-in SHA-256, and results stay in memory unless you ask Phalanx to keep them, sealed, on the phone.
+Not unless you turn it on. Summaries and catch-ups run a local language model (Mistral's Ministral 3B, through llama.cpp); voice messages are transcribed by Whisper; rooms translate offline with Bergamot, the engine Firefox uses. Nothing downloads until you tap Download, every model file is checked against a built-in SHA-256, and results stay in memory unless you ask Phalanx to keep them, sealed, on the phone.
+<br><br>
+The one exception is off by default: Settings → AI → "Write with Claude" has Anthropic's Claude write the summaries, catch-ups and translations instead, with your own API key. It is faster and more precise, but the messages concerned, including what other people wrote, are then sent to Anthropic, outside end-to-end encryption. Phalanx asks before turning it on and marks every result written that way. Voice messages are always transcribed on the phone.
 </details>
 
 <details>

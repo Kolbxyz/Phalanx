@@ -89,6 +89,8 @@ class SettingsViewModel @Inject constructor(
 
     fun setAiOnDisk(enabled: Boolean) = edit { store.setAiOnDisk(enabled) }
 
+    fun setAiCloud(enabled: Boolean) = edit { store.setAiCloud(enabled) }
+
     fun setAutoTranscribe(enabled: Boolean) = edit { store.setAutoTranscribe(enabled) }
 
     fun setAppLock(enabled: Boolean) = edit { store.setAppLock(enabled) }

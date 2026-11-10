@@ -17,7 +17,8 @@ import org.phalanx.android.ui.theme.Symbols
 
 /**
  * The on-device AI, as one card per feature: what it does, whether it is ready, its switch, and,
- * opened, the models it runs on. Keeping results on the phone and where downloads come from close it.
+ * opened, the models it runs on. Keeping results on the phone, writing with Claude instead, and
+ * where downloads come from close it.
  */
 @Composable
 internal fun AiSettings(
@@ -39,7 +40,7 @@ internal fun AiSettings(
     val voice by speech.model.collectAsStateWithLifecycle()
     val pairs by translation.pairs.collectAsStateWithLifecycle()
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        SectionLead(R.string.settings_ai_intro)
+        SectionLead(if (current.aiCloud) R.string.settings_ai_intro_cloud else R.string.settings_ai_intro)
         FeatureCard(
             icon = Symbols.Summarize,
             shape = FeatureShapes.Summaries,
@@ -77,6 +78,7 @@ internal fun AiSettings(
                 )
             )
         )
+        CloudSettings(current.aiCloud, viewModel::setAiCloud, ai)
         SectionLead(R.string.settings_ai_downloads_note)
     }
 }

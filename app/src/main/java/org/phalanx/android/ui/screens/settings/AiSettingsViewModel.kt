@@ -7,15 +7,22 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import org.phalanx.android.core.ai.CloudKey
 import org.phalanx.android.core.ai.KNOWN_MODELS
 import org.phalanx.android.core.ai.KnownModel
 import org.phalanx.android.core.ai.LlamaNative
 import org.phalanx.android.core.ai.ModelStore
 import org.phalanx.android.core.ai.ModelTransfer
 
-/** The language model every AI feature runs on: which one is installed, and getting another. */
+/**
+ * The language model every AI feature runs on: which one is installed, and getting another; and the
+ * API key of the cloud model that can write in its place.
+ */
 @HiltViewModel
-class AiSettingsViewModel @Inject constructor(private val store: ModelStore) : ViewModel() {
+class AiSettingsViewModel @Inject constructor(
+    private val store: ModelStore,
+    private val cloud: CloudKey
+) : ViewModel() {
     /** False on a phone without a 64-bit processor, where the native library is not shipped. */
     val supported: Boolean = LlamaNative.isAvailable
 
@@ -36,5 +43,16 @@ class AiSettingsViewModel @Inject constructor(private val store: ModelStore) : V
 
     fun remove() {
         viewModelScope.launch { store.remove() }
+    }
+
+    /** True while the user's Claude API key is kept, for the features they run in the cloud. */
+    val cloudKey: StateFlow<Boolean> = cloud.present
+
+    fun setCloudKey(key: String) {
+        viewModelScope.launch { cloud.set(key) }
+    }
+
+    fun removeCloudKey() {
+        viewModelScope.launch { cloud.remove() }
     }
 }

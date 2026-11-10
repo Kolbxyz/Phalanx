@@ -37,6 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.phalanx.android.R
 import org.phalanx.android.ui.components.BackButton
+import org.phalanx.android.ui.components.CloudNote
 import org.phalanx.android.ui.screens.room.ScheduleSheet
 import org.phalanx.android.ui.theme.Symbols
 
@@ -48,13 +49,19 @@ fun CatchUpScreen(
     viewModel: CatchUpViewModel = hiltViewModel()
 ) {
     val cards by viewModel.cards.collectAsStateWithLifecycle()
+    val inCloud by viewModel.inCloud.collectAsStateWithLifecycle()
     var reminding by remember { mutableStateOf<CatchUpCard?>(null) }
     // By room: what came of the reminder set on its promise.
     var reminded by remember { mutableStateOf(mapOf<String, Int>()) }
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.catch_up_title)) },
+                title = {
+                    Column {
+                        Text(stringResource(R.string.catch_up_title))
+                        if (inCloud) CloudNote()
+                    }
+                },
                 navigationIcon = { BackButton(onBack) }
             )
         }

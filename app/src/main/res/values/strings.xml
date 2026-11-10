@@ -652,4 +652,18 @@
     <string name="bridges_logged_out">Disconnected: sign in again to get messages</string>
     <string name="bridges_connected">Connected</string>
     <string name="bridges_reconnect">Reconnect</string>
+    <string name="settings_ai_intro_cloud">Summaries, catch-ups and translations are written by Claude: the messages they are about are sent to Anthropic. Voice messages are still written out on this phone.</string>
+    <string name="settings_cloud_title">Write with Claude</string>
+    <string name="settings_cloud_summary">Faster and more precise than the model on this phone, but the messages are sent to Anthropic.</string>
+    <string name="settings_cloud_key">Claude API key</string>
+    <string name="settings_cloud_key_added">Added · sealed on this phone</string>
+    <string name="settings_cloud_key_none">Not added</string>
+    <string name="settings_cloud_key_hint">A key from your Anthropic account. What Claude writes is billed to it.</string>
+    <string name="settings_cloud_key_remove">Remove the key</string>
+    <string name="settings_cloud_confirm_title">Send messages to Claude?</string>
+    <string name="settings_cloud_confirm_text">To write a summary, a catch-up or a translation, Phalanx will send the messages it is about to Anthropic, a company in the United States. That includes what other people wrote, and it happens outside end-to-end encryption. Each request is billed to your key. Voice messages stay on this phone.</string>
+    <string name="settings_cloud_confirm">Turn on</string>
+    <string name="cloud_key_refused">Claude needs a valid API key. Check it in Settings → AI.</string>
+    <string name="cloud_failed">Claude couldn’t be reached. Try again.</string>
+    <string name="cloud_note">Written by Claude · messages are sent to Anthropic</string>
 </resources>

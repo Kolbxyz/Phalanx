@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.IOException
 import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +16,9 @@ import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.core.ai.LocalSummarizer
 import org.phalanx.android.core.ai.MAX_TRANSLATED_CHARS
+import org.phalanx.android.core.ai.CloudFailedException
+import org.phalanx.android.core.ai.CloudKeyMissingException
+import org.phalanx.android.core.ai.CloudKeyRefusedException
 import org.phalanx.android.core.ai.ModelMissingException
 import org.phalanx.android.core.ai.SummariesUnsupportedException
 import org.phalanx.android.core.ai.translation.LanguagePair
@@ -89,10 +93,12 @@ internal class AssistViewModel @Inject constructor(
     }
 }
 
-/** What to tell the user when the local model could not answer. */
+/** What to tell the user when the model, on this phone or in the cloud, could not answer. */
 @StringRes
 internal fun aiFailureMessage(error: Throwable): Int = when (error) {
     is ModelMissingException -> R.string.summary_no_model
     is SummariesUnsupportedException -> R.string.settings_ai_unsupported
+    is CloudKeyMissingException, is CloudKeyRefusedException -> R.string.cloud_key_refused
+    is CloudFailedException, is IOException -> R.string.cloud_failed
     else -> R.string.summary_failed
 }

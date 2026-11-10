@@ -642,4 +642,18 @@
     <string name="bridges_logged_out">Déconnecté : reconnectez-vous pour recevoir les messages</string>
     <string name="bridges_connected">Connecté</string>
     <string name="bridges_reconnect">Reconnecter</string>
+    <string name="settings_ai_intro_cloud">Les résumés, les mises à jour des salons et les traductions sont écrits par Claude : les messages concernés sont envoyés à Anthropic. Les messages vocaux sont toujours transcrits sur ce téléphone.</string>
+    <string name="settings_cloud_title">Écrire avec Claude</string>
+    <string name="settings_cloud_summary">Plus rapide et plus précis que le modèle de ce téléphone, mais les messages sont envoyés à Anthropic.</string>
+    <string name="settings_cloud_key">Clé d’API Claude</string>
+    <string name="settings_cloud_key_added">Ajoutée · scellée sur ce téléphone</string>
+    <string name="settings_cloud_key_none">Non ajoutée</string>
+    <string name="settings_cloud_key_hint">Une clé de votre compte Anthropic. Ce que Claude écrit lui est facturé.</string>
+    <string name="settings_cloud_key_remove">Retirer la clé</string>
+    <string name="settings_cloud_confirm_title">Envoyer des messages à Claude ?</string>
+    <string name="settings_cloud_confirm_text">Pour écrire un résumé, une mise à jour ou une traduction, Phalanx enverra les messages concernés à Anthropic, une société des États-Unis. Cela inclut ce que les autres ont écrit, et se fait hors du chiffrement de bout en bout. Chaque demande est facturée à votre clé. Les messages vocaux restent sur ce téléphone.</string>
+    <string name="settings_cloud_confirm">Activer</string>
+    <string name="cloud_key_refused">Claude a besoin d’une clé d’API valide. Vérifiez-la dans Paramètres → IA.</string>
+    <string name="cloud_failed">Impossible de joindre Claude. Réessayez.</string>
+    <string name="cloud_note">Écrit par Claude · les messages sont envoyés à Anthropic</string>
 </resources>
