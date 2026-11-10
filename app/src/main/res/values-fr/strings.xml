@@ -687,4 +687,27 @@
         <item quantity="many">Envoyer en %d messages</item>
         <item quantity="other">Envoyer en %d messages</item>
     </plurals>
+    <string name="catch_up_on_phone">Sur ce téléphone</string>
+    <string name="catch_up_needs">Vous attend · %1$d</string>
+    <string name="catch_up_nothing_waiting">Rien ne vous attend.</string>
+    <string name="catch_up_what_happened">Ce qui s’est passé</string>
+    <string name="catch_up_reply">Répondre</string>
+    <string name="catch_up_mark_done">Marquer comme fait</string>
+    <string name="catch_up_marked_done">Marqué comme fait</string>
+    <string name="catch_up_mark_read">Marquer comme lu</string>
+    <string name="catch_up_marked_read">Marqué comme lu</string>
+    <string name="catch_up_open_chat">Ouvrir la discussion</string>
+    <string name="catch_up_cancel_reminder">Annuler le rappel</string>
+    <string name="catch_up_need_label">%1$s · %2$s</string>
+    <string name="catch_up_card_meta">%1$s · %2$s</string>
+    <plurals name="catch_up_progress">
+        <item quantity="one">%1$d discussion lue sur %2$d</item>
+        <item quantity="many">%1$d discussions lues sur %2$d</item>
+        <item quantity="other">%1$d discussions lues sur %2$d</item>
+    </plurals>
+    <plurals name="catch_up_all_read">
+        <item quantity="one">%d discussion lue</item>
+        <item quantity="many">Les %d discussions lues</item>
+        <item quantity="other">Les %d discussions lues</item>
+    </plurals>
 </resources>

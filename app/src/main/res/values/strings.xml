@@ -691,4 +691,25 @@
         <item quantity="one">Send as %d message</item>
         <item quantity="other">Send as %d messages</item>
     </plurals>
+    <string name="catch_up_on_phone">On this phone</string>
+    <string name="catch_up_needs">Needs you · %1$d</string>
+    <string name="catch_up_nothing_waiting">Nothing is waiting on you.</string>
+    <string name="catch_up_what_happened">What happened</string>
+    <string name="catch_up_reply">Reply</string>
+    <string name="catch_up_mark_done">Mark as done</string>
+    <string name="catch_up_marked_done">Marked as done</string>
+    <string name="catch_up_mark_read">Mark as read</string>
+    <string name="catch_up_marked_read">Marked as read</string>
+    <string name="catch_up_open_chat">Open chat</string>
+    <string name="catch_up_cancel_reminder">Cancel the reminder</string>
+    <string name="catch_up_need_label">%1$s · %2$s</string>
+    <string name="catch_up_card_meta">%1$s · %2$s</string>
+    <plurals name="catch_up_progress">
+        <item quantity="one">%1$d of %2$d chat read</item>
+        <item quantity="other">%1$d of %2$d chats read</item>
+    </plurals>
+    <plurals name="catch_up_all_read">
+        <item quantity="one">All %d chat read</item>
+        <item quantity="other">All %d chats read</item>
+    </plurals>
 </resources>

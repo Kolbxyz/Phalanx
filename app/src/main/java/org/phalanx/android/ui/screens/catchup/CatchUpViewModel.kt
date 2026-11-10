@@ -6,9 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.io.IOException
-import java.util.UUID
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,12 +22,16 @@ import org.phalanx.android.core.ai.roomsToCatchUp
 import org.phalanx.android.data.model.Reminder
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.repository.ReminderRepository
+import org.phalanx.android.data.repository.RoomActionsRepository
 import org.phalanx.android.data.repository.RoomListRepository
 import org.phalanx.android.data.repository.ScheduleRepository
 import org.phalanx.android.data.repository.TimelineRepository
 import org.phalanx.android.ui.screens.room.ReadAtOpen
 import org.phalanx.android.ui.screens.room.aiFailureMessage
 import org.phalanx.android.ui.screens.room.summaryOf
+import java.io.IOException
+import java.util.UUID
+import javax.inject.Inject
 
 /** Where one room's catch-up stands. */
 sealed interface CardState {
@@ -45,13 +46,17 @@ sealed interface CardState {
     data class Failed(@StringRes val message: Int) : CardState
 }
 
-data class CatchUpCard(val room: RoomSummary, val state: CardState)
+/** [markedRead] once the user marked the room read from here; until then nothing is. */
+data class CatchUpCard(val room: RoomSummary, val state: CardState, val markedRead: Boolean = false)
+
+/** Something waiting on the user in a room, or something they said they would do there. */
+enum class NeedKind { Waiting, Promised }
 
 /**
  * Every room with unread messages, most worth reading first, each caught up on in turn by the
  * local model: the first card fills in within seconds and the rest follow. Only [BATCH] rooms are
  * read at first, as the model is slow on a busy room; "More" reads the next ones. Nothing is
- * marked as read.
+ * marked as read unless the user asks.
  */
 @HiltViewModel
 class CatchUpViewModel @Inject constructor(
@@ -61,6 +66,7 @@ class CatchUpViewModel @Inject constructor(
     private val disk: AiDisk,
     private val reminders: ReminderRepository,
     private val schedules: ScheduleRepository,
+    private val actions: RoomActionsRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
     private val mutableCards = MutableStateFlow(
@@ -117,19 +123,20 @@ class CatchUpViewModel @Inject constructor(
     fun canScheduleExactly(): Boolean = schedules.canScheduleExactly()
 
     /**
-     * Reminds the user at [atMillis] of what they promised in [card]'s room; the reminder opens the
-     * room on the newest message read. [onDone] says whether it could be saved.
+     * Reminds the user at [atMillis] of [kind] in [card]'s room; the reminder opens the room on the
+     * newest message read. [onDone] gets the reminder's ID, or null when it could not be saved.
      */
-    fun remindPromise(card: CatchUpCard, atMillis: Long, onDone: (Boolean) -> Unit) {
-        val done = card.state as? CardState.Done ?: return onDone(false)
-        val promised = done.catchUp.promised ?: return onDone(false)
+    fun remind(card: CatchUpCard, kind: NeedKind, atMillis: Long, onDone: (String?) -> Unit) {
+        val done = card.state as? CardState.Done ?: return onDone(null)
+        val text = done.catchUp.textOf(kind) ?: return onDone(null)
+        val label = if (kind == NeedKind.Waiting) R.string.catch_up_waiting_on_you else R.string.catch_up_you_promised
         val reminder = Reminder(
             id = UUID.randomUUID().toString(),
             roomId = card.room.id,
             eventId = done.lastEventId,
             roomName = card.room.name,
-            senderName = context.getString(R.string.catch_up_you_promised),
-            preview = promised,
+            senderName = context.getString(label),
+            preview = text,
             remindAtMillis = atMillis
         )
         viewModelScope.launch {
@@ -139,8 +146,43 @@ class CatchUpViewModel @Inject constructor(
             } catch (_: IOException) {
                 false
             }
-            onDone(saved)
+            onDone(reminder.id.takeIf { saved })
         }
+    }
+
+    fun cancelReminder(id: String) {
+        viewModelScope.launch { reminders.cancel(id) }
+    }
+
+    /**
+     * Takes [kind] off [roomId]'s card, and off the catch-up kept on the phone, so it stays done
+     * until something new comes in. [undoDone] puts it back.
+     */
+    fun markDone(roomId: String, kind: NeedKind) = rewrite(roomId) { it.without(kind) }
+
+    fun undoDone(roomId: String, kind: NeedKind, text: String) = rewrite(roomId) { it.with(kind, text) }
+
+    /** Marks the room read on every device; undone, it is marked unread, as receipts can't be taken back. */
+    fun markRead(roomId: String, read: Boolean) {
+        setMarkedRead(roomId, read)
+        viewModelScope.launch {
+            if (actions.setUnread(roomId, !read).isFailure) {
+                // Didn't reach the server: the card goes back to how it was.
+                setMarkedRead(roomId, !read)
+            }
+        }
+    }
+
+    private fun setMarkedRead(roomId: String, read: Boolean) = mutableCards.update { cards ->
+        cards.map { if (it.room.id == roomId) it.copy(markedRead = read) else it }
+    }
+
+    private fun rewrite(roomId: String, change: (CatchUp) -> CatchUp) {
+        val card = mutableCards.value.firstOrNull { it.room.id == roomId } ?: return
+        val done = card.state as? CardState.Done ?: return
+        val changed = done.copy(catchUp = change(done.catchUp))
+        set(roomId, changed)
+        viewModelScope.launch { disk.keep(disk.catchUps, "$roomId ${done.lastEventId}", changed.catchUp) }
     }
 
     private fun set(roomId: String, state: CardState) = mutableCards.update { cards ->
