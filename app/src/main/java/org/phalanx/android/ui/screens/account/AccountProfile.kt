@@ -210,53 +210,6 @@ private fun NameEditor(
     }
 }
 
-/** The name and photo as a chat shows them to others, following the name as it is typed. */
-@Composable
-internal fun HowOthersSeeYou(profile: AccountProfile, avatar: ImageBitmap?, nameDraft: String?) {
-    val colors = MaterialTheme.colorScheme
-    val name = nameDraft?.takeIf { it.isNotBlank() } ?: profile.label
-    Column(Modifier.fillMaxWidth().padding(top = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            stringResource(R.string.account_how_others_see),
-            style = MaterialTheme.typography.labelLarge,
-            color = colors.primary,
-            modifier = Modifier.padding(start = 16.dp)
-        )
-        Surface(
-            shape = RoundedCornerShape(24.dp),
-            color = colors.surfaceContainer,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(16.dp)) {
-                InitialAvatar(
-                    name = name,
-                    shape = MaterialShapes.Cookie9Sided.toShape(),
-                    size = 32.dp,
-                    container = colors.primary,
-                    content = colors.onPrimary,
-                    image = avatar,
-                    textStyle = MaterialTheme.typography.labelLarge
-                )
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        name,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = colors.primary
-                    )
-                    Surface(shape = RoundedCornerShape(18.dp), color = colors.surfaceContainerHighest) {
-                        Text(
-                            stringResource(R.string.account_preview_bubble),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
 private const val NAME_FROM = 0.86f
 
 // Matrix allows longer, but other clients cut a display name past this.

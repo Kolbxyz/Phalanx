@@ -1,6 +1,7 @@
 package org.phalanx.android.ui.screens.details
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,9 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -33,7 +34,10 @@ import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.components.BackButton
 import org.phalanx.android.ui.components.InlineConfirm
 import org.phalanx.android.ui.components.OpenFileEffect
+import org.phalanx.android.ui.components.PhalanxSnackbarHost
+import org.phalanx.android.ui.components.ScrollHairline
 import org.phalanx.android.ui.components.SegmentedSection
+import org.phalanx.android.ui.components.scrolledPastTop
 import org.phalanx.android.ui.components.segmentedShape
 import org.phalanx.android.ui.screens.room.ProtectedRoomScreen
 import org.phalanx.android.ui.theme.Symbols
@@ -82,12 +86,22 @@ fun RoomDetailsScreen(
     var showAllMembers by rememberSaveable { mutableStateOf(false) }
     val members by viewModel.members.collectAsStateWithLifecycle()
 
+    val list = rememberLazyListState()
     Scaffold(
-        topBar = { TopAppBar(title = {}, navigationIcon = { BackButton(onBack) }) },
-        snackbarHost = { SnackbarHost(snackbar) }
+        topBar = {
+            Column {
+                TopAppBar(
+                    title = { room?.let { CollapsedTitle(it, list.headerScrolledAway()) } },
+                    navigationIcon = { BackButton(onBack) }
+                )
+                ScrollHairline(list.scrolledPastTop())
+            }
+        },
+        snackbarHost = { PhalanxSnackbarHost(snackbar) }
     ) { padding ->
         val current = room ?: return@Scaffold
         LazyColumn(
+            state = list,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 start = 16.dp,
