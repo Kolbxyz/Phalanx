@@ -25,7 +25,7 @@ internal fun catchUpLines(
         val text = summaryOf(message.body, label)
         val toReader = !message.isOwn && (
             message.replyTo?.eventId in own ||
-                reader != null && message.body.mentions(reader.userId) ||
+                (reader != null && message.body.mentions(reader.userId)) ||
                 named?.containsMatchIn(text) == true
             )
         return CatchUpLine(if (message.isOwn) you else message.senderName, text, message.isOwn, isUnread, toReader)

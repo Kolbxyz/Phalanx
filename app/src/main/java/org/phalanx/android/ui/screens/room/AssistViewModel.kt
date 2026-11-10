@@ -14,11 +14,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
-import org.phalanx.android.core.ai.LocalSummarizer
-import org.phalanx.android.core.ai.MAX_TRANSLATED_CHARS
 import org.phalanx.android.core.ai.CloudFailedException
 import org.phalanx.android.core.ai.CloudKeyMissingException
 import org.phalanx.android.core.ai.CloudKeyRefusedException
+import org.phalanx.android.core.ai.LocalSummarizer
+import org.phalanx.android.core.ai.MAX_TRANSLATED_CHARS
 import org.phalanx.android.core.ai.ModelMissingException
 import org.phalanx.android.core.ai.SummariesUnsupportedException
 import org.phalanx.android.core.ai.translation.LanguagePair

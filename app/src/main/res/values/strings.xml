@@ -35,9 +35,6 @@
     </plurals>
 
     <string name="account_title">Account</string>
-    <string name="account_section_profile">Profile</string>
-    <string name="account_display_name">Display name</string>
-    <string name="account_display_name_unset">Not set</string>
     <string name="account_name_failed">Couldn’t change your name. Try again.</string>
     <string name="account_save">Save</string>
     <string name="account_cancel">Cancel</string>
@@ -50,7 +47,6 @@
     <string name="account_manage_summary">Password, email and more, on your server’s site</string>
     <string name="account_devices">Devices</string>
     <string name="account_devices_summary">See and sign out your other sessions</string>
-    <string name="account_devices_summary_this">This device is %1$s. See and sign out the others.</string>
     <string name="account_section_app">App</string>
     <string name="account_sign_out">Sign out</string>
     <string name="account_sign_out_title">Sign out?</string>
@@ -510,7 +506,7 @@
     <string name="roomlist_filter_people">People</string>
     <string name="roomlist_filter_groups">Groups</string>
     <string name="roomlist_filter_archived">Archived</string>
-    <string name="roomlist_filter_archived_count">Archived · %1$d</string>
+    <string name="roomlist_filter_archived_count">Archived (%1$d)</string>
     <string name="roomlist_filter_empty">Nothing here</string>
     <string name="search_all">All</string>
     <string name="search_chats">Chats</string>
@@ -595,11 +591,8 @@
     <string name="bridge_twitter" translatable="false">X (Twitter)</string>
     <string name="bridge_bluesky" translatable="false">Bluesky</string>
     <string name="bridge_imessage" translatable="false">iMessage</string>
-    <string name="sources_title">Sources</string>
     <string name="sources_all">All sources</string>
     <string name="sources_matrix">Matrix</string>
-    <string name="sources_open">Show sources</string>
-    <string name="sources_clear">Show all sources</string>
     <string name="timeline_reaction_custom">custom emoji</string>
     <string name="composer_mention_room">Notify everyone in this room</string>
     <string name="composer_mention_silent">Send without notifying anyone</string>
@@ -666,4 +659,90 @@
     <string name="cloud_key_refused">Claude needs a valid API key. Check it in Settings → AI.</string>
     <string name="cloud_failed">Claude couldn’t be reached. Try again.</string>
     <string name="cloud_note">Written by Claude · messages are sent to Anthropic</string>
+    <string name="confirm_expanded">Asking to confirm</string>
+    <string name="confirm_collapsed">Tap to confirm</string>
+    <string name="copied">Copied</string>
+    <string name="undo">Undo</string>
+    <plurals name="catch_up_card_unread">
+        <item quantity="one">%1$d unread in %2$d chat</item>
+        <item quantity="other">%1$d unread in %2$d chats</item>
+    </plurals>
+    <plurals name="catch_up_card_mentions">
+        <item quantity="one">%d mention</item>
+        <item quantity="other">%d mentions</item>
+    </plurals>
+    <string name="catch_up_card_with_mentions">%1$s · %2$s</string>
+    <string name="roomlist_menu_open">Open menu</string>
+    <string name="room_thread_subtitle">%1$s, one thread</string>
+    <string name="network_limit">%1$s characters per message</string>
+    <string name="network_no_limit">No length limit</string>
+    <string name="split_meter_near">%1$s / %2$s</string>
+    <string name="split_meter_near_description">%1$s of %2$s characters</string>
+    <string name="split_preview_subtitle">%1$s takes %2$s characters at a time.</string>
+    <string name="split_preview_close">Close split preview</string>
+    <string name="split_cut_paragraph">Cut at a paragraph break</string>
+    <string name="split_cut_line">Cut at a line break</string>
+    <string name="split_cut_word">Cut between two words</string>
+    <string name="split_cut_mid_word">Cut mid-word</string>
+    <string name="split_send_instead">Send on %1$s instead, in one message</string>
+    <plurals name="split_meter_parts">
+        <item quantity="one">%d message</item>
+        <item quantity="other">%d messages</item>
+    </plurals>
+    <plurals name="split_meter_parts_description">
+        <item quantity="one">Sends as %d message. Show where it splits.</item>
+        <item quantity="other">Sends as %d messages. Show where it splits.</item>
+    </plurals>
+    <plurals name="split_preview_title">
+        <item quantity="one">Sends as %d message</item>
+        <item quantity="other">Sends as %d messages</item>
+    </plurals>
+    <plurals name="composer_send_parts">
+        <item quantity="one">Send as %d message</item>
+        <item quantity="other">Send as %d messages</item>
+    </plurals>
+    <string name="catch_up_on_phone">On this phone</string>
+    <string name="catch_up_in_cloud">Sent to Claude</string>
+    <string name="catch_up_needs">Needs you · %1$d</string>
+    <string name="catch_up_nothing_waiting">Nothing is waiting on you.</string>
+    <string name="catch_up_what_happened">What happened</string>
+    <string name="catch_up_reply">Reply</string>
+    <string name="catch_up_mark_done">Mark as done</string>
+    <string name="catch_up_marked_done">Marked as done</string>
+    <string name="catch_up_mark_read">Mark as read</string>
+    <string name="catch_up_marked_read">Marked as read</string>
+    <string name="catch_up_open_chat">Open chat</string>
+    <string name="catch_up_cancel_reminder">Cancel the reminder</string>
+    <string name="catch_up_need_label">%1$s · %2$s</string>
+    <string name="catch_up_card_meta">%1$s · %2$s</string>
+    <plurals name="catch_up_progress">
+        <item quantity="one">%1$d of %2$d chat read</item>
+        <item quantity="other">%1$d of %2$d chats read</item>
+    </plurals>
+    <plurals name="catch_up_all_read">
+        <item quantity="one">All %d chat read</item>
+        <item quantity="other">All %d chats read</item>
+    </plurals>
+    <string name="account_how_others_see">How others see you</string>
+    <string name="account_preview_bubble">Your name and photo, as a chat shows them.</string>
+    <string name="account_copy_id">Copy your Matrix ID</string>
+    <string name="account_edit_name">Edit your display name</string>
+    <string name="account_deactivating">Deactivating…</string>
+    <string name="account_signing_out">Signing out…</string>
+    <string name="menu_unarchive">Unarchive</string>
+    <string name="menu_close">Close the menu</string>
+    <string name="roomlist_archived">%1$s archived</string>
+    <string name="roomlist_left">You left %1$s</string>
+    <string name="peek_caption">Peek. Looking here doesn’t mark it read.</string>
+    <string name="peek_marked_unread">marked unread</string>
+    <string name="details_leave_title">Leave this conversation?</string>
+    <string name="text_copied">Text copied</string>
+    <string name="blocked_done">Blocked. You won’t see their messages any more.</string>
+    <string name="message_pinned">Pinned</string>
+    <string name="message_bookmarked">Bookmarked</string>
+    <string name="trust_changed_short">Identity changed</string>
+    <string name="trust_changed_body">Check with them another way before you trust new messages.</string>
+    <string name="profile_mention">Mention</string>
+    <string name="profile_copy_their_id">Copy their Matrix ID</string>
+    <string name="profile_close">Close the profile</string>
 </resources>

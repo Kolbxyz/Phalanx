@@ -201,7 +201,12 @@ class RoomViewModel @Inject constructor(
     }
 
     fun block(userId: String) {
-        viewModelScope.launch { blockedUsers.block(userId).onFailure { notify(R.string.timeline_action_failed) } }
+        viewModelScope.launch {
+            blockedUsers.block(userId).fold(
+                onSuccess = { notify(R.string.blocked_done, NoticeKind.Done) },
+                onFailure = { notify(R.string.timeline_action_failed) }
+            )
+        }
     }
 
     fun openFile(ref: MediaRef, filename: String, mimeType: String?) {

@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -42,7 +43,11 @@ internal data class MenuAction(
     val icon: ImageVector,
     @StringRes val label: Int,
     val onClick: () -> Unit,
-    val checked: Boolean? = null
+    val checked: Boolean? = null,
+    /** Width among the quick buttons, for the one the menu is mostly opened for. */
+    val weight: Float = 1f,
+    /** Filled in the primary colour: the menu's main way forward, a step above the lead accent. */
+    val primary: Boolean = false
 )
 
 /**
@@ -55,7 +60,9 @@ internal fun MenuActions(
     actions: List<MenuAction>,
     danger: List<MenuAction> = emptyList(),
     /** Rows of the menu's own, shown after the list and before [danger]. */
-    extra: @Composable () -> Unit = {}
+    extra: @Composable () -> Unit = {},
+    /** Last of all, below [danger]: where an [InlineConfirm] goes. */
+    footer: @Composable () -> Unit = {}
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -70,16 +77,17 @@ internal fun MenuActions(
         MenuList(actions.drop(QUICK), destructive = false)
         extra()
         MenuList(danger, destructive = true)
+        footer()
     }
 }
 
 /** Icon over label, rounder at rest than pressed: the corners tighten under the finger. */
 @Composable
-private fun RowScope.QuickButton(action: MenuAction, lead: Boolean) {
+internal fun RowScope.QuickButton(action: MenuAction, lead: Boolean, height: Dp = QUICK_HEIGHT) {
     val colors = MaterialTheme.colorScheme
     val shape = MaterialTheme.shapes.extraLarge
     val pressed = MaterialTheme.shapes.medium
-    val modifier = Modifier.weight(1f).height(QUICK_HEIGHT)
+    val modifier = Modifier.weight(action.weight).height(height)
     val padding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
     val checked = action.checked
     if (checked == null) {
@@ -88,8 +96,16 @@ private fun RowScope.QuickButton(action: MenuAction, lead: Boolean) {
             shapes = ButtonDefaults.shapes(shape = shape, pressedShape = pressed),
             // The first choice is what the menu is opened for most; it alone takes the accent.
             colors = ButtonDefaults.filledTonalButtonColors(
-                containerColor = if (lead) colors.primaryContainer else colors.surfaceContainerHighest,
-                contentColor = if (lead) colors.onPrimaryContainer else colors.onSurface
+                containerColor = when {
+                    action.primary -> colors.primary
+                    lead -> colors.primaryContainer
+                    else -> colors.surfaceContainerHighest
+                },
+                contentColor = when {
+                    action.primary -> colors.onPrimary
+                    lead -> colors.onPrimaryContainer
+                    else -> colors.onSurface
+                }
             ),
             contentPadding = padding,
             modifier = modifier

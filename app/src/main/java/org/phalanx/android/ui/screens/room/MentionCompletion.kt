@@ -69,6 +69,15 @@ internal object MentionCompletion {
         return TextFieldValue(text, TextRange(word.start + "@$name ".length))
     }
 
+    /** [input] with "@name " put in at the cursor, a space before it when it would touch a word. */
+    fun insert(input: TextFieldValue, member: Member): TextFieldValue {
+        val at = input.selection.start
+        val before = input.text.substring(0, at)
+        val lead = if (before.isEmpty() || before.last().isWhitespace()) "" else " "
+        val inserted = lead + "@" + member.name + " "
+        return TextFieldValue(before + inserted + input.text.substring(at), TextRange(at + inserted.length))
+    }
+
     private inline fun String.indexOfFirst(from: Int, predicate: (Char) -> Boolean): Int {
         for (i in from until length) if (predicate(this[i])) return i
         return length

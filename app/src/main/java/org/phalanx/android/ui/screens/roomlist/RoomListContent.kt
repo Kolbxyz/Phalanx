@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
@@ -13,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,10 +32,30 @@ internal fun RoomList(
     state: RoomListUiState.Loaded,
     drafts: Map<String, String>,
     padding: PaddingValues,
+    catchUp: CatchUpSummary?,
     onFilter: (RoomFilter) -> Unit,
-    onClearSource: () -> Unit,
+    onOpenCatchUp: () -> Unit,
     onOpenRoom: (String) -> Unit,
-    onLongClick: (RoomSummary) -> Unit
+    onLongClick: (RoomSummary) -> Unit,
+    liftedId: String? = null
+) {
+    // A new tab or chip is a new list: it starts at the top and its rows rise in again, in order.
+    key(state.filter, state.source) {
+        RoomListBody(state, drafts, padding, catchUp, onFilter, onOpenCatchUp, onOpenRoom, onLongClick, liftedId)
+    }
+}
+
+@Composable
+private fun RoomListBody(
+    state: RoomListUiState.Loaded,
+    drafts: Map<String, String>,
+    padding: PaddingValues,
+    catchUp: CatchUpSummary?,
+    onFilter: (RoomFilter) -> Unit,
+    onOpenCatchUp: () -> Unit,
+    onOpenRoom: (String) -> Unit,
+    onLongClick: (RoomSummary) -> Unit,
+    liftedId: String?
 ) {
     val motion = MaterialTheme.motionScheme
     val rooms = state.rooms
@@ -55,8 +75,21 @@ internal fun RoomList(
         ),
         verticalArrangement = Arrangement.spacedBy(SegmentGap)
     ) {
+        if (catchUp != null && state.filter != RoomFilter.Archived) {
+            item(key = CATCH_UP_KEY, contentType = CATCH_UP_KEY) {
+                CatchUpCard(
+                    catchUp,
+                    onOpenCatchUp,
+                    Modifier.padding(bottom = 10.dp).animateItem(
+                        fadeInSpec = motion.defaultEffectsSpec(),
+                        placementSpec = motion.defaultSpatialSpec(),
+                        fadeOutSpec = motion.defaultEffectsSpec()
+                    )
+                )
+            }
+        }
         item(key = FILTERS_KEY, contentType = FILTERS_KEY) {
-            RoomFilterRow(state.filter, state.archivedCount, onFilter, state.source, onClearSource)
+            RoomFilterRow(state.filter, state.archivedCount, onFilter)
         }
         if (rooms.isEmpty()) {
             item(key = EMPTY_KEY, contentType = EMPTY_KEY) {
@@ -84,6 +117,13 @@ internal fun RoomList(
                 room,
                 draft = drafts[room.id],
                 shape = segmentedShape(index, rooms.size),
+                // Which network each chat is on matters only where networks are mixed.
+                networks = if (state.source == RoomSource.All) {
+                    state.bridgesOf[room.id] ?: listOfNotNull(room.bridge)
+                } else {
+                    emptyList()
+                },
+                lifted = room.id == liftedId,
                 onClick = { onOpenRoom(room.id) },
                 onLongClick = { onLongClick(room) },
                 // A room that gets a new message slides to the top instead of jumping there, and
@@ -102,5 +142,6 @@ internal fun RoomList(
 
 private const val ROOM_ROW = 0
 private const val FILTERS_KEY = "filters"
+private const val CATCH_UP_KEY = "catch_up"
 private const val EMPTY_KEY = "empty"
 private const val INTRO_MILLIS = 600L

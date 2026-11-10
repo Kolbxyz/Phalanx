@@ -83,7 +83,10 @@ internal fun MessageBubble(
         modifier = modifier.padding(top = if (startsRun) 10.dp else 0.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().appear(isNew, own, message.sendState == SendState.Sent),
+            modifier = Modifier
+                .fillMaxWidth()
+                .liftedAway(message.id)
+                .appear(isNew, own, message.sendState == SendState.Sent),
             horizontalArrangement = if (own) Arrangement.End else Arrangement.Start,
             verticalAlignment = Alignment.Bottom
         ) {
@@ -179,7 +182,7 @@ private fun SendStatus(state: SendState, onRetry: () -> Unit, modifier: Modifier
     }
 }
 
-private fun formatTime(millis: Long): String =
+internal fun formatTime(millis: Long): String =
     DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
         .format(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()))
 

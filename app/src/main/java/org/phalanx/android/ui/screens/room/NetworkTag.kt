@@ -1,32 +1,20 @@
 package org.phalanx.android.ui.screens.room
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import org.phalanx.android.R
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.ui.screens.people.sourceOf
 import org.phalanx.android.ui.screens.roomlist.SourceIcon
@@ -54,58 +42,6 @@ internal fun NetworkTag(chat: RoomSummary, isOwn: Boolean) {
                     stringResource(source.label),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
-
-/**
- * Which network the next message goes through, above the composer of a person's thread. A reply or
- * an edit goes where its message came from, so [mode] fixes it then and the choice is not offered.
- */
-@Composable
-internal fun NetworkPicker(
-    thread: PersonThread,
-    mode: ComposerMode,
-    roomOf: (entryId: String) -> String,
-    onChoose: (String) -> Unit
-) {
-    val message = (mode as? ComposerMode.Reply)?.message ?: (mode as? ComposerMode.Edit)?.message
-    val replyingIn = message?.let { thread.chats.firstOrNull { chat -> chat.id == roomOf(it.id) } }
-    val shown = replyingIn ?: thread.target
-    var open by remember { mutableStateOf(false) }
-    Box(Modifier.padding(start = 12.dp)) {
-        val fade = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
-        AssistChip(
-            onClick = { open = true },
-            enabled = replyingIn == null,
-            // Follows the others to the network they last wrote from: the change has to be seen.
-            label = {
-                AnimatedContent(
-                    targetState = shown,
-                    contentKey = { it.id },
-                    transitionSpec = { fadeIn(fade) togetherWith fadeOut(fade) }
-                ) { chat ->
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        SourceIcon(sourceOf(chat), size = 18.dp)
-                        Text(stringResource(R.string.composer_network, stringResource(sourceOf(chat).label)))
-                    }
-                }
-            }
-        )
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            thread.chats.forEach { chat ->
-                DropdownMenuItem(
-                    text = { Text(stringResource(sourceOf(chat).label)) },
-                    leadingIcon = { SourceIcon(sourceOf(chat), size = 20.dp) },
-                    onClick = {
-                        open = false
-                        onChoose(chat.id)
-                    }
                 )
             }
         }

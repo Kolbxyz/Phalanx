@@ -22,7 +22,7 @@ internal fun TrustLabel(trust: UserTrust, modifier: Modifier = Modifier) {
     val (icon, label, color) = when (trust) {
         UserTrust.Verified -> Triple(Symbols.VerifiedUser, R.string.trust_verified, colors.primary)
         UserTrust.Unverified -> Triple(Symbols.Shield, R.string.trust_unverified, colors.onSurfaceVariant)
-        UserTrust.Changed -> Triple(Symbols.GppMaybe, R.string.trust_changed, colors.error)
+        UserTrust.Changed -> Triple(Symbols.GppMaybe, R.string.trust_changed_short, colors.error)
     }
     Row(
         modifier = modifier,

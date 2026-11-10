@@ -1,7 +1,9 @@
 package org.phalanx.android.ui.screens.room
 
+import android.icu.text.ListFormatter
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
@@ -22,6 +24,8 @@ import org.phalanx.android.R
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.ui.components.BackButton
 import org.phalanx.android.ui.components.MatrixAvatar
+import org.phalanx.android.ui.screens.people.sourceOf
+import org.phalanx.android.ui.screens.roomlist.label
 import org.phalanx.android.ui.theme.Symbols
 
 /** The room's avatar and name; both come from the room list, so they show before the timeline. */
@@ -32,7 +36,9 @@ internal fun RoomTopBar(
     onBack: () -> Unit,
     onOpenDetails: () -> Unit,
     /** Null hides the button: summaries are off in settings. */
-    onSummarize: (() -> Unit)?
+    onSummarize: (() -> Unit)?,
+    /** A person's thread over several networks: named under the title, so it is clear it is one. */
+    thread: PersonThread? = null
 ) {
     val title = header?.name ?: fallbackTitle.orEmpty()
     TopAppBar(
@@ -47,12 +53,25 @@ internal fun RoomTopBar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (title.isNotEmpty()) MatrixAvatar(title, header?.avatar, 40.dp)
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Column {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (thread != null && thread.chats.size > 1) {
+                        val networks = thread.chats.map { stringResource(sourceOf(it).label) }
+                        val joined = ListFormatter.getInstance().format(networks)
+                        Text(
+                            text = stringResource(R.string.room_thread_subtitle, joined),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
             }
         },
         navigationIcon = { BackButton(onBack) },
