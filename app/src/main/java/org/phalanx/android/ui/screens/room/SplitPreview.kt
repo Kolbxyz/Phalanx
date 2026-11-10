@@ -31,10 +31,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import java.text.NumberFormat
 import org.phalanx.android.R
 import org.phalanx.android.core.format.MessageSplitter
 import org.phalanx.android.ui.theme.Symbols
-import java.text.NumberFormat
 
 /**
  * How the draft will go out: [parts] as the network will receive them, each at most [budget] long.

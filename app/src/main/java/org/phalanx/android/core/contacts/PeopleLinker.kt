@@ -1,5 +1,6 @@
 package org.phalanx.android.core.contacts
 
+import java.text.Normalizer
 import org.phalanx.android.data.model.Bridge
 import org.phalanx.android.data.model.LinkReason
 import org.phalanx.android.data.model.LinkSuggestion
@@ -7,7 +8,6 @@ import org.phalanx.android.data.model.PeopleLinks
 import org.phalanx.android.data.model.Person
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.data.model.pairKey
-import java.text.Normalizer
 
 /**
  * One-to-one chats on two different networks that look like one person: the same name once case,

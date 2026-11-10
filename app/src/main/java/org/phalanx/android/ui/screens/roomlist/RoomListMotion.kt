@@ -24,10 +24,10 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import kotlin.math.hypot
 import kotlinx.coroutines.delay
 import org.phalanx.android.ui.components.pressShrink
 import org.phalanx.android.ui.theme.LocalReducedMotion
-import kotlin.math.hypot
 
 private const val STAGGER_MILLIS = 35L
 private const val MAX_STAGGERED = 12

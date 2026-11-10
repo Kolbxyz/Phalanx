@@ -32,15 +32,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import org.phalanx.android.R
-import org.phalanx.android.ui.components.ModalSheet
-import org.phalanx.android.ui.theme.Symbols
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import org.phalanx.android.R
+import org.phalanx.android.ui.components.ModalSheet
+import org.phalanx.android.ui.theme.Symbols
 
 /**
  * A time in the future: a few one-tap choices, or any date and time. When to send the message

@@ -1,9 +1,9 @@
 package org.phalanx.android.ui.screens.room
 
 import androidx.annotation.StringRes
-import org.phalanx.android.R
 import java.time.LocalTime
 import java.time.ZonedDateTime
+import org.phalanx.android.R
 
 /** A one-tap time to be reminded or to send at, worked out from now. */
 internal enum class TimePreset(@StringRes val label: Int) {

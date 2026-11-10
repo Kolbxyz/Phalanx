@@ -35,9 +35,6 @@
     </plurals>
 
     <string name="account_title">Account</string>
-    <string name="account_section_profile">Profile</string>
-    <string name="account_display_name">Display name</string>
-    <string name="account_display_name_unset">Not set</string>
     <string name="account_name_failed">Couldn’t change your name. Try again.</string>
     <string name="account_save">Save</string>
     <string name="account_cancel">Cancel</string>
@@ -50,7 +47,6 @@
     <string name="account_manage_summary">Password, email and more, on your server’s site</string>
     <string name="account_devices">Devices</string>
     <string name="account_devices_summary">See and sign out your other sessions</string>
-    <string name="account_devices_summary_this">This device is %1$s. See and sign out the others.</string>
     <string name="account_section_app">App</string>
     <string name="account_sign_out">Sign out</string>
     <string name="account_sign_out_title">Sign out?</string>
@@ -712,4 +708,10 @@
         <item quantity="one">All %d chat read</item>
         <item quantity="other">All %d chats read</item>
     </plurals>
+    <string name="account_how_others_see">How others see you</string>
+    <string name="account_preview_bubble">Your name and photo, as a chat shows them.</string>
+    <string name="account_copy_id">Copy your Matrix ID</string>
+    <string name="account_edit_name">Edit your display name</string>
+    <string name="account_deactivating">Deactivating…</string>
+    <string name="account_signing_out">Signing out…</string>
 </resources>

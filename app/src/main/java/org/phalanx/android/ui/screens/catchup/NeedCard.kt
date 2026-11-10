@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import java.time.ZonedDateTime
 import org.phalanx.android.R
 import org.phalanx.android.ui.components.MatrixAvatar
 import org.phalanx.android.ui.components.riseIn
@@ -38,7 +39,6 @@ import org.phalanx.android.ui.components.segmentedShape
 import org.phalanx.android.ui.components.stagger
 import org.phalanx.android.ui.screens.room.TimePreset
 import org.phalanx.android.ui.theme.Symbols
-import java.time.ZonedDateTime
 
 /**
  * One thing waiting on the user, as a card in the tertiary colour: who and where, what it is, and

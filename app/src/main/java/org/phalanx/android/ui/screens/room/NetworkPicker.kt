@@ -35,13 +35,13 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import java.text.NumberFormat
 import org.phalanx.android.R
 import org.phalanx.android.data.model.RoomSummary
 import org.phalanx.android.ui.screens.people.sourceOf
 import org.phalanx.android.ui.screens.roomlist.SourceIcon
 import org.phalanx.android.ui.screens.roomlist.label
 import org.phalanx.android.ui.theme.Symbols
-import java.text.NumberFormat
 
 /**
  * Which network the next message goes through, above the composer of a person's thread. A reply or

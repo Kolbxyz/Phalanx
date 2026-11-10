@@ -6,6 +6,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.IOException
+import java.util.UUID
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,9 +32,6 @@ import org.phalanx.android.data.repository.TimelineRepository
 import org.phalanx.android.ui.screens.room.ReadAtOpen
 import org.phalanx.android.ui.screens.room.aiFailureMessage
 import org.phalanx.android.ui.screens.room.summaryOf
-import java.io.IOException
-import java.util.UUID
-import javax.inject.Inject
 
 /** Where one room's catch-up stands. */
 sealed interface CardState {

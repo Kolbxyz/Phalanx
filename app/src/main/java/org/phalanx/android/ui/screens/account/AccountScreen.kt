@@ -6,20 +6,23 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -27,8 +30,10 @@ import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.data.repository.AccountPage
 import org.phalanx.android.ui.components.BackButton
+import org.phalanx.android.ui.components.ScrollHairline
 import org.phalanx.android.ui.components.SegmentedRow
 import org.phalanx.android.ui.components.SegmentedSection
+import org.phalanx.android.ui.components.scrolledPastTop
 import org.phalanx.android.ui.components.segmentedShape
 import org.phalanx.android.ui.theme.Symbols
 
@@ -45,60 +50,67 @@ fun AccountScreen(
     val pickPhoto = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) viewModel.setAvatar(uri)
     }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scroll = rememberScrollState()
     OpenBrowser(state.browserUrl, viewModel::onBrowserOpened)
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeFlexibleTopAppBar(
-                title = { Text(stringResource(R.string.account_title)) },
-                navigationIcon = { BackButton(onBack) },
-                scrollBehavior = scrollBehavior
-            )
+            Column {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.account_title)) },
+                    navigationIcon = { BackButton(onBack) }
+                )
+                ScrollHairline(scroll.scrolledPastTop())
+            }
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scroll)
                 .padding(padding)
                 .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
         ) {
             profile?.let {
-                ProfileHeader(it, avatar, busy = state.avatarBusy, failed = state.avatarFailed) {
-                    pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                }
-            }
-            SegmentedSection(stringResource(R.string.account_section_profile)) {
-                val hasAvatar = profile?.avatarUrl != null
-                val count = if (hasAvatar) 2 else 1
-                SegmentedRow(
-                    headline = stringResource(R.string.account_display_name),
-                    supporting = profile?.takeIf { it.hasDisplayName }?.displayName
-                        ?: stringResource(R.string.account_display_name_unset),
-                    shape = segmentedShape(0, count),
-                    interaction = Modifier.clickable(enabled = profile != null, onClick = viewModel::editName)
+                ProfileHeader(
+                    profile = it,
+                    avatar = avatar,
+                    state = state,
+                    onPickPhoto = {
+                        pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    },
+                    onRemovePhoto = viewModel::removeAvatar,
+                    onEditName = viewModel::editName,
+                    onNameChange = viewModel::onNameChange,
+                    onSaveName = viewModel::saveName,
+                    onCancelName = viewModel::dismissName
                 )
-                if (hasAvatar) {
-                    SegmentedRow(
-                        headline = stringResource(R.string.account_photo_remove),
-                        shape = segmentedShape(1, count),
-                        interaction = Modifier.clickable(enabled = !state.avatarBusy, onClick = viewModel::removeAvatar)
-                    )
-                }
+                HowOthersSeeYou(it, avatar, state.nameDraft)
             }
             state.details?.let { details ->
                 SegmentedSection(stringResource(R.string.account_section_device)) {
-                    CopyRow(stringResource(R.string.account_server), details.homeserver, index = 0, count = 2)
-                    // The device list names this device by its ID; provider-managed accounts list
-                    // devices on the provider's site instead, so the ID is shown here to find it there.
-                    if (details.managedByProvider) {
-                        CopyRow(stringResource(R.string.account_device_id), details.deviceId, index = 1, count = 2)
-                    } else {
+                    // Provider-managed accounts list devices on the provider's site, below.
+                    val count = if (details.managedByProvider) 2 else 3
+                    CopyRow(
+                        stringResource(R.string.account_server),
+                        details.homeserver,
+                        Symbols.Dns,
+                        index = 0,
+                        count = count
+                    )
+                    CopyRow(
+                        stringResource(R.string.account_device_id),
+                        details.deviceId,
+                        Symbols.Key,
+                        index = 1,
+                        count = count
+                    )
+                    if (!details.managedByProvider) {
                         SegmentedRow(
                             headline = stringResource(R.string.account_devices),
-                            supporting = stringResource(R.string.account_devices_summary_this, details.deviceId),
-                            shape = segmentedShape(1, 2),
+                            supporting = stringResource(R.string.account_devices_summary),
+                            shape = segmentedShape(2, count),
+                            leading = { IconTile(Symbols.Devices) },
+                            trailing = { Icon(Symbols.KeyboardArrowRight, contentDescription = null) },
                             interaction = Modifier.clickable(onClick = onOpenDevices)
                         )
                     }
@@ -120,34 +132,21 @@ fun AccountScreen(
                     }
                 }
             }
+            val colors = MaterialTheme.colorScheme
             SegmentedSection(stringResource(R.string.account_section_app)) {
                 SegmentedRow(
                     headline = stringResource(R.string.account_sign_out),
                     shape = segmentedShape(0, 1),
-                    headlineColor = MaterialTheme.colorScheme.error,
-                    leading = {
-                        Icon(
-                            Symbols.ExitToApp,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    },
+                    headlineColor = colors.error,
+                    leading = { IconTile(Symbols.ExitToApp, colors.errorContainer, colors.onErrorContainer) },
                     interaction = Modifier.clickable(enabled = !state.signingOut, onClick = viewModel::askSignOut)
                 )
             }
-            SegmentedSection(stringResource(R.string.account_section_danger)) {
-                SegmentedRow(
-                    headline = stringResource(R.string.account_deactivate),
-                    supporting = stringResource(R.string.account_deactivate_summary),
-                    shape = segmentedShape(0, 1),
-                    headlineColor = MaterialTheme.colorScheme.error,
-                    interaction = Modifier.clickable(onClick = viewModel::startDeactivation)
-                )
-            }
+            DangerZone(viewModel::startDeactivation)
         }
     }
     state.deactivation?.let { draft ->
-        DeactivateDialog(
+        DeactivateSheet(
             draft = draft,
             onPassword = viewModel::onDeactivationPassword,
             onErase = viewModel::onDeactivationErase,
@@ -155,17 +154,31 @@ fun AccountScreen(
             onDismiss = viewModel::dismissDeactivation
         )
     }
-    state.nameDraft?.let { draft ->
-        DisplayNameDialog(
-            draft,
-            state.savingName,
-            state.nameFailed,
-            viewModel::onNameChange,
-            viewModel::saveName,
-            viewModel::dismissName
-        )
-    }
     if (state.confirmingSignOut) {
-        SignOutDialog(state.signingOut, viewModel::signOut, viewModel::dismissSignOut)
+        SignOutSheet(state.signingOut, viewModel::signOut, viewModel::dismissSignOut)
+    }
+}
+
+/** Closing the account, apart in the error colour, so nothing everyday sits next to it. */
+@Composable
+private fun DangerZone(onDeactivate: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    Text(
+        text = stringResource(R.string.account_section_danger),
+        style = MaterialTheme.typography.labelLarge,
+        color = colors.error,
+        modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp).semantics { heading() }
+    )
+    Surface(
+        onClick = onDeactivate,
+        shape = RoundedCornerShape(24.dp),
+        color = colors.errorContainer,
+        contentColor = colors.onErrorContainer,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
+            Text(stringResource(R.string.account_deactivate), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.account_deactivate_summary), style = MaterialTheme.typography.bodyMedium)
+        }
     }
 }
