@@ -1,7 +1,6 @@
 package org.phalanx.android.ui.screens.details
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -25,8 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -35,13 +31,11 @@ import org.phalanx.android.R
 import org.phalanx.android.data.model.MessageBody
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.ui.components.BackButton
+import org.phalanx.android.ui.components.InlineConfirm
 import org.phalanx.android.ui.components.OpenFileEffect
-import org.phalanx.android.ui.components.SegmentedRow
 import org.phalanx.android.ui.components.SegmentedSection
 import org.phalanx.android.ui.components.segmentedShape
-import org.phalanx.android.ui.screens.room.BlockUserDialog
 import org.phalanx.android.ui.screens.room.ProtectedRoomScreen
-import org.phalanx.android.ui.screens.roomlist.LeaveRoomDialog
 import org.phalanx.android.ui.theme.Symbols
 
 /** Everything about one conversation: who and what it is, pinned messages, shared media and files. */
@@ -64,8 +58,6 @@ fun RoomDetailsScreen(
     val left by viewModel.left.collectAsStateWithLifecycle()
     val prefs by viewModel.prefs.collectAsStateWithLifecycle()
     ProtectedRoomScreen()
-    var leaving by remember { mutableStateOf(false) }
-    var blocking by remember { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
 
     LaunchedEffect(left) { if (left) onLeft() }
@@ -119,35 +111,36 @@ fun RoomDetailsScreen(
             mediaSections(media, hasMore, onShowAll = { files -> onShowAll(viewModel.roomId, files) }, onOpen = open)
             item { DetailsTranslateSection() }
             item { DetailsPrivacySection(prefs, viewModel) }
-            item {
-                SegmentedSection(stringResource(R.string.details_manage)) {
-                    val dmUser = current.dmUserId
-                    val count = if (dmUser != null) 2 else 1
-                    if (dmUser != null) {
-                        DangerRow(R.string.action_block, Symbols.Block, segmentedShape(0, count)) {
-                            blocking = true
-                        }
-                    }
-                    val leaveShape = segmentedShape(count - 1, count)
-                    DangerRow(R.string.room_action_leave, Symbols.Logout, leaveShape) {
-                        leaving = true
-                    }
-                }
-            }
+            item { ManageSection(current.name, current.dmUserId, viewModel::block, viewModel::leave) }
         }
-        if (leaving) {
-            LeaveRoomDialog(current.name, onConfirm = {
-                leaving = false
-                viewModel.leave()
-            }, onDismiss = { leaving = false })
+    }
+}
+
+/** Blocking the person and leaving, each asking in place before it happens. */
+@Composable
+private fun ManageSection(name: String, dmUser: String?, onBlock: (String) -> Unit, onLeave: () -> Unit) {
+    SegmentedSection(stringResource(R.string.details_manage)) {
+        val count = if (dmUser != null) 2 else 1
+        if (dmUser != null) {
+            InlineConfirm(
+                icon = Symbols.Block,
+                label = stringResource(R.string.action_block),
+                question = stringResource(R.string.block_title, name),
+                body = stringResource(R.string.block_body),
+                confirmLabel = stringResource(R.string.action_block),
+                onConfirm = { onBlock(dmUser) },
+                shape = segmentedShape(0, count)
+            )
         }
-        val dmUser = current.dmUserId
-        if (blocking && dmUser != null) {
-            BlockUserDialog(current.name, onConfirm = {
-                blocking = false
-                viewModel.block(dmUser)
-            }, onDismiss = { blocking = false })
-        }
+        InlineConfirm(
+            icon = Symbols.Logout,
+            label = stringResource(R.string.room_action_leave),
+            question = stringResource(R.string.details_leave_title),
+            body = stringResource(R.string.leave_body),
+            confirmLabel = stringResource(R.string.room_action_leave),
+            onConfirm = onLeave,
+            shape = segmentedShape(count - 1, count)
+        )
     }
 }
 
@@ -171,22 +164,5 @@ internal fun DetailsSectionTitle(@StringRes title: Int) {
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp)
-    )
-}
-
-@Composable
-private fun DangerRow(
-    @StringRes label: Int,
-    icon: ImageVector,
-    shape: Shape,
-    onClick: () -> Unit
-) {
-    val error = MaterialTheme.colorScheme.error
-    SegmentedRow(
-        headline = stringResource(label),
-        headlineColor = error,
-        shape = shape,
-        interaction = Modifier.clickable(onClick = onClick),
-        leading = { Icon(icon, contentDescription = null, tint = error) }
     )
 }

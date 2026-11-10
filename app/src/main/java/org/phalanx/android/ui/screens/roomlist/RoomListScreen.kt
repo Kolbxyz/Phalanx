@@ -33,9 +33,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.data.model.RoomSummary
+import org.phalanx.android.ui.components.LiftOverlay
 import org.phalanx.android.ui.components.PhalanxSnackbarHost
 import org.phalanx.android.ui.components.RoomListPlaceholder
 import org.phalanx.android.ui.components.ScrollHairline
+import org.phalanx.android.ui.components.showReport
+import org.phalanx.android.ui.components.showUndo
 import org.phalanx.android.ui.screens.search.SearchOverlay
 import org.phalanx.android.ui.theme.Symbols
 
@@ -60,7 +63,8 @@ fun RoomListScreen(
     val catchUp by viewModel.catchUp.collectAsStateWithLifecycle()
     val reminders by viewModel.reminderCount.collectAsStateWithLifecycle()
     var menuFor by remember { mutableStateOf<RoomSummary?>(null) }
-    var leaving by remember { mutableStateOf<RoomSummary?>(null) }
+    val peek: PeekViewModel = hiltViewModel()
+    val peekLines by peek.lines.collectAsStateWithLifecycle()
     var searching by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
     val failure = stringResource(R.string.timeline_action_failed)
@@ -99,35 +103,35 @@ fun RoomListScreen(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 Column {
-                // One row: the title and the account button share it, so there is no empty band above
-                // the title as with a large app bar.
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(R.string.roomlist_title),
-                            style = MaterialTheme.typography.headlineLarge
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawer.open() } }, enabled = loaded != null) {
-                            Icon(Symbols.Menu, contentDescription = stringResource(R.string.roomlist_menu_open))
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = { searching = true }) {
-                            Icon(Symbols.Search, contentDescription = stringResource(R.string.search_open))
-                        }
-                        AccountButton(profile?.label.orEmpty(), avatar, onOpenAccount)
-                    },
-                    expandedHeight = 72.dp,
-                    // One colour however far the list scrolls; the hairline below marks the edge.
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        scrolledContainerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    scrollBehavior = scrollBehavior
-                )
-                if (loaded != null) NetworkTabs(loaded.sources, loaded.source, viewModel::setSource)
-                ScrollHairline(scrollBehavior.state.overlappedFraction > 0f)
+                    // One row: the title and the account button share it, so there is no empty band above
+                    // the title as with a large app bar.
+                    TopAppBar(
+                        title = {
+                            Text(
+                                text = stringResource(R.string.roomlist_title),
+                                style = MaterialTheme.typography.headlineLarge
+                            )
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = { scope.launch { drawer.open() } }, enabled = loaded != null) {
+                                Icon(Symbols.Menu, contentDescription = stringResource(R.string.roomlist_menu_open))
+                            }
+                        },
+                        actions = {
+                            IconButton(onClick = { searching = true }) {
+                                Icon(Symbols.Search, contentDescription = stringResource(R.string.search_open))
+                            }
+                            AccountButton(profile?.label.orEmpty(), avatar, onOpenAccount)
+                        },
+                        expandedHeight = 72.dp,
+                        // One colour however far the list scrolls; the hairline below marks the edge.
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            scrolledContainerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        scrollBehavior = scrollBehavior
+                    )
+                    if (loaded != null) NetworkTabs(loaded.sources, loaded.source, viewModel::setSource)
+                    ScrollHairline(scrollBehavior.state.overlappedFraction > 0f)
                 }
             },
             snackbarHost = { PhalanxSnackbarHost(snackbar) }
@@ -149,7 +153,11 @@ fun RoomListScreen(
                         viewModel::setFilter,
                         onOpenCatchUp,
                         onOpenRoom,
-                        onLongClick = { menuFor = it }
+                        onLongClick = {
+                            menuFor = it
+                            peek.peek(it.id)
+                        },
+                        liftedId = menuFor?.id
                     )
                 }
             }
@@ -160,30 +168,41 @@ fun RoomListScreen(
         SearchOverlay(onClose = { searching = false }, onOpenRoom = onOpenRoom, onOpenMessage = onOpenMessage)
     }
 
-    menuFor?.let { room ->
-        fun then(action: () -> Unit): () -> Unit = {
-            action()
-            menuFor = null
+    // The menu follows the room as its actions land, so a toggle shows its new state at once.
+    val menuRoom = menuFor?.let { picked -> loaded?.rooms?.firstOrNull { it.id == picked.id } ?: picked }
+    val archived = stringResource(R.string.roomlist_archived, menuRoom?.name.orEmpty())
+    val left = stringResource(R.string.roomlist_left, menuRoom?.name.orEmpty())
+    val undo = stringResource(R.string.undo)
+    LiftOverlay(
+        item = menuRoom,
+        onDismiss = { menuFor = null },
+        closeLabel = stringResource(R.string.menu_close),
+        stage = { room -> PeekCard(room, peekLines) },
+        sheet = { room ->
+            RoomActions(
+                room = room,
+                onToggleRead = { viewModel.setUnread(room, !room.hasUnread) },
+                onToggleFavourite = { viewModel.setFavourite(room, !room.isFavourite) },
+                onToggleMuted = { viewModel.setMuted(room, !room.isMuted) },
+                onArchive = {
+                    menuFor = null
+                    val archiving = !room.isLowPriority
+                    viewModel.setArchived(room, archiving)
+                    if (archiving) scope.launch { snackbar.showUndo(
+                        archived,
+                        undo
+                    ) { viewModel.setArchived(room, false) } }
+                },
+                onDetails = {
+                    menuFor = null
+                    onOpenDetails(room.id)
+                },
+                onLeave = {
+                    menuFor = null
+                    viewModel.leave(room)
+                    scope.launch { snackbar.showReport(left) }
+                }
+            )
         }
-        RoomActionsSheet(
-            room = room,
-            onDismiss = { menuFor = null },
-            onToggleRead = then { viewModel.setUnread(room, !room.hasUnread) },
-            onToggleFavourite = then { viewModel.setFavourite(room, !room.isFavourite) },
-            onToggleArchived = then { viewModel.setArchived(room, !room.isLowPriority) },
-            onToggleMuted = then { viewModel.setMuted(room, !room.isMuted) },
-            onDetails = then { onOpenDetails(room.id) },
-            onLeave = then { leaving = room }
-        )
-    }
-    leaving?.let { room ->
-        LeaveRoomDialog(
-            name = room.name,
-            onConfirm = {
-                viewModel.leave(room)
-                leaving = null
-            },
-            onDismiss = { leaving = null }
-        )
-    }
+    )
 }

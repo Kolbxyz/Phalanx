@@ -712,4 +712,11 @@
     <string name="account_edit_name">Modifier votre nom affiché</string>
     <string name="account_deactivating">Désactivation…</string>
     <string name="account_signing_out">Déconnexion…</string>
+    <string name="menu_unarchive">Désarchiver</string>
+    <string name="menu_close">Fermer le menu</string>
+    <string name="roomlist_archived">%1$s archivée</string>
+    <string name="roomlist_left">Vous avez quitté %1$s</string>
+    <string name="peek_caption">Aperçu. Regarder ici ne marque pas comme lu.</string>
+    <string name="peek_marked_unread">marquée non lue</string>
+    <string name="details_leave_title">Quitter cette discussion ?</string>
 </resources>

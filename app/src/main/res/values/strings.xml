@@ -714,4 +714,11 @@
     <string name="account_edit_name">Edit your display name</string>
     <string name="account_deactivating">Deactivating…</string>
     <string name="account_signing_out">Signing out…</string>
+    <string name="menu_unarchive">Unarchive</string>
+    <string name="menu_close">Close the menu</string>
+    <string name="roomlist_archived">%1$s archived</string>
+    <string name="roomlist_left">You left %1$s</string>
+    <string name="peek_caption">Peek. Looking here doesn’t mark it read.</string>
+    <string name="peek_marked_unread">marked unread</string>
+    <string name="details_leave_title">Leave this conversation?</string>
 </resources>
