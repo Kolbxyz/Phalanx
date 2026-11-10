@@ -21,6 +21,7 @@ import org.phalanx.android.core.media.AttachmentPreparer
 import org.phalanx.android.core.media.ImageEdits
 import org.phalanx.android.core.media.VoiceRecorder
 import org.phalanx.android.data.model.CustomEmote
+import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.OutgoingMedia
 import org.phalanx.android.data.model.TimelineEntry
 import org.phalanx.android.data.repository.ScheduleRepository
@@ -91,6 +92,11 @@ internal class ComposerController(
             mentions = if (picked != null) state.mentions + picked else state.mentions,
             suggestions = emptyList()
         )
+    }
+
+    /** Mentions [member] where the cursor is, from their profile: as if picked from the suggestions. */
+    fun mention(member: Member) = update {
+        it.copy(input = MentionCompletion.insert(it.input, member), mentions = it.mentions + member)
     }
 
     fun pickEmote(emote: CustomEmote) = update {

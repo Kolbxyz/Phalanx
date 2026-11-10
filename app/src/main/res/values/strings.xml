@@ -721,4 +721,13 @@
     <string name="peek_caption">Peek. Looking here doesn’t mark it read.</string>
     <string name="peek_marked_unread">marked unread</string>
     <string name="details_leave_title">Leave this conversation?</string>
+    <string name="text_copied">Text copied</string>
+    <string name="blocked_done">Blocked. You won’t see their messages any more.</string>
+    <string name="message_pinned">Pinned</string>
+    <string name="message_bookmarked">Bookmarked</string>
+    <string name="trust_changed_short">Identity changed</string>
+    <string name="trust_changed_body">Check with them another way before you trust new messages.</string>
+    <string name="profile_mention">Mention</string>
+    <string name="profile_copy_their_id">Copy their Matrix ID</string>
+    <string name="profile_close">Close the profile</string>
 </resources>

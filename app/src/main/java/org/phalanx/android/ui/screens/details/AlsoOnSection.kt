@@ -1,11 +1,6 @@
 package org.phalanx.android.ui.screens.details
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,10 +14,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.phalanx.android.R
-import org.phalanx.android.ui.screens.roomlist.RoomSource
-import org.phalanx.android.ui.screens.roomlist.SourceIcon
-import org.phalanx.android.ui.screens.roomlist.label
-import org.phalanx.android.ui.theme.Symbols
 
 /**
  * "Also on": the same conversation's chats on other networks, each opening that chat, and a chip to
@@ -39,24 +30,12 @@ internal fun AlsoOnSection(onOpenRoom: (String) -> Unit, viewModel: AlsoOnViewMo
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp)
     )
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    AlsoOnChips(
+        chats = state.others,
+        onOpen = onOpenRoom,
+        onLink = { picking = true },
         modifier = Modifier.padding(horizontal = 8.dp)
-    ) {
-        state.others.forEach { chat ->
-            val source = chat.bridge?.let(RoomSource::Network) ?: RoomSource.Matrix
-            AssistChip(
-                onClick = { onOpenRoom(chat.id) },
-                label = { Text(stringResource(source.label)) },
-                leadingIcon = { SourceIcon(source, size = 18.dp) }
-            )
-        }
-        AssistChip(
-            onClick = { picking = true },
-            label = { Text(stringResource(R.string.details_link_chat)) },
-            leadingIcon = { Icon(Symbols.Link, contentDescription = null, modifier = Modifier.size(18.dp)) }
-        )
-    }
+    )
     if (failed) {
         Text(
             text = stringResource(R.string.people_failed),

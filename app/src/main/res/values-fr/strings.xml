@@ -719,4 +719,13 @@
     <string name="peek_caption">Aperçu. Regarder ici ne marque pas comme lu.</string>
     <string name="peek_marked_unread">marquée non lue</string>
     <string name="details_leave_title">Quitter cette discussion ?</string>
+    <string name="text_copied">Texte copié</string>
+    <string name="blocked_done">Bloqué. Vous ne verrez plus ses messages.</string>
+    <string name="message_pinned">Épinglé</string>
+    <string name="message_bookmarked">Enregistré</string>
+    <string name="trust_changed_short">Identité modifiée</string>
+    <string name="trust_changed_body">Vérifiez avec cette personne par un autre moyen avant de faire confiance aux nouveaux messages.</string>
+    <string name="profile_mention">Mentionner</string>
+    <string name="profile_copy_their_id">Copier son identifiant Matrix</string>
+    <string name="profile_close">Fermer le profil</string>
 </resources>

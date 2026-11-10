@@ -1,47 +1,19 @@
 package org.phalanx.android.ui.screens.room
 
-import android.content.ClipData
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.ClipEntry
-import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.data.model.Member
 import org.phalanx.android.data.model.UserTrust
-import org.phalanx.android.ui.components.MatrixAvatar
-import org.phalanx.android.ui.components.MenuAction
-import org.phalanx.android.ui.components.MenuActions
 import org.phalanx.android.ui.components.ModalSheet
-import org.phalanx.android.ui.components.TrustLabel
-import org.phalanx.android.ui.theme.Symbols
 
-/** The profile of [userId], opened from a mention or a sender, and the block confirmation it leads to. */
+/** The profile of [userId], opened from a mention or a sender. */
 @Composable
 internal fun ProfileMenu(
     userId: String?,
@@ -50,115 +22,47 @@ internal fun ProfileMenu(
     viewModel: RoomViewModel,
     profiles: ProfileViewModel = hiltViewModel()
 ) {
-    var blocking by remember { mutableStateOf<Member?>(null) }
     var viewing by remember { mutableStateOf<Member?>(null) }
     val muted by viewModel.muted.collectAsStateWithLifecycle()
     if (userId != null) {
         // The ID stands in for the name until the room says who they are.
         val member by produceState(Member(userId, userId, null), userId) { value = profiles.member(userId) }
         val trust by produceState<UserTrust?>(null, userId) { value = profiles.trustOf(userId) }
-        ProfileSheet(
-            member = member,
-            trust = trust,
-            muted = userId in muted,
-            onDismiss = onDismiss,
-            onViewAvatar = { viewing = member },
-            onMessage = {
-                onDismiss()
-                profiles.message(
-                    userId,
-                    // Already their direct chat: closing the profile is all it takes.
-                    onOpened = { roomId -> if (roomId != viewModel.roomId) onOpenRoom(roomId) },
-                    onFailed = { viewModel.notify(R.string.profile_message_failed) }
-                )
-            },
-            onToggleMute = {
-                viewModel.setMuted(userId, userId !in muted)
-                onDismiss()
-            },
-            onBlock = {
-                blocking = member
-                onDismiss()
-            }
-        )
+        val alsoOn by remember(userId) { profiles.alsoOn(userId) }.collectAsStateWithLifecycle(emptyList())
+        ModalSheet(onDismissRequest = onDismiss) {
+            QuickProfile(
+                member = member,
+                trust = trust,
+                alsoOn = alsoOn,
+                muted = userId in muted,
+                onViewAvatar = { viewing = member },
+                onOpenChat = { roomId ->
+                    onDismiss()
+                    onOpenRoom(roomId)
+                },
+                onMessage = {
+                    onDismiss()
+                    profiles.message(
+                        userId,
+                        // Already their direct chat: closing the profile is all it takes.
+                        onOpened = { roomId -> if (roomId != viewModel.roomId) onOpenRoom(roomId) },
+                        onFailed = { viewModel.notify(R.string.profile_message_failed) }
+                    )
+                },
+                onMention = {
+                    viewModel.composer.mention(member)
+                    onDismiss()
+                },
+                // Stays open: the button shows the new state, and it can be flipped back.
+                onToggleMute = { viewModel.setMuted(userId, userId !in muted) },
+                onBlock = {
+                    viewModel.block(userId)
+                    onDismiss()
+                }
+            )
+        }
     }
     viewing?.let { target ->
         target.avatar?.let { AvatarViewer(it, target.name, onDismiss = { viewing = null }) }
-    }
-    blocking?.let { target ->
-        BlockUserDialog(
-            name = target.name,
-            onConfirm = {
-                viewModel.block(target.userId)
-                blocking = null
-            },
-            onDismiss = { blocking = null }
-        )
-    }
-}
-
-@Composable
-private fun ProfileSheet(
-    member: Member,
-    trust: UserTrust?,
-    muted: Boolean,
-    onDismiss: () -> Unit,
-    onViewAvatar: () -> Unit,
-    onMessage: () -> Unit,
-    onToggleMute: () -> Unit,
-    onBlock: () -> Unit
-) {
-    val clipboard = LocalClipboard.current
-    val scope = rememberCoroutineScope()
-    ModalSheet(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            val viewLabel = stringResource(R.string.profile_photo)
-            MatrixAvatar(
-                member.name,
-                member.avatar,
-                96.dp,
-                modifier = if (member.avatar == null) {
-                    Modifier
-                } else {
-                    Modifier
-                        .clip(CircleShape)
-                        .clickable(onClickLabel = viewLabel, role = Role.Image, onClick = onViewAvatar)
-                }
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(member.name, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
-            if (member.name != member.userId) {
-                Text(
-                    text = member.userId,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-        trust?.let {
-            TrustLabel(it, Modifier.fillMaxWidth().padding(top = 4.dp).wrapContentWidth(Alignment.CenterHorizontally))
-        }
-        Spacer(Modifier.height(8.dp))
-        MenuActions(
-            actions = listOf(
-                MenuAction(Symbols.Chat, R.string.profile_message, onMessage),
-                MenuAction(Symbols.ContentCopy, R.string.profile_copy_id, {
-                    scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, member.userId))) }
-                    onDismiss()
-                }),
-                MenuAction(
-                    if (muted) Symbols.NotificationsOff else Symbols.NotificationsActive,
-                    R.string.menu_mute,
-                    onToggleMute,
-                    muted
-                )
-            ),
-            danger = listOf(MenuAction(Symbols.Block, R.string.action_block, onBlock))
-        )
     }
 }

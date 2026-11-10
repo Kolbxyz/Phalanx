@@ -176,7 +176,8 @@ fun RoomScreen(
                     LocalTranscripts provides transcripts,
                     LocalLinkPreviews provides linkPreviews,
                     LocalAutoTranslations provides autoTranslations,
-                    LocalPersonThread provides thread
+                    LocalPersonThread provides thread,
+                    LocalLiftedMessage provides selected?.id
                 ) {
                     Box(Modifier.fillMaxSize()) {
                         val checkpoints by summary.marks.collectAsStateWithLifecycle()
