@@ -1,6 +1,7 @@
 package org.phalanx.android.ui.screens.roomlist
 
 import androidx.compose.runtime.Immutable
+import org.phalanx.android.data.model.Bridge
 import org.phalanx.android.data.model.RoomSummary
 
 @Immutable
@@ -10,7 +11,7 @@ sealed interface RoomListUiState {
 
     /**
      * [rooms] already filtered by [filter] and [source]; [archivedCount] for the Archived chip's
-     * label; [sources] for the side panel, counted within [filter].
+     * label; [sources] for the tabs, counted over every room not archived.
      */
     data class Loaded(
         val rooms: List<RoomSummary>,
@@ -19,6 +20,8 @@ sealed interface RoomListUiState {
         val source: RoomSource = RoomSource.All,
         val sources: List<SourceCount> = emptyList(),
         /** For a row that is a linked person, all of their chats' room IDs, by the row's room ID. */
-        val roomsOf: Map<String, List<String>> = emptyMap()
+        val roomsOf: Map<String, List<String>> = emptyMap(),
+        /** For a row that is a linked person, the networks of their chats, by the row's room ID. */
+        val bridgesOf: Map<String, List<Bridge>> = emptyMap()
     ) : RoomListUiState
 }

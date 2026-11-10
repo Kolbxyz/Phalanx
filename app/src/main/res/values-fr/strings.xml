@@ -515,7 +515,7 @@
     <string name="roomlist_filter_people">Personnes</string>
     <string name="roomlist_filter_groups">Groupes</string>
     <string name="roomlist_filter_archived">Archivées</string>
-    <string name="roomlist_filter_archived_count">Archivées · %1$d</string>
+    <string name="roomlist_filter_archived_count">Archivées (%1$d)</string>
     <string name="roomlist_filter_empty">Rien ici</string>
     <string name="search_all">Tout</string>
     <string name="search_chats">Conversations</string>
@@ -587,11 +587,8 @@
     <string name="details_member_invited">Invité</string>
     <string name="action_pin">Épingler</string>
     <string name="action_unpin">Désépingler</string>
-    <string name="sources_title">Sources</string>
     <string name="sources_all">Toutes les sources</string>
     <string name="sources_matrix">Matrix</string>
-    <string name="sources_open">Afficher les sources</string>
-    <string name="sources_clear">Afficher toutes les sources</string>
     <string name="timeline_reaction_custom">émoji personnalisé</string>
     <string name="composer_mention_room">Notifier tout le salon</string>
     <string name="composer_mention_silent">Envoyer sans notifier personne</string>
@@ -642,4 +639,52 @@
     <string name="bridges_logged_out">Déconnecté : reconnectez-vous pour recevoir les messages</string>
     <string name="bridges_connected">Connecté</string>
     <string name="bridges_reconnect">Reconnecter</string>
+    <string name="confirm_expanded">Demande de confirmation</string>
+    <string name="confirm_collapsed">Touchez pour confirmer</string>
+    <string name="copied">Copié</string>
+    <string name="undo">Annuler</string>
+    <plurals name="catch_up_card_unread">
+        <item quantity="one">%1$d non lu dans %2$d discussion</item>
+        <item quantity="many">%1$d non lus dans %2$d discussions</item>
+        <item quantity="other">%1$d non lus dans %2$d discussions</item>
+    </plurals>
+    <plurals name="catch_up_card_mentions">
+        <item quantity="one">%d mention</item>
+        <item quantity="many">%d mentions</item>
+        <item quantity="other">%d mentions</item>
+    </plurals>
+    <string name="catch_up_card_with_mentions">%1$s · %2$s</string>
+    <string name="roomlist_menu_open">Ouvrir le menu</string>
+    <string name="room_thread_subtitle">%1$s, une seule discussion</string>
+    <string name="network_limit">%1$s caractères par message</string>
+    <string name="network_no_limit">Aucune limite de longueur</string>
+    <string name="split_meter_near">%1$s / %2$s</string>
+    <string name="split_meter_near_description">%1$s caractères sur %2$s</string>
+    <string name="split_preview_subtitle">%1$s accepte %2$s caractères à la fois.</string>
+    <string name="split_preview_close">Fermer l’aperçu du découpage</string>
+    <string name="split_cut_paragraph">Coupé entre deux paragraphes</string>
+    <string name="split_cut_line">Coupé à un retour à la ligne</string>
+    <string name="split_cut_word">Coupé entre deux mots</string>
+    <string name="split_cut_mid_word">Coupé au milieu d’un mot</string>
+    <string name="split_send_instead">Envoyer plutôt sur %1$s, en un seul message</string>
+    <plurals name="split_meter_parts">
+        <item quantity="one">%d message</item>
+        <item quantity="many">%d messages</item>
+        <item quantity="other">%d messages</item>
+    </plurals>
+    <plurals name="split_meter_parts_description">
+        <item quantity="one">Part en %d message. Voir où il est coupé.</item>
+        <item quantity="many">Part en %d messages. Voir où il est coupé.</item>
+        <item quantity="other">Part en %d messages. Voir où il est coupé.</item>
+    </plurals>
+    <plurals name="split_preview_title">
+        <item quantity="one">Part en %d message</item>
+        <item quantity="many">Part en %d messages</item>
+        <item quantity="other">Part en %d messages</item>
+    </plurals>
+    <plurals name="composer_send_parts">
+        <item quantity="one">Envoyer en %d message</item>
+        <item quantity="many">Envoyer en %d messages</item>
+        <item quantity="other">Envoyer en %d messages</item>
+    </plurals>
 </resources>

@@ -4,13 +4,12 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -34,7 +33,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import org.phalanx.android.R
 import org.phalanx.android.data.model.RoomSummary
+import org.phalanx.android.ui.components.PhalanxSnackbarHost
 import org.phalanx.android.ui.components.RoomListPlaceholder
+import org.phalanx.android.ui.components.ScrollHairline
 import org.phalanx.android.ui.screens.search.SearchOverlay
 import org.phalanx.android.ui.theme.Symbols
 
@@ -44,6 +45,7 @@ fun RoomListScreen(
     onOpenMessage: (roomId: String, eventId: String) -> Unit,
     onOpenDetails: (String) -> Unit,
     onOpenAccount: () -> Unit,
+    onOpenSettings: () -> Unit,
     onOpenCatchUp: () -> Unit,
     onOpenReminders: () -> Unit,
     onOpenBookmarks: () -> Unit,
@@ -55,7 +57,7 @@ fun RoomListScreen(
     val avatar by viewModel.avatar.collectAsStateWithLifecycle()
     val actionFailed by viewModel.actionFailed.collectAsStateWithLifecycle()
     val drafts by viewModel.drafts.collectAsStateWithLifecycle()
-    val canCatchUp by viewModel.canCatchUp.collectAsStateWithLifecycle()
+    val catchUp by viewModel.catchUp.collectAsStateWithLifecycle()
     val reminders by viewModel.reminderCount.collectAsStateWithLifecycle()
     var menuFor by remember { mutableStateOf<RoomSummary?>(null) }
     var leaving by remember { mutableStateOf<RoomSummary?>(null) }
@@ -72,14 +74,9 @@ fun RoomListScreen(
     val drawer = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val loaded = state as? RoomListUiState.Loaded
-    SourcesDrawer(
+    RoomListDrawer(
         drawerState = drawer,
-        sources = loaded?.sources.orEmpty(),
-        selected = loaded?.source ?: RoomSource.All,
-        onSelect = { source ->
-            viewModel.setSource(source)
-            scope.launch { drawer.close() }
-        },
+        enabled = loaded != null,
         reminders = reminders,
         onOpenReminders = {
             scope.launch { drawer.close() }
@@ -92,11 +89,16 @@ fun RoomListScreen(
         onOpenPeople = {
             scope.launch { drawer.close() }
             onOpenPeople()
+        },
+        onOpenSettings = {
+            scope.launch { drawer.close() }
+            onOpenSettings()
         }
     ) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
+                Column {
                 // One row: the title and the account button share it, so there is no empty band above
                 // the title as with a large app bar.
                 TopAppBar(
@@ -108,25 +110,27 @@ fun RoomListScreen(
                     },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawer.open() } }, enabled = loaded != null) {
-                            Icon(Symbols.Hub, contentDescription = stringResource(R.string.sources_open))
+                            Icon(Symbols.Menu, contentDescription = stringResource(R.string.roomlist_menu_open))
                         }
                     },
                     actions = {
-                        if (canCatchUp) {
-                            IconButton(onClick = onOpenCatchUp) {
-                                Icon(Symbols.Summarize, contentDescription = stringResource(R.string.catch_up_open))
-                            }
-                        }
                         IconButton(onClick = { searching = true }) {
                             Icon(Symbols.Search, contentDescription = stringResource(R.string.search_open))
                         }
                         AccountButton(profile?.label.orEmpty(), avatar, onOpenAccount)
                     },
                     expandedHeight = 72.dp,
+                    // One colour however far the list scrolls; the hairline below marks the edge.
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        scrolledContainerColor = MaterialTheme.colorScheme.surface
+                    ),
                     scrollBehavior = scrollBehavior
                 )
+                if (loaded != null) NetworkTabs(loaded.sources, loaded.source, viewModel::setSource)
+                ScrollHairline(scrollBehavior.state.overlappedFraction > 0f)
+                }
             },
-            snackbarHost = { SnackbarHost(snackbar) }
+            snackbarHost = { PhalanxSnackbarHost(snackbar) }
         ) { padding ->
             // Keyed on the kind of state, so the skeleton fades into the list once, not on every update.
             val fade = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
@@ -141,8 +145,9 @@ fun RoomListScreen(
                         current,
                         drafts,
                         padding,
+                        catchUp,
                         viewModel::setFilter,
-                        onClearSource = { viewModel.setSource(RoomSource.All) },
+                        onOpenCatchUp,
                         onOpenRoom,
                         onLongClick = { menuFor = it }
                     )

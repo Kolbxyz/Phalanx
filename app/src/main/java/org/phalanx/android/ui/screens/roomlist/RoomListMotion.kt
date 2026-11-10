@@ -1,46 +1,64 @@
 package org.phalanx.android.ui.screens.roomlist
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterExitState
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.foundation.interaction.InteractionSource
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.phalanx.android.ui.components.pressShrink
 import org.phalanx.android.ui.theme.LocalReducedMotion
+import kotlin.math.hypot
 
 private const val STAGGER_MILLIS = 35L
 private const val MAX_STAGGERED = 12
 private const val PRESSED_SCALE = 0.97f
 private val EntranceRise = 28.dp
-private const val SEARCH_FROM_SCALE = 0.85f
-private val SearchOrigin = TransformOrigin(1f, 0f)
+private val SearchFromEnd = 76.dp
+private val SearchFromTop = 36.dp
 
-/** Grows the search out of the search button's corner, the way a search bar expands in Material 3. */
+/**
+ * Opens the search as a circle growing out of the search button until it covers the screen, and
+ * closes it back into the button, so it reads as the button unfolding rather than a new page.
+ */
 @Composable
 internal fun SearchReveal(visible: Boolean, content: @Composable () -> Unit) {
     val motion = MaterialTheme.motionScheme
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn(motion.defaultEffectsSpec()) +
-            scaleIn(motion.defaultSpatialSpec(), initialScale = SEARCH_FROM_SCALE, transformOrigin = SearchOrigin),
-        exit = fadeOut(motion.fastEffectsSpec()) +
-            scaleOut(motion.fastSpatialSpec(), targetScale = SEARCH_FROM_SCALE, transformOrigin = SearchOrigin)
-    ) {
-        content()
+    val density = LocalDensity.current
+    val top = WindowInsets.statusBars.getTop(density)
+    AnimatedVisibility(visible = visible, enter = EnterTransition.None, exit = ExitTransition.None) {
+        val open by transition.animateFloat(
+            transitionSpec = {
+                if (targetState == EnterExitState.Visible) motion.defaultSpatialSpec() else motion.fastEffectsSpec()
+            }
+        ) { if (it == EnterExitState.Visible) 1f else 0f }
+        Box(
+            Modifier.drawWithContent {
+                val center = Offset(size.width - SearchFromEnd.toPx(), top + SearchFromTop.toPx())
+                val reach = hypot(size.width, size.height)
+                val circle = Path().apply { addOval(Rect(center, reach * open.coerceIn(0f, 1f))) }
+                clipPath(circle) { this@drawWithContent.drawContent() }
+            }
+        ) { content() }
     }
 }
 

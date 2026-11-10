@@ -24,19 +24,33 @@ internal data class OutgoingMessage(
         private const val EMOTE_PREFIX = "/me "
         private const val SILENT_PREFIX = "@silent "
         private const val BUDGET_PERCENT = 95
+        private const val PERCENT = 100
 
         /**
          * [text] as the messages to send to a room bridged to [bridge], its link trackers cut first
          * when [settings] say so: several when it is longer than the network takes and splitting is
          * on, each keeping a "/me" or "@silent" it starts with.
          */
-        fun parts(text: String, settings: AppSettings, bridge: Bridge?): List<String> {
+        fun parts(text: String, settings: AppSettings, bridge: Bridge?): List<String> =
+            split(text, settings, bridge).map { it.text }
+
+        /** As [parts], with where each was cut from the next, for the composer to show before sending. */
+        fun split(text: String, settings: AppSettings, bridge: Bridge?): List<MessageSplitter.Part> {
             val text = if (settings.stripLinkTrackers) LinkTrackers.strip(text) else text
-            val limit = bridge?.messageLimit?.takeIf { settings.splitLongMessages } ?: return listOf(text)
-            // Bridges rewrite formatting and mentions in their own way, often longer.
-            val budget = limit * BUDGET_PERCENT / 100
+            val budget = budget(settings, bridge) ?: return listOf(MessageSplitter.Part(text, cut = null))
             val prefix = listOf(EMOTE_PREFIX, SILENT_PREFIX).firstOrNull(text::startsWith).orEmpty()
-            return MessageSplitter.split(text.removePrefix(prefix), budget - prefix.length).map { prefix + it }
+            return MessageSplitter.splitWithCuts(text.removePrefix(prefix), budget - prefix.length)
+                .map { it.copy(text = prefix + it.text) }
+        }
+
+        /**
+         * How long a message to [bridge] may be before it is split, or null when it never is: a
+         * network without a limit, or splitting turned off.
+         */
+        fun budget(settings: AppSettings, bridge: Bridge?): Int? {
+            val limit = bridge?.messageLimit?.takeIf { settings.splitLongMessages } ?: return null
+            // Bridges rewrite formatting and mentions in their own way, often longer.
+            return limit * BUDGET_PERCENT / PERCENT
         }
 
         /**

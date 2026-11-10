@@ -5,7 +5,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -14,7 +13,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -130,23 +128,29 @@ fun RoomScreen(
             RoomTopBar(
                 header, ready?.title, onBack,
                 onOpenDetails = { onOpenDetails(viewModel.roomId) },
-                onSummarize = if (settings?.aiSummaries == true) summary::start else null
+                onSummarize = if (settings?.aiSummaries == true) summary::start else null,
+                thread = thread
             )
         },
         bottomBar = {
             if (ready != null) {
-                Column {
-                    thread?.let {
-                        val roomOf = { id: String -> viewModel.originOf(id).first }
-                        NetworkPicker(it, composerState.mode, roomOf, viewModel::chooseNetwork)
-                    }
+                ComposerBar(
+                    draft = composerState.draft,
+                    mode = composerState.mode,
+                    settings = settings,
+                    room = header,
+                    thread = thread,
+                    roomOf = { id -> viewModel.originOf(id).first },
+                    onChooseNetwork = viewModel::chooseNetwork
+                ) { parts ->
                     Composer(
                         composerState,
                         composerActions,
                         enterToSend = settings?.enterToSend == true,
                         scheduled = scheduled,
                         canDictate = canDictate,
-                        dictating = dictating
+                        dictating = dictating,
+                        parts = parts
                     )
                 }
             }

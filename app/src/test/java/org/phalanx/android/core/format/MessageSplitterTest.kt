@@ -64,6 +64,39 @@ class MessageSplitterTest {
         assertEquals(1, OutgoingMessage.parts(long, AppSettings(), null).size)
     }
 
+    @Test
+    fun `each cut says where it fell and the last part has none`() {
+        val paragraph = "a".repeat(60)
+        val words = "word ".repeat(30).trim()
+        val parts = MessageSplitter.splitWithCuts("$paragraph\n\n$words", limit)
+        assertEquals(MessageSplitter.Cut.Paragraph, parts.first().cut)
+        assertEquals(MessageSplitter.Cut.Word, parts[1].cut)
+        assertEquals(null, parts.last().cut)
+    }
+
+    @Test
+    fun `a line break is preferred to a space, and no break at all cuts mid-word`() {
+        val lines = MessageSplitter.splitWithCuts("a".repeat(60) + "\n" + "b".repeat(60), limit)
+        assertEquals(MessageSplitter.Cut.Line, lines.first().cut)
+        val solid = MessageSplitter.splitWithCuts("x".repeat(250), limit)
+        assertEquals(MessageSplitter.Cut.MidWord, solid.first().cut)
+    }
+
+    @Test
+    fun `the cut parts read the same as a plain split`() {
+        val text = "para one ".repeat(20) + "\n\n" + "x".repeat(150)
+        assertEquals(MessageSplitter.split(text, limit), MessageSplitter.splitWithCuts(text, limit).map { it.text })
+    }
+
+    @Test
+    fun `no budget without a limit or with splitting off`() {
+        val on = AppSettings(splitLongMessages = true)
+        assertEquals(null, OutgoingMessage.budget(on, Bridge.Signal))
+        assertEquals(null, OutgoingMessage.budget(on, null))
+        assertEquals(null, OutgoingMessage.budget(on.copy(splitLongMessages = false), Bridge.Instagram))
+        assertTrue((OutgoingMessage.budget(on, Bridge.Instagram) ?: 0) < 1000)
+    }
+
     private companion object {
         const val CLOSING_ROOM = 4
     }

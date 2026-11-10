@@ -510,7 +510,7 @@
     <string name="roomlist_filter_people">People</string>
     <string name="roomlist_filter_groups">Groups</string>
     <string name="roomlist_filter_archived">Archived</string>
-    <string name="roomlist_filter_archived_count">Archived · %1$d</string>
+    <string name="roomlist_filter_archived_count">Archived (%1$d)</string>
     <string name="roomlist_filter_empty">Nothing here</string>
     <string name="search_all">All</string>
     <string name="search_chats">Chats</string>
@@ -595,11 +595,8 @@
     <string name="bridge_twitter" translatable="false">X (Twitter)</string>
     <string name="bridge_bluesky" translatable="false">Bluesky</string>
     <string name="bridge_imessage" translatable="false">iMessage</string>
-    <string name="sources_title">Sources</string>
     <string name="sources_all">All sources</string>
     <string name="sources_matrix">Matrix</string>
-    <string name="sources_open">Show sources</string>
-    <string name="sources_clear">Show all sources</string>
     <string name="timeline_reaction_custom">custom emoji</string>
     <string name="composer_mention_room">Notify everyone in this room</string>
     <string name="composer_mention_silent">Send without notifying anyone</string>
@@ -652,4 +649,46 @@
     <string name="bridges_logged_out">Disconnected: sign in again to get messages</string>
     <string name="bridges_connected">Connected</string>
     <string name="bridges_reconnect">Reconnect</string>
+    <string name="confirm_expanded">Asking to confirm</string>
+    <string name="confirm_collapsed">Tap to confirm</string>
+    <string name="copied">Copied</string>
+    <string name="undo">Undo</string>
+    <plurals name="catch_up_card_unread">
+        <item quantity="one">%1$d unread in %2$d chat</item>
+        <item quantity="other">%1$d unread in %2$d chats</item>
+    </plurals>
+    <plurals name="catch_up_card_mentions">
+        <item quantity="one">%d mention</item>
+        <item quantity="other">%d mentions</item>
+    </plurals>
+    <string name="catch_up_card_with_mentions">%1$s · %2$s</string>
+    <string name="roomlist_menu_open">Open menu</string>
+    <string name="room_thread_subtitle">%1$s, one thread</string>
+    <string name="network_limit">%1$s characters per message</string>
+    <string name="network_no_limit">No length limit</string>
+    <string name="split_meter_near">%1$s / %2$s</string>
+    <string name="split_meter_near_description">%1$s of %2$s characters</string>
+    <string name="split_preview_subtitle">%1$s takes %2$s characters at a time.</string>
+    <string name="split_preview_close">Close split preview</string>
+    <string name="split_cut_paragraph">Cut at a paragraph break</string>
+    <string name="split_cut_line">Cut at a line break</string>
+    <string name="split_cut_word">Cut between two words</string>
+    <string name="split_cut_mid_word">Cut mid-word</string>
+    <string name="split_send_instead">Send on %1$s instead, in one message</string>
+    <plurals name="split_meter_parts">
+        <item quantity="one">%d message</item>
+        <item quantity="other">%d messages</item>
+    </plurals>
+    <plurals name="split_meter_parts_description">
+        <item quantity="one">Sends as %d message. Show where it splits.</item>
+        <item quantity="other">Sends as %d messages. Show where it splits.</item>
+    </plurals>
+    <plurals name="split_preview_title">
+        <item quantity="one">Sends as %d message</item>
+        <item quantity="other">Sends as %d messages</item>
+    </plurals>
+    <plurals name="composer_send_parts">
+        <item quantity="one">Send as %d message</item>
+        <item quantity="other">Send as %d messages</item>
+    </plurals>
 </resources>

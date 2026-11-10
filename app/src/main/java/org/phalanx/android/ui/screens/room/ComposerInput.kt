@@ -1,11 +1,13 @@
 package org.phalanx.android.ui.screens.room
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.combinedClickable
@@ -13,8 +15,10 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -39,8 +43,10 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
@@ -53,7 +59,7 @@ private val ButtonSize = 48.dp
 
 /** Attach, the text, then send, which is a microphone while there is nothing to send. */
 @Composable
-internal fun InputRow(state: ComposerState, actions: ComposerActions, enterToSend: Boolean) {
+internal fun InputRow(state: ComposerState, actions: ComposerActions, enterToSend: Boolean, parts: Int = 1) {
     // Replying to or editing a message means typing next: focusing the field brings the keyboard up.
     val focus = remember { FocusRequester() }
     LaunchedEffect(state.mode) {
@@ -97,13 +103,13 @@ internal fun InputRow(state: ComposerState, actions: ComposerActions, enterToSen
             )
         )
         Box(Modifier.height(TextFieldHeight), contentAlignment = Alignment.Center) {
-            SendOrRecord(state, actions)
+            SendOrRecord(state, actions, parts)
         }
     }
 }
 
 @Composable
-private fun SendOrRecord(state: ComposerState, actions: ComposerActions) {
+private fun SendOrRecord(state: ComposerState, actions: ComposerActions, parts: Int) {
     val motion = MaterialTheme.motionScheme
     AnimatedContent(
         targetState = state.showsMic,
@@ -125,6 +131,7 @@ private fun SendOrRecord(state: ComposerState, actions: ComposerActions) {
             val editing = state.mode is ComposerMode.Edit
             SendButton(
                 editing = editing,
+                parts = if (editing) 1 else parts,
                 enabled = state.canSend,
                 onSend = actions.onSend,
                 // Only text can wait: attachments and edits go now.
@@ -137,41 +144,73 @@ private fun SendOrRecord(state: ComposerState, actions: ComposerActions) {
 /** A filled round button; a long press, where offered, opens scheduling with a haptic tick. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun SendButton(editing: Boolean, enabled: Boolean, onSend: () -> Unit, onLongPress: (() -> Unit)?) {
+private fun SendButton(
+    editing: Boolean,
+    parts: Int,
+    enabled: Boolean,
+    onSend: () -> Unit,
+    onLongPress: (() -> Unit)?
+) {
     val colors = MaterialTheme.colorScheme
     val haptics = LocalHapticFeedback.current
     val scheduleLabel = stringResource(R.string.schedule_action)
     val interaction = remember { MutableInteractionSource() }
-    Surface(
-        shape = CircleShape,
-        color = if (enabled) colors.primary else colors.onSurface.copy(alpha = DISABLED_ALPHA),
-        contentColor = if (enabled) colors.onPrimary else colors.onSurface.copy(alpha = DISABLED_CONTENT_ALPHA),
-        modifier = Modifier
-            .size(ButtonSize)
-            .pressShrink(interaction)
-            .clip(CircleShape)
-            .combinedClickable(
-                interactionSource = interaction,
-                indication = LocalIndication.current,
-                enabled = enabled,
-                role = Role.Button,
-                onClick = onSend,
-                onLongClickLabel = if (onLongPress != null) scheduleLabel else null,
-                onLongClick = onLongPress?.let { open ->
-                    {
-                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                        open()
+    val motion = MaterialTheme.motionScheme
+    Box {
+        Surface(
+            shape = CircleShape,
+            color = if (enabled) colors.primary else colors.onSurface.copy(alpha = DISABLED_ALPHA),
+            contentColor = if (enabled) colors.onPrimary else colors.onSurface.copy(alpha = DISABLED_CONTENT_ALPHA),
+            modifier = Modifier
+                .size(ButtonSize)
+                .pressShrink(interaction)
+                .clip(CircleShape)
+                .combinedClickable(
+                    interactionSource = interaction,
+                    indication = LocalIndication.current,
+                    enabled = enabled,
+                    role = Role.Button,
+                    onClick = onSend,
+                    onLongClickLabel = if (onLongPress != null) scheduleLabel else null,
+                    onLongClick = onLongPress?.let { open ->
+                        {
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            open()
+                        }
                     }
-                }
-            )
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            Icon(
-                if (editing) Symbols.Check else Symbols.Send,
-                contentDescription = stringResource(
-                    if (editing) R.string.composer_save_edit else R.string.composer_send
                 )
-            )
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    if (editing) Symbols.Check else Symbols.Send,
+                    contentDescription = when {
+                        editing -> stringResource(R.string.composer_save_edit)
+                        parts > 1 -> pluralStringResource(R.plurals.composer_send_parts, parts, parts)
+                        else -> stringResource(R.string.composer_send)
+                    }
+                )
+            }
+        }
+        // The count of messages a split draft goes out as, on the button that sends them.
+        AnimatedVisibility(
+            visible = parts > 1,
+            enter = scaleIn(motion.fastSpatialSpec()),
+            exit = scaleOut(motion.fastSpatialSpec()),
+            modifier = Modifier.align(Alignment.TopEnd).offset(x = 2.dp, y = (-4).dp)
+        ) {
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.surfaceContainer)
+            ) {
+                Box(
+                    Modifier.defaultMinSize(minWidth = 20.dp, minHeight = 20.dp).padding(horizontal = 5.dp),
+                    Alignment.Center
+                ) {
+                    Text(parts.toString(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                }
+            }
         }
     }
 }
